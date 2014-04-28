@@ -8,15 +8,19 @@
     :copyright: (c) 2014 by Shipeng Feng.
     :license: BSD, see LICENSE for more details.
 """
-import pickle
+import time
 from uuid import uuid4
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
 
 from flask.sessions import SessionInterface, SessionMixin
 from werkzeug.datastructures import CallbackDict
-from redis import Redis
 
 
-class RedisSession(CallbackDict, SessionMixin):
+class ServerSideSession(CallbackDict, SessionMixin):
+    """Baseclass for server-side based sessions."""
     
     def __init__(self, initial=None, sid=None):
         def on_update(self):
@@ -27,25 +31,52 @@ class RedisSession(CallbackDict, SessionMixin):
         self.modified = False
 
 
+class RedisSession(ServerSideSession):
+    pass
+
+
+class MemcachedSession(ServerSideSession):
+    pass
+
+
+class FileSystemSession(ServerSideSession):
+    pass
+
+
+class MySQLSession(ServerSideSession):
+    pass
+
+
+class MongoDBSession(ServerSideSession):
+    pass
+
+
+class NullSessionInterface(SessionInterface):
+    
+    def open_session(self, app, request):
+        return None
+
+
 class RedisSessionInterface(SessionInterface):
     serializer = pickle
     session_class = RedisSession
 
-    def __init__(self, prefix, redis):
+    def __init__(self, redis, key_prefix):
         if redis is None:
+            from redis import Redis
             redis = Redis()
         self.redis = redis
-        self.prefix = prefix
+        self.key_prefix = key_prefix
 
-    def generate_sid(self):
+    def _generate_sid(self):
         return str(uuid4())
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
-            sid = self.generate_sid()
+            sid = self._generate_sid()
             return self.session_class(sid=sid)
-        val = self.redis.get(self.prefix + sid)
+        val = self.redis.get(self.key_prefix + sid)
         if val is not None:
             try:
                 data = self.serializer.loads(val)
@@ -59,7 +90,7 @@ class RedisSessionInterface(SessionInterface):
         path = self.get_cookie_path(app)
         if not session:
             if session.modified:
-                self.redis.delete(self.prefix + session.sid)
+                self.redis.delete(self.key_prefix + session.sid)
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
             return
@@ -67,7 +98,230 @@ class RedisSessionInterface(SessionInterface):
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session))
-        self.redis.setex(self.prefix + session.sid, val,
+        self.redis.setex(self.key_prefix + session.sid, val,
+                         int(app.permanent_session_lifetime.total_seconds()))
+        response.set_cookie(app.session_cookie_name, session.sid,
+                            expires=expires, httponly=httponly,
+                            domain=domain, path=path, secure=secure)
+
+
+class MemcachedSessionInterface(SessionInterface):
+    serializer = pickle
+    session_class = MemcachedSession
+
+    def __init__(self, client, key_prefix):
+        if client is None:
+            client = self._get_preferred_memcache_client()
+            if client is None:
+                raise RuntimeError('no memcache module found')
+        self.client = client
+        self.key_prefix = key_prefix
+
+    def _generate_sid(self):
+        return str(uuid4())
+
+    def _get_preferred_memcache_client(self):
+        servers = ['127.0.0.1:11211']
+        try:
+            import pylibmc
+        except ImportError:
+            pass
+        else:
+            return pylibmc.Client(servers)
+
+        try:
+            import memcache
+        except ImportError:
+            pass
+        else:
+            return memcache.Client(servers)
+
+    def _get_memcache_timeout(self, timeout):
+        """
+        Memcached deals with long (> 30 days) timeouts in a special
+        way. Call this function to obtain a safe value for your timeout.
+        """
+        if timeout > 2592000: # 60*60*24*30, 30 days
+            # See http://code.google.com/p/memcached/wiki/FAQ
+            # "You can set expire times up to 30 days in the future. After that
+            # memcached interprets it as a date, and will expire the item after
+            # said date. This is a simple (but obscure) mechanic."
+            #
+            # This means that we have to switch to absolute timestamps.
+            timeout += int(time.time())
+        return timeout
+
+    def open_session(self, app, request):
+        sid = request.cookies.get(app.session_cookie_name)
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid)
+        full_session_key = self.key_prefix + sid
+        if isinstance(full_session_key, unicode):
+            full_session_key = full_session_key.encode('utf-8')
+        val = self.client.get(full_session_key)
+        if val is not None:
+            try:
+                data = self.serializer.loads(val)
+                return self.session_class(data, sid=sid)
+            except:
+                return self.session_class(sid=sid)
+        return self.session_class(sid=sid)
+    
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        full_session_key = self.key_prefix + session.sid
+        if isinstance(full_session_key, unicode):
+            full_session_key = full_session_key.encode('utf-8')
+        if not session:
+            if session.modified:
+                self.client.delete(full_session_key)
+                response.delete_cookie(app.session_cookie_name,
+                                       domain=domain, path=path)
+            return
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        expires = self.get_expiration_time(app, session)
+        val = self.serializer.dumps(dict(session))
+        self.client.set(full_session_key, val, self._get_memcache_timeout(
+                        int(app.permanent_session_lifetime.total_seconds())))
+        response.set_cookie(app.session_cookie_name, session.sid,
+                            expires=expires, httponly=httponly,
+                            domain=domain, path=path, secure=secure)
+
+
+class FileSystemSessionInterface(SessionInterface):
+    session_class = FileSystemSession
+
+    def __init__(self, cache_dir, threshold, mode, key_prefix):
+        from werkzeug.contrib.cache import FileSystemCache
+        self.cache = FileSystemCache(cache_dir, threshold=threshold, mode=mode)
+        self.key_prefix = key_prefix
+
+    def _generate_sid(self):
+        return str(uuid4())
+
+    def open_session(self, app, request):
+        sid = request.cookies.get(app.session_cookie_name)
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid)
+        data = self.cache.get(self.key_prefix + sid)
+        if data is not None:
+            return self.session_class(data, sid=sid)
+        return self.session_class(sid=sid)
+    
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        if not session:
+            if session.modified:
+                self.cache.delete(self.key_prefix + session.sid)
+                response.delete_cookie(app.session_cookie_name,
+                                       domain=domain, path=path)
+            return
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        expires = self.get_expiration_time(app, session)
+        data = dict(session)
+        self.cache.set(self.key_prefix + session.sid, data,
+                         int(app.permanent_session_lifetime.total_seconds()))
+        response.set_cookie(app.session_cookie_name, session.sid,
+                            expires=expires, httponly=httponly,
+                            domain=domain, path=path, secure=secure)
+
+
+class MySQLSessionInterface(SessionInterface):
+    serializer = pickle
+    session_class = RedisSession
+
+    def __init__(self, redis, key_prefix):
+        if redis is None:
+            from redis import Redis
+            redis = Redis()
+        self.redis = redis
+        self.key_prefix = key_prefix
+
+    def _generate_sid(self):
+        return str(uuid4())
+
+    def open_session(self, app, request):
+        sid = request.cookies.get(app.session_cookie_name)
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid)
+        val = self.redis.get(self.key_prefix + sid)
+        if val is not None:
+            try:
+                data = self.serializer.loads(val)
+                return self.session_class(data, sid=sid)
+            except:
+                return self.session_class(sid=sid)
+        return self.session_class(sid=sid)
+    
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        if not session:
+            if session.modified:
+                self.redis.delete(self.key_prefix + session.sid)
+                response.delete_cookie(app.session_cookie_name,
+                                       domain=domain, path=path)
+            return
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        expires = self.get_expiration_time(app, session)
+        val = self.serializer.dumps(dict(session))
+        self.redis.setex(self.key_prefix + session.sid, val,
+                         int(app.permanent_session_lifetime.total_seconds()))
+        response.set_cookie(app.session_cookie_name, session.sid,
+                            expires=expires, httponly=httponly,
+                            domain=domain, path=path, secure=secure)
+
+
+class MongoDBSessionInterface(SessionInterface):
+    serializer = pickle
+    session_class = RedisSession
+
+    def __init__(self, redis, key_prefix):
+        if redis is None:
+            from redis import Redis
+            redis = Redis()
+        self.redis = redis
+        self.key_prefix = key_prefix
+
+    def _generate_sid(self):
+        return str(uuid4())
+
+    def open_session(self, app, request):
+        sid = request.cookies.get(app.session_cookie_name)
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid)
+        val = self.redis.get(self.key_prefix + sid)
+        if val is not None:
+            try:
+                data = self.serializer.loads(val)
+                return self.session_class(data, sid=sid)
+            except:
+                return self.session_class(sid=sid)
+        return self.session_class(sid=sid)
+    
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        if not session:
+            if session.modified:
+                self.redis.delete(self.key_prefix + session.sid)
+                response.delete_cookie(app.session_cookie_name,
+                                       domain=domain, path=path)
+            return
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        expires = self.get_expiration_time(app, session)
+        val = self.serializer.dumps(dict(session))
+        self.redis.setex(self.key_prefix + session.sid, val,
                          int(app.permanent_session_lifetime.total_seconds()))
         response.set_cookie(app.session_cookie_name, session.sid,
                             expires=expires, httponly=httponly,
