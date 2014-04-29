@@ -118,7 +118,6 @@ A list of configuration keys also understood by the extension:
                               - **redis**: RedisSessionInterface
                               - **memcached**: MemcachedSessionInterface
                               - **filesystem**: FileSystemSessionInterface
-                              - **mysql**: MySQLSessionInterface
                               - **mongodb**: MongoDBSessionInterface
 ``SESSION_KEY_PREFIX``        A prefix that is added before all session keys.
                               This makes it possible to use the same backend
@@ -135,6 +134,12 @@ A list of configuration keys also understood by the extension:
                               before it starts deleting some, default 500
 ``SESSION_FILE_MODE``         The file mode wanted for the session files,
                               default 0600
+``SESSION_MONGODB``           A ``pymongo.MongoClient`` instance, default
+                              connect to ``127.0.0.1:27017``
+``SESSION_MONGODB_DB``        The MongoDB database you want to use, default
+                              "flask_session"
+``SESSION_MONGODB_COLLECT``   The MongoDB collection you want to use, default
+                              "sessions"
 ============================= ==============================================
 
 Basically you only need to configure ``SESSION_TYPE``.
@@ -178,19 +183,19 @@ Uses the :class:`werkzeug.contrib.cache.FileSystemCache` as a session backend.
 - SESSION_FILE_THRESHOLD
 - SESSION_FILE_MODE
 
-:class:`MySQLSessionInterface`
-``````````````````````````````
-
-MySQL
-
 :class:`MongoDBSessionInterface`
 ````````````````````````````````
 
-MongoDB
+Uses the MongoDB as a session backend. (`pymongo`_ required)
+
+- SESSION_MONGODB
+- SESSION_MONGODB_DB
+- SESSION_MONGODB_COLLECT
 
 .. _redis-py: https://github.com/andymccurdy/redis-py
 .. _pylibmc: http://sendapatch.se/projects/pylibmc/
 .. _memcache: https://github.com/linsomniac/python-memcached
+.. _pymongo: http://api.mongodb.org/python/current/index.html
 
 API
 ---
@@ -209,7 +214,6 @@ API
 .. autoclass:: RedisSessionInterface
 .. autoclass:: MemcachedSessionInterface
 .. autoclass:: FileSystemSessionInterface
-.. autoclass:: MySQLSessionInterface
 .. autoclass:: MongoDBSessionInterface
 
 .. include:: ../CHANGES
