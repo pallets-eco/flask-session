@@ -52,12 +52,20 @@ class MongoDBSession(ServerSideSession):
 
 
 class NullSessionInterface(SessionInterface):
+    """Used to open a :class:`flask.sessions.NullSession` instance.
+    """
     
     def open_session(self, app, request):
         return None
 
 
 class RedisSessionInterface(SessionInterface):
+    """Uses the Redis key-value store as a session backend.
+
+    :param redis: A ``redis.Redis`` instance.
+    :param key_prefix: A prefix that is added to all Redis store keys.
+    """
+
     serializer = pickle
     session_class = RedisSession
 
@@ -94,6 +102,17 @@ class RedisSessionInterface(SessionInterface):
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
             return
+
+        # Modification case.  There are upsides and downsides to
+        # emitting a set-cookie header each request.  The behavior
+        # is controlled by the :meth:`should_set_cookie` method
+        # which performs a quick check to figure out if the cookie
+        # should be set or not.  This is controlled by the
+        # SESSION_REFRESH_EACH_REQUEST config flag as well as
+        # the permanent flag on the session itself.
+        #if not self.should_set_cookie(app, session):
+        #    return
+
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
@@ -106,6 +125,12 @@ class RedisSessionInterface(SessionInterface):
 
 
 class MemcachedSessionInterface(SessionInterface):
+    """A Session interface that uses memcached as backend.
+
+    :param client: A ``memcache.Client`` instance.
+    :param key_prefix: A prefix that is added to all Memcached store keys.
+    """
+
     serializer = pickle
     session_class = MemcachedSession
 
@@ -180,6 +205,17 @@ class MemcachedSessionInterface(SessionInterface):
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
             return
+
+        # Modification case.  There are upsides and downsides to
+        # emitting a set-cookie header each request.  The behavior
+        # is controlled by the :meth:`should_set_cookie` method
+        # which performs a quick check to figure out if the cookie
+        # should be set or not.  This is controlled by the
+        # SESSION_REFRESH_EACH_REQUEST config flag as well as
+        # the permanent flag on the session itself.
+        #if not self.should_set_cookie(app, session):
+        #    return
+
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
@@ -192,6 +228,16 @@ class MemcachedSessionInterface(SessionInterface):
 
 
 class FileSystemSessionInterface(SessionInterface):
+    """Uses the :class:`werkzeug.contrib.cache.FileSystemCache` as a session
+    backend.
+
+    :param cache_dir: the directory where session files are stored.
+    :param threshold: the maximum number of items the session stores before it
+                      starts deleting some.
+    :param mode: the file mode wanted for the session files, default 0600
+    :param key_prefix: A prefix that is added to FileSystemCache store keys.
+    """
+
     session_class = FileSystemSession
 
     def __init__(self, cache_dir, threshold, mode, key_prefix):
@@ -221,6 +267,17 @@ class FileSystemSessionInterface(SessionInterface):
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
             return
+
+        # Modification case.  There are upsides and downsides to
+        # emitting a set-cookie header each request.  The behavior
+        # is controlled by the :meth:`should_set_cookie` method
+        # which performs a quick check to figure out if the cookie
+        # should be set or not.  This is controlled by the
+        # SESSION_REFRESH_EACH_REQUEST config flag as well as
+        # the permanent flag on the session itself.
+        #if not self.should_set_cookie(app, session):
+        #    return
+
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
@@ -233,6 +290,9 @@ class FileSystemSessionInterface(SessionInterface):
 
 
 class MySQLSessionInterface(SessionInterface):
+    """MySQL
+    """
+
     serializer = pickle
     session_class = RedisSession
 
@@ -269,6 +329,17 @@ class MySQLSessionInterface(SessionInterface):
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
             return
+
+        # Modification case.  There are upsides and downsides to
+        # emitting a set-cookie header each request.  The behavior
+        # is controlled by the :meth:`should_set_cookie` method
+        # which performs a quick check to figure out if the cookie
+        # should be set or not.  This is controlled by the
+        # SESSION_REFRESH_EACH_REQUEST config flag as well as
+        # the permanent flag on the session itself.
+        #if not self.should_set_cookie(app, session):
+        #    return
+
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
@@ -281,6 +352,9 @@ class MySQLSessionInterface(SessionInterface):
 
 
 class MongoDBSessionInterface(SessionInterface):
+    """MongoDB
+    """
+
     serializer = pickle
     session_class = RedisSession
 
@@ -317,6 +391,17 @@ class MongoDBSessionInterface(SessionInterface):
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
             return
+
+        # Modification case.  There are upsides and downsides to
+        # emitting a set-cookie header each request.  The behavior
+        # is controlled by the :meth:`should_set_cookie` method
+        # which performs a quick check to figure out if the cookie
+        # should be set or not.  This is controlled by the
+        # SESSION_REFRESH_EACH_REQUEST config flag as well as
+        # the permanent flag on the session itself.
+        #if not self.should_set_cookie(app, session):
+        #    return
+
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)

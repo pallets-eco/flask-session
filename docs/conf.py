@@ -262,5 +262,7 @@ texinfo_documents = [
 #texinfo_no_detailmenu = False
 
 intersphinx_mapping = {
-    'http://flask.pocoo.org/docs/': None
+    'http://docs.python.org/dev': None,
+    'http://flask.pocoo.org/docs/': None,
+    'http://werkzeug.pocoo.org/docs/': None
 }

@@ -12,7 +12,7 @@ from flask import Flask, session
 from flask.ext.session import Session
 
 
-SECRET_KEY = 'flask_session_secret_key'
+SESSION_TYPE = 'redis'
 
 
 app = Flask(__name__)

@@ -51,12 +51,15 @@ class Session(object):
             self.init_app(app)
 
     def init_app(self, app):
-        "This is used to set up session for your app object."
-        app.session_interface = self.get_interface(app)
+        """This is used to set up session for your app object.
 
-    def get_interface(self, app):
+        :param app: the Flask app object with proper configuration.
+        """
+        app.session_interface = self._get_interface(app)
+
+    def _get_interface(self, app):
         config = app.config.copy()
-        config.setdefault('SESSION_TYPE', 'memcached')
+        config.setdefault('SESSION_TYPE', 'null')
         config.setdefault('SESSION_KEY_PREFIX', 'session:')
         config.setdefault('SESSION_REDIS', None)
         config.setdefault('SESSION_MEMCACHED', None)

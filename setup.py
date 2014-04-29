@@ -29,7 +29,7 @@ setup(
     include_package_data=True,
     platforms='any',
     install_requires=[
-        'Flask'
+        'Flask>=0.8'
     ],
     classifiers=[
         'Environment :: Web Environment',
