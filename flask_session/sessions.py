@@ -318,7 +318,12 @@ class MongoDBSessionInterface(SessionInterface):
         document = document if document and \
                      document.get('expiration') > datetime.utcnow() else None
         if document is not None:
-            return self.session_class(document['data'], sid=sid)
+            try:
+                val = document['val']
+                data = self.serializer.loads(str(val))
+                return self.session_class(data, sid=sid)
+            except:
+                return self.session_class(sid=sid)
         return self.session_class(sid=sid)
     
     def save_session(self, app, session, response):
@@ -345,10 +350,10 @@ class MongoDBSessionInterface(SessionInterface):
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
-        data = dict(session)
+        val = self.serializer.dumps(dict(session))
         self.store.update({'id': store_id},
                           {'id': store_id,
-                           'data': data,
+                           'val': val,
                            'expiration': expires}, True)
         response.set_cookie(app.session_cookie_name, session.sid,
                             expires=expires, httponly=httponly,
