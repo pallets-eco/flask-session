@@ -10,9 +10,11 @@
 """
 import os
 
-from .sessions import NullSessionInterface, RedisSessionInterface, \
-     MemcachedSessionInterface, FileSystemSessionInterface, \
-     MongoDBSessionInterface
+from .sessions import (NullSessionInterface,
+                       RedisSessionInterface,
+                       MemcachedSessionInterface,
+                       FileSystemSessionInterface,
+                       MongoDBSessionInterface)
 
 
 class Session(object):
@@ -27,7 +29,7 @@ class Session(object):
 
     The second possibility is to create the object once and configure the
     application later::
-        
+
         sess = Session()
 
         def create_app():
@@ -44,7 +46,7 @@ class Session(object):
         is just change the :attr:`~flask.Flask.session_interface` attribute on
         your Flask applications.
     """
-    
+
     def __init__(self, app=None):
         self.app = app
         if app is not None:
@@ -63,7 +65,7 @@ class Session(object):
         config.setdefault('SESSION_KEY_PREFIX', 'session:')
         config.setdefault('SESSION_REDIS', None)
         config.setdefault('SESSION_MEMCACHED', None)
-        config.setdefault('SESSION_FILE_DIR', os.path.join(os.getcwd(), 
+        config.setdefault('SESSION_FILE_DIR', os.path.join(os.getcwd(),
                                                            'flask_session'))
         config.setdefault('SESSION_FILE_THRESHOLD', 500)
         config.setdefault('SESSION_FILE_MODE', 384)
@@ -73,19 +75,21 @@ class Session(object):
 
         if config['SESSION_TYPE'] == 'redis':
             session_interface = RedisSessionInterface(config['SESSION_REDIS'],
-                                                 config['SESSION_KEY_PREFIX'])
+                                                      config['SESSION_KEY_PREFIX'])
         elif config['SESSION_TYPE'] == 'memcached':
-            session_interface = MemcachedSessionInterface(
-              config['SESSION_MEMCACHED'], config['SESSION_KEY_PREFIX'])
+            session_interface = MemcachedSessionInterface(config['SESSION_MEMCACHED'],
+                                                          config['SESSION_KEY_PREFIX'])
         elif config['SESSION_TYPE'] == 'filesystem':
-            session_interface = FileSystemSessionInterface(
-              config['SESSION_FILE_DIR'], config['SESSION_FILE_THRESHOLD'], 
-              config['SESSION_FILE_MODE'], config['SESSION_KEY_PREFIX'])
+            session_interface = FileSystemSessionInterface(config['SESSION_FILE_DIR'],
+                                                           config['SESSION_FILE_THRESHOLD'],
+                                                           config['SESSION_FILE_MODE'],
+                                                           config['SESSION_KEY_PREFIX'])
         elif config['SESSION_TYPE'] == 'mongodb':
-            session_interface = MongoDBSessionInterface(
-              config['SESSION_MONGODB'], config['SESSION_MONGODB_DB'],
-              config['SESSION_MONGODB_COLLECT'], config['SESSION_KEY_PREFIX'])
+            session_interface = MongoDBSessionInterface(config['SESSION_MONGODB'],
+                                                        config['SESSION_MONGODB_DB'],
+                                                        config['SESSION_MONGODB_COLLECT'],
+                                                        config['SESSION_KEY_PREFIX'])
         else:
             session_interface = NullSessionInterface()
-        
+
         return session_interface

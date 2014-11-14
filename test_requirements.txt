@@ -1,0 +1,7 @@
+zc.buildout>=2
+redis>=2
+pymongo>=2
+python-memcached
+coverage
+nose
+nosexcover
