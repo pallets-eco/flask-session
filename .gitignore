@@ -33,6 +33,7 @@ htmlcov/
 .cache
 nosetests.xml
 coverage.xml
+dump.rdb
 
 # Translations
 *.mo
@@ -52,3 +53,9 @@ coverage.xml
 # Sphinx documentation
 docs/_build/
 
+# buildout
+parts
+develop-eggs
+eggs
+bin
+downloads

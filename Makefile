@@ -1,7 +1,7 @@
 all: clean-pyc test
 
 test:
-	python test_session.py
+	bash run_tests.sh
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
