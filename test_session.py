@@ -93,8 +93,6 @@ class FlaskSessionTestCase(unittest.TestCase):
         app = flask.Flask(__name__)
         app.config['SESSION_TYPE'] = 'sqlalchemy'
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
-        #app.config['SQLALCHEMY_ECHO'] = False
-        #app.config['SECRET_KEY'] = os.urandom(24)
         Session(app)
         @app.route('/set', methods=['POST'])
         def set():

@@ -382,7 +382,9 @@ class SqlAlchemySessionInterface(SessionInterface):
         self.db = db
         self.key_prefix = key_prefix
 
-        class Sessions(self.db.Model):
+        class Session(self.db.Model):
+            __tablename__ = 'sessions'
+
             id = self.db.Column(self.db.Integer, primary_key=True)
             session_id = self.db.Column(self.db.String(256), unique=True)
             data = self.db.Column(self.db.Text)
@@ -397,7 +399,7 @@ class SqlAlchemySessionInterface(SessionInterface):
                 return '<Session data %s>' % self.data
 
         self.db.create_all()
-        self.sql_session_model = Sessions
+        self.sql_session_model = Session
 
     def _generate_sid(self):
         return str(uuid4())
