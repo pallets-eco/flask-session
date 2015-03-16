@@ -383,7 +383,7 @@ class SqlAlchemySessionInterface(SessionInterface):
         self.key_prefix = key_prefix
 
         class Session(self.db.Model):
-            __tablename__ = 'sessions'
+            __tablename__ = app.config['SESSION_SQLALCHEMY_TABLE']
 
             id = self.db.Column(self.db.Integer, primary_key=True)
             session_id = self.db.Column(self.db.String(256), unique=True)

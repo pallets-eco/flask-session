@@ -71,6 +71,7 @@ class Session(object):
         config.setdefault('SESSION_MONGODB_DB', 'flask_session')
         config.setdefault('SESSION_MONGODB_COLLECT', 'sessions')
         config.setdefault('SESSION_SQLALCHEMY', None)
+        app.config.setdefault('SESSION_SQLALCHEMY_TABLE', 'sessions')
 
         if config['SESSION_TYPE'] == 'redis':
             session_interface = RedisSessionInterface(config['SESSION_REDIS'],
