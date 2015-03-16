@@ -12,7 +12,7 @@ import os
 
 from .sessions import NullSessionInterface, RedisSessionInterface, \
      MemcachedSessionInterface, FileSystemSessionInterface, \
-     MongoDBSessionInterface
+     MongoDBSessionInterface, SqlAlchemySessionInterface
 
 
 class Session(object):
@@ -70,6 +70,7 @@ class Session(object):
         config.setdefault('SESSION_MONGODB', None)
         config.setdefault('SESSION_MONGODB_DB', 'flask_session')
         config.setdefault('SESSION_MONGODB_COLLECT', 'sessions')
+        config.setdefault('SESSION_SQLALCHEMY', None)
 
         if config['SESSION_TYPE'] == 'redis':
             session_interface = RedisSessionInterface(config['SESSION_REDIS'],
@@ -85,6 +86,10 @@ class Session(object):
             session_interface = MongoDBSessionInterface(
               config['SESSION_MONGODB'], config['SESSION_MONGODB_DB'],
               config['SESSION_MONGODB_COLLECT'], config['SESSION_KEY_PREFIX'])
+        elif config['SESSION_TYPE'] == 'sqlalchemy':
+            session_interface = SqlAlchemySessionInterface(
+                app,
+                config['SESSION_SQLALCHEMY'], config['SESSION_KEY_PREFIX'])
         else:
             session_interface = NullSessionInterface()
         

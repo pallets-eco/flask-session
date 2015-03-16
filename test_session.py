@@ -89,6 +89,25 @@ class FlaskSessionTestCase(unittest.TestCase):
         self.assertEqual(c.post('/set', data={'value': '42'}).data, b'value set')
         self.assertEqual(c.get('/get').data, b'42')
 
+    def test_flasksqlalchemy_session(self):
+        app = flask.Flask(__name__)
+        app.config['SESSION_TYPE'] = 'sqlalchemy'
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
+        #app.config['SQLALCHEMY_ECHO'] = False
+        #app.config['SECRET_KEY'] = os.urandom(24)
+        Session(app)
+        @app.route('/set', methods=['POST'])
+        def set():
+            flask.session['value'] = flask.request.form['value']
+            return 'value set'
+        @app.route('/get')
+        def get():
+            return flask.session['value']
+
+        c = app.test_client()
+        self.assertEqual(c.post('/set', data={'value': '42'}).data, b'value '
+                                                                    b'set')
+        self.assertEqual(c.get('/get').data, b'42')
 
 if __name__ == "__main__":
     unittest.main()
