@@ -70,11 +70,12 @@ class RedisSessionInterface(SessionInterface):
     serializer = pickle
     session_class = RedisSession
 
-    def __init__(self, redis, key_prefix):
-        if redis is None:
-            from redis import Redis
-            redis = Redis()
-        self.redis = redis
+    def __init__(self, url, key_prefix):
+        from redis import Redis
+        if url is None:
+            self.redis = Redis()
+        else:
+            self.redis = Redis.from_url(url)
         self.key_prefix = key_prefix
 
     def _generate_sid(self):
