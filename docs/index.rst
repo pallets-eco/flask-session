@@ -119,6 +119,7 @@ A list of configuration keys also understood by the extension:
                               - **memcached**: MemcachedSessionInterface
                               - **filesystem**: FileSystemSessionInterface
                               - **mongodb**: MongoDBSessionInterface
+                              - **sqlalchemy**: SqlAlchemySessionInterface
 ``SESSION_KEY_PREFIX``        A prefix that is added before all session keys.
                               This makes it possible to use the same backend
                               storage server for different apps, default 
@@ -140,6 +141,11 @@ A list of configuration keys also understood by the extension:
                               "flask_session"
 ``SESSION_MONGODB_COLLECT``   The MongoDB collection you want to use, default
                               "sessions"
+``SESSION_SQLALCHEMY``        A ``flask.ext.sqlalchemy.SQLAlchemy`` instance
+                              whose database connection URI is configured
+                              using the ``SQLALCHEMY_DATABASE_URI`` parameter
+``SESSION_SQLALCHEMY_TABLE``  The name of the SQL table you want to use,
+                              default "sessions"
 ============================= ==============================================
 
 Basically you only need to configure ``SESSION_TYPE``.
@@ -197,6 +203,16 @@ Uses the MongoDB as a session backend. (`pymongo`_ required)
 .. _memcache: https://github.com/linsomniac/python-memcached
 .. _pymongo: http://api.mongodb.org/python/current/index.html
 
+:class:`SqlAlchemySessionInterface`
+```````````````````````````````````
+
+Uses SQLAlchemy as a session backend. (`Flask-SQLAlchemy`_ required)
+
+- SESSION_SQLALCHEMY
+- SESSION_SQLALCHEMY_TABLE
+
+.. _Flask-SQLAlchemy: https://pythonhosted.org/Flask-SQLAlchemy/
+
 API
 ---
 
@@ -215,5 +231,6 @@ API
 .. autoclass:: MemcachedSessionInterface
 .. autoclass:: FileSystemSessionInterface
 .. autoclass:: MongoDBSessionInterface
+.. autoclass:: SqlAlchemySessionInterface
 
 .. include:: ../CHANGES

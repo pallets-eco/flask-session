@@ -48,6 +48,10 @@ class MongoDBSession(ServerSideSession):
     pass
 
 
+class SqlAlchemySession(ServerSideSession):
+    pass
+
+
 class NullSessionInterface(SessionInterface):
     """Used to open a :class:`flask.sessions.NullSession` instance.
     """
@@ -357,4 +361,106 @@ class MongoDBSessionInterface(SessionInterface):
                            'expiration': expires}, True)
         response.set_cookie(app.session_cookie_name, session.sid,
                             expires=expires, httponly=httponly,
+                            domain=domain, path=path, secure=secure)
+
+
+class SqlAlchemySessionInterface(SessionInterface):
+    """Uses the Flask-SQLAlchemy from a flask app as a session backend.
+
+    :param app: A Flask app instance.
+    :param db: A Flask-SQLAlchemy instance.
+    :param key_prefix: A prefix that is added to all store keys.
+    """
+
+    serializer = pickle
+    session_class = SqlAlchemySession
+
+    def __init__(self, app, db, key_prefix):
+        if db is None:
+            from flask.ext.sqlalchemy import SQLAlchemy
+            db = SQLAlchemy(app)
+        self.db = db
+        self.key_prefix = key_prefix
+
+        class Session(self.db.Model):
+            __tablename__ = app.config['SESSION_SQLALCHEMY_TABLE']
+
+            id = self.db.Column(self.db.Integer, primary_key=True)
+            session_id = self.db.Column(self.db.String(256), unique=True)
+            data = self.db.Column(self.db.Text)
+            expiry = self.db.Column(self.db.DateTime)
+
+            def __init__(self, session_id, data, expiry):
+                self.session_id = session_id
+                self.data = data
+                self.expiry = expiry
+
+            def __repr__(self):
+                return '<Session data %s>' % self.data
+
+        self.db.create_all()
+        self.sql_session_model = Session
+
+    def _generate_sid(self):
+        return str(uuid4())
+
+    def open_session(self, app, request):
+        sid = request.cookies.get(app.session_cookie_name)
+        if sid:
+            session_id = self.key_prefix + sid
+            saved_session = self.sql_session_model.query.filter_by(
+                session_id=session_id).first()
+            if saved_session:
+                if saved_session.expiry > datetime.utcnow():
+                    try:
+                        val = saved_session.data
+                        data = self.serializer.loads(str(val))
+
+                        return self.session_class(data, sid=sid)
+
+                    except Exception as e:
+                        print "some exception %s" % e.message
+                        self.db.delete(saved_session)
+                        self.db.session.commit()
+                else:
+                    # saved session expired. Delete it
+                    self.db.delete(saved_session)
+                    self.db.session.commit()
+
+        sid = self._generate_sid()
+        return self.session_class(sid=sid)
+
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+
+        if not session:
+            response.delete_cookie(app.session_cookie_name, domain=domain)
+            return
+
+        session_id = self.key_prefix + session.sid
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        new_expiry = self.get_expiration_time(app, session)
+        val = self.serializer.dumps(dict(session))
+
+        saved_session = self.sql_session_model.query.filter_by(
+            session_id=session_id).first()
+
+        if saved_session:
+            if session.modified:
+                # update the saved session only if session
+                # was modified since last save
+                saved_session.data = val
+                saved_session.expiry = new_expiry
+                self.db.session.commit()
+        else:
+            # create new session object
+            new_session = self.sql_session_model(session_id, val, new_expiry)
+            self.db.session.add(new_session)
+            self.db.session.commit()
+
+        session.modified = False
+        response.set_cookie(app.session_cookie_name, session.sid,
+                            expires=new_expiry, httponly=httponly,
                             domain=domain, path=path, secure=secure)
