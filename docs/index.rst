@@ -120,6 +120,10 @@ A list of configuration keys also understood by the extension:
                               - **filesystem**: FileSystemSessionInterface
                               - **mongodb**: MongoDBSessionInterface
                               - **sqlalchemy**: SqlAlchemySessionInterface
+``SESSION_USE_SIGNER``        Whether sign the session cookie sid or not,
+                              if set to ``True``, you have to set
+                              :attr:`flask.Flask.secret_key`, default to be
+                              ``False``
 ``SESSION_KEY_PREFIX``        A prefix that is added before all session keys.
                               This makes it possible to use the same backend
                               storage server for different apps, default 
@@ -155,7 +159,8 @@ Basically you only need to configure ``SESSION_TYPE``.
     All non-null sessions in Flask-Session are permanent.
 
 .. versionadded:: 0.2
-    ``SESSION_TYPE``: **sqlalchemy**
+
+    ``SESSION_TYPE``: **sqlalchemy**, ``SESSION_USE_SIGNER``
 
 Built-in Session Interfaces
 ---------------------------
