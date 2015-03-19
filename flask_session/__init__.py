@@ -8,6 +8,9 @@
     :copyright: (c) 2014 by Shipeng Feng.
     :license: BSD, see LICENSE for more details.
 """
+
+__version__ = '0.2-dev'
+
 import os
 
 from .sessions import NullSessionInterface, RedisSessionInterface, \
@@ -71,7 +74,7 @@ class Session(object):
         config.setdefault('SESSION_MONGODB_DB', 'flask_session')
         config.setdefault('SESSION_MONGODB_COLLECT', 'sessions')
         config.setdefault('SESSION_SQLALCHEMY', None)
-        app.config.setdefault('SESSION_SQLALCHEMY_TABLE', 'sessions')
+        config.setdefault('SESSION_SQLALCHEMY_TABLE', 'sessions')
 
         if config['SESSION_TYPE'] == 'redis':
             session_interface = RedisSessionInterface(config['SESSION_REDIS'],
@@ -89,8 +92,9 @@ class Session(object):
               config['SESSION_MONGODB_COLLECT'], config['SESSION_KEY_PREFIX'])
         elif config['SESSION_TYPE'] == 'sqlalchemy':
             session_interface = SqlAlchemySessionInterface(
-                app,
-                config['SESSION_SQLALCHEMY'], config['SESSION_KEY_PREFIX'])
+                app, config['SESSION_SQLALCHEMY'],
+                config['SESSION_SQLALCHEMY_TABLE'],
+                config['SESSION_KEY_PREFIX'])
         else:
             session_interface = NullSessionInterface()
         

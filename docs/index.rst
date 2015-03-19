@@ -154,6 +154,9 @@ Basically you only need to configure ``SESSION_TYPE``.
     
     All non-null sessions in Flask-Session are permanent.
 
+.. versionadded:: 0.2
+    ``SESSION_TYPE``: **sqlalchemy**
+
 Built-in Session Interfaces
 ---------------------------
 
@@ -205,6 +208,8 @@ Uses the MongoDB as a session backend. (`pymongo`_ required)
 
 :class:`SqlAlchemySessionInterface`
 ```````````````````````````````````
+
+.. versionadded:: 0.2
 
 Uses SQLAlchemy as a session backend. (`Flask-SQLAlchemy`_ required)
 

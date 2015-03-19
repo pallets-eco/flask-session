@@ -10,3 +10,9 @@ Version 0.1.1
 `````````````
 
 Fixed MongoDB backend InvalidDocument Error.
+
+Version 0.2
+```````````
+
+- Added `SqlAlchemySessionInterface`.
+- Added support for cookie session id signing.
