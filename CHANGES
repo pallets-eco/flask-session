@@ -16,3 +16,4 @@ Version 0.2
 
 - Added `SqlAlchemySessionInterface`.
 - Added support for cookie session id signing.
+- Various bugfixes.
