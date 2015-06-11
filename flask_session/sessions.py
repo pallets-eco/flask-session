@@ -439,23 +439,27 @@ class SqlAlchemySessionInterface(SessionInterface):
         self.key_prefix = key_prefix
         self.use_signer = use_signer
 
-        class Session(self.db.Model):
-            __tablename__ = table
+        if table not in self.db.metadata:
 
-            id = self.db.Column(self.db.Integer, primary_key=True)
-            session_id = self.db.Column(self.db.String(256), unique=True)
-            data = self.db.Column(self.db.Text)
-            expiry = self.db.Column(self.db.DateTime)
+            class Session(self.db.Model):
+                __tablename__ = table
 
-            def __init__(self, session_id, data, expiry):
-                self.session_id = session_id
-                self.data = data
-                self.expiry = expiry
+                id = self.db.Column(self.db.Integer, primary_key=True)
+                session_id = self.db.Column(self.db.String(256), unique=True)
+                data = self.db.Column(self.db.Text)
+                expiry = self.db.Column(self.db.DateTime)
 
-            def __repr__(self):
-                return '<Session data %s>' % self.data
+                def __init__(self, session_id, data, expiry):
+                    self.session_id = session_id
+                    self.data = data
+                    self.expiry = expiry
 
-        self.sql_session_model = Session
+                def __repr__(self):
+                    return '<Session data %s>' % self.data
+
+            self.sql_session_model = db.session_ext_session_model = Session
+        else:
+            self.sql_session_model = db.session_ext_session_model
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)
