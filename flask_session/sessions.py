@@ -444,7 +444,7 @@ class SqlAlchemySessionInterface(SessionInterface):
 
             id = self.db.Column(self.db.Integer, primary_key=True)
             session_id = self.db.Column(self.db.String(256), unique=True)
-            data = self.db.Column(self.db.Text)
+            data = self.db.Column(self.db.PickleType)
             expiry = self.db.Column(self.db.DateTime)
 
             def __init__(self, session_id, data, expiry):
@@ -483,7 +483,7 @@ class SqlAlchemySessionInterface(SessionInterface):
         if saved_session:
             try:
                 val = saved_session.data
-                data = self.serializer.loads(str(val))
+                data = self.serializer.loads(val)
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid)
