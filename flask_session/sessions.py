@@ -10,6 +10,7 @@
 """
 import time
 from datetime import datetime
+import hashlib
 from uuid import uuid4
 try:
     import cPickle as pickle
@@ -58,7 +59,26 @@ class SqlAlchemySession(ServerSideSession):
     pass
 
 
+class SignerCollection(object):
+    sha256_digest_method = staticmethod(hashlib.sha256)
+
+    @classmethod
+    def hmac_sha1(cls, app):
+        return Signer(app.secret_key, salt='flask-session',
+                      key_derivation='hmac')
+
+    @classmethod
+    def hmac_sha256(cls, app):
+        # https://github.com/mitsuhiko/itsdangerous/blob/0.24/itsdangerous.py#L255-L269
+        return Signer(app.secret_key, salt='flask-session',
+                      key_derivation='hmac', digest_method=cls.sha256_digest_method)
+
+
 class SessionInterface(FlaskSessionInterface):
+    def __init__(self, signer_type='hmac_sha1'):
+        if not hasattr(SignerCollection, signer_type):
+            raise AssertionError('Signer %s could not be found. Please use a valid signer_type' % signer_type)
+        self._signer_method = getattr(SignerCollection, signer_type)
 
     def _generate_sid(self):
         return str(uuid4())
@@ -66,8 +86,7 @@ class SessionInterface(FlaskSessionInterface):
     def _get_signer(self, app):
         if not app.secret_key:
             return None
-        return Signer(app.secret_key, salt='flask-session',
-                      key_derivation='hmac')
+        return self._signer_method(app)
 
 
 class NullSessionInterface(SessionInterface):
@@ -92,13 +111,14 @@ class RedisSessionInterface(SessionInterface):
     serializer = pickle
     session_class = RedisSession
 
-    def __init__(self, redis, key_prefix, use_signer=False):
+    def __init__(self, redis, key_prefix, use_signer=False, *args, **kwargs):
         if redis is None:
             from redis import Redis
             redis = Redis()
         self.redis = redis
         self.key_prefix = key_prefix
         self.use_signer = use_signer
+        super(RedisSessionInterface, self).__init__(*args, **kwargs)
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)
@@ -172,7 +192,7 @@ class MemcachedSessionInterface(SessionInterface):
     serializer = pickle
     session_class = MemcachedSession
 
-    def __init__(self, client, key_prefix, use_signer=False):
+    def __init__(self, client, key_prefix, use_signer=False, *args, **kwargs):
         if client is None:
             client = self._get_preferred_memcache_client()
             if client is None:
@@ -180,6 +200,7 @@ class MemcachedSessionInterface(SessionInterface):
         self.client = client
         self.key_prefix = key_prefix
         self.use_signer = use_signer
+        super(MemcachedSessionInterface, self).__init__(*args, **kwargs)
 
     def _get_preferred_memcache_client(self):
         servers = ['127.0.0.1:11211']
@@ -284,11 +305,12 @@ class FileSystemSessionInterface(SessionInterface):
     session_class = FileSystemSession
 
     def __init__(self, cache_dir, threshold, mode, key_prefix,
-                 use_signer=False):
+                 use_signer=False, *args, **kwargs):
         from werkzeug.contrib.cache import FileSystemCache
         self.cache = FileSystemCache(cache_dir, threshold=threshold, mode=mode)
         self.key_prefix = key_prefix
         self.use_signer = use_signer
+        super(FileSystemSessionInterface, self).__init__(*args, **kwargs)
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)
@@ -350,7 +372,7 @@ class MongoDBSessionInterface(SessionInterface):
     serializer = pickle
     session_class = MongoDBSession
 
-    def __init__(self, client, db, collection, key_prefix, use_signer=False):
+    def __init__(self, client, db, collection, key_prefix, use_signer=False, *args, **kwargs):
         if client is None:
             from pymongo import MongoClient
             client = MongoClient()
@@ -358,6 +380,7 @@ class MongoDBSessionInterface(SessionInterface):
         self.store = client[db][collection]
         self.key_prefix = key_prefix
         self.use_signer = use_signer
+        super(MongoDBSessionInterface, self).__init__(*args, **kwargs)
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)
@@ -431,13 +454,14 @@ class SqlAlchemySessionInterface(SessionInterface):
     serializer = pickle
     session_class = SqlAlchemySession
 
-    def __init__(self, app, db, table, key_prefix, use_signer=False):
+    def __init__(self, app, db, table, key_prefix, use_signer=False, *args, **kwargs):
         if db is None:
             from flask.ext.sqlalchemy import SQLAlchemy
             db = SQLAlchemy(app)
         self.db = db
         self.key_prefix = key_prefix
         self.use_signer = use_signer
+        super(SqlAlchemySessionInterface, self).__init__(*args, **kwargs)
 
         class Session(self.db.Model):
             __tablename__ = table
