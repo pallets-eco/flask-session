@@ -112,7 +112,7 @@ class RedisSessionInterface(SessionInterface):
             try:
                 sid = signer.unsign(sid)
             except BadSignature:
-                sid = None
+                return self.session_class()
 
         val = self.redis.get(self.key_prefix + sid)
         if val is not None:
@@ -124,6 +124,8 @@ class RedisSessionInterface(SessionInterface):
         return self.session_class(sid=sid)
 
     def save_session(self, app, session, response):
+        if not session.sid:
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         if not session:
@@ -224,7 +226,7 @@ class MemcachedSessionInterface(SessionInterface):
             try:
                 sid = signer.unsign(sid)
             except BadSignature:
-                sid = None
+                return self.session_class()
 
         full_session_key = self.key_prefix + sid
         if isinstance(full_session_key, unicode):
@@ -239,6 +241,8 @@ class MemcachedSessionInterface(SessionInterface):
         return self.session_class(sid=sid)
 
     def save_session(self, app, session, response):
+        if not session.sid:
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         full_session_key = self.key_prefix + session.sid
@@ -302,7 +306,7 @@ class FileSystemSessionInterface(SessionInterface):
             try:
                 sid = signer.unsign(sid)
             except BadSignature:
-                sid = None
+                return self.session_class()
 
         data = self.cache.get(self.key_prefix + sid)
         if data is not None:
@@ -310,6 +314,8 @@ class FileSystemSessionInterface(SessionInterface):
         return self.session_class(sid=sid)
 
     def save_session(self, app, session, response):
+        if not session.sid:
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         if not session:
@@ -371,7 +377,7 @@ class MongoDBSessionInterface(SessionInterface):
             try:
                 sid = signer.unsign(sid)
             except BadSignature:
-                sid = None
+                return self.session_class()
 
         store_id = self.key_prefix + sid
         document = self.store.find_one({'id': store_id})
@@ -389,6 +395,8 @@ class MongoDBSessionInterface(SessionInterface):
         return self.session_class(sid=sid)
 
     def save_session(self, app, session, response):
+        if not session.sid:
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         store_id = self.key_prefix + session.sid
@@ -470,7 +478,7 @@ class SqlAlchemySessionInterface(SessionInterface):
             try:
                 sid = signer.unsign(sid)
             except BadSignature:
-                sid = None
+                return self.session_class()
 
         store_id = self.key_prefix + sid
         saved_session = self.sql_session_model.query.filter_by(
@@ -490,6 +498,8 @@ class SqlAlchemySessionInterface(SessionInterface):
         return self.session_class(sid=sid)
 
     def save_session(self, app, session, response):
+        if not session.sid:
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         store_id = self.key_prefix + session.sid
