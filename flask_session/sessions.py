@@ -112,7 +112,8 @@ class RedisSessionInterface(SessionInterface):
             try:
                 sid = signer.unsign(sid)
             except BadSignature:
-                sid = None
+                sid = self._generate_sid()
+                return self.session_class(sid=sid)
 
         val = self.redis.get(self.key_prefix + sid)
         if val is not None:
@@ -224,7 +225,8 @@ class MemcachedSessionInterface(SessionInterface):
             try:
                 sid = signer.unsign(sid)
             except BadSignature:
-                sid = None
+                sid = self._generate_sid()
+                return self.session_class(sid=sid)
 
         full_session_key = self.key_prefix + sid
         if isinstance(full_session_key, unicode):
@@ -302,7 +304,8 @@ class FileSystemSessionInterface(SessionInterface):
             try:
                 sid = signer.unsign(sid)
             except BadSignature:
-                sid = None
+                sid = self._generate_sid()
+                return self.session_class(sid=sid)
 
         data = self.cache.get(self.key_prefix + sid)
         if data is not None:
@@ -371,7 +374,8 @@ class MongoDBSessionInterface(SessionInterface):
             try:
                 sid = signer.unsign(sid)
             except BadSignature:
-                sid = None
+                sid = self._generate_sid()
+                return self.session_class(sid=sid)
 
         store_id = self.key_prefix + sid
         document = self.store.find_one({'id': store_id})
@@ -470,7 +474,8 @@ class SqlAlchemySessionInterface(SessionInterface):
             try:
                 sid = signer.unsign(sid)
             except BadSignature:
-                sid = None
+                sid = self._generate_sid()
+                return self.session_class(sid=sid)
 
         store_id = self.key_prefix + sid
         saved_session = self.sql_session_model.query.filter_by(
