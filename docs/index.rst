@@ -75,11 +75,10 @@ modify them at runtime.
 
 We are not supplying something like ``SESSION_REDIS_HOST`` and 
 ``SESSION_REDIS_PORT``, if you want to use the ``RedisSessionInterface``,
-you should configure ``SESSION_REDIS`` to your own ``redis.Redis`` instance,
-or ``redis.StrictRedis`` if you prefer so.  This gives you more flexibility,
-like maybe you want to use the same ``redis.Redis`` instance for cache purpose
-too, then you do not need to keep two ``redis.Redis`` instance in the same
-process.
+you should configure ``SESSION_REDIS`` to your own ``redis.Redis`` instance.
+This gives you more flexibility, like maybe you want to use the same
+``redis.Redis`` instance for cache purpose too, then you do not need to keep
+two ``redis.Redis`` instance in the same process.
 
 The following configuration values are builtin configuration values within
 Flask itself that are related to session.  **They are all understood by 
