@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-__version__ = '0.2.2-dev'
+__version__ = '0.2.2'
 
 import os
 
@@ -63,6 +63,7 @@ class Session(object):
     def _get_interface(self, app):
         config = app.config.copy()
         config.setdefault('SESSION_TYPE', 'null')
+        config.setdefault('SESSION_PERMANENT', True)
         config.setdefault('SESSION_USE_SIGNER', False)
         config.setdefault('SESSION_KEY_PREFIX', 'session:')
         config.setdefault('SESSION_REDIS', None)
@@ -80,26 +81,28 @@ class Session(object):
         if config['SESSION_TYPE'] == 'redis':
             session_interface = RedisSessionInterface(
                 config['SESSION_REDIS'], config['SESSION_KEY_PREFIX'],
-                config['SESSION_USE_SIGNER'])
+                config['SESSION_USE_SIGNER'], config['SESSION_PERMANENT'])
         elif config['SESSION_TYPE'] == 'memcached':
             session_interface = MemcachedSessionInterface(
                 config['SESSION_MEMCACHED'], config['SESSION_KEY_PREFIX'],
-                config['SESSION_USE_SIGNER'])
+                config['SESSION_USE_SIGNER'], config['SESSION_PERMANENT'])
         elif config['SESSION_TYPE'] == 'filesystem':
             session_interface = FileSystemSessionInterface(
                 config['SESSION_FILE_DIR'], config['SESSION_FILE_THRESHOLD'],
                 config['SESSION_FILE_MODE'], config['SESSION_KEY_PREFIX'],
-                config['SESSION_USE_SIGNER'])
+                config['SESSION_USE_SIGNER'], config['SESSION_PERMANENT'])
         elif config['SESSION_TYPE'] == 'mongodb':
             session_interface = MongoDBSessionInterface(
                 config['SESSION_MONGODB'], config['SESSION_MONGODB_DB'],
                 config['SESSION_MONGODB_COLLECT'],
-                config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'])
+                config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'],
+                config['SESSION_PERMANENT'])
         elif config['SESSION_TYPE'] == 'sqlalchemy':
             session_interface = SqlAlchemySessionInterface(
                 app, config['SESSION_SQLALCHEMY'],
                 config['SESSION_SQLALCHEMY_TABLE'],
-                config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'])
+                config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'],
+                config['SESSION_PERMANENT'])
         else:
             session_interface = NullSessionInterface()
 

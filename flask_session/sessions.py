@@ -29,12 +29,13 @@ def total_seconds(td):
 class ServerSideSession(CallbackDict, SessionMixin):
     """Baseclass for server-side based sessions."""
 
-    def __init__(self, initial=None, sid=None):
+    def __init__(self, initial=None, sid=None, permanent=None):
         def on_update(self):
             self.modified = True
         CallbackDict.__init__(self, initial, on_update)
         self.sid = sid
-        self.permanent = True
+        if permanent:
+            self.permanent = permanent
         self.modified = False
 
 
@@ -87,24 +88,26 @@ class RedisSessionInterface(SessionInterface):
     :param redis: A ``redis.Redis`` instance.
     :param key_prefix: A prefix that is added to all Redis store keys.
     :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
     """
 
     serializer = pickle
     session_class = RedisSession
 
-    def __init__(self, redis, key_prefix, use_signer=False):
+    def __init__(self, redis, key_prefix, use_signer=False, permanent=True):
         if redis is None:
             from redis import Redis
             redis = Redis()
         self.redis = redis
         self.key_prefix = key_prefix
         self.use_signer = use_signer
+        self.permanent = permanent
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
             sid = self._generate_sid()
-            return self.session_class(sid=sid)
+            return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
             signer = self._get_signer(app)
             if signer is None:
@@ -113,7 +116,7 @@ class RedisSessionInterface(SessionInterface):
                 sid = signer.unsign(sid)
             except BadSignature:
                 sid = self._generate_sid()
-                return self.session_class(sid=sid)
+                return self.session_class(sid=sid, permanent=self.permanent)
 
         val = self.redis.get(self.key_prefix + sid)
         if val is not None:
@@ -121,8 +124,8 @@ class RedisSessionInterface(SessionInterface):
                 data = self.serializer.loads(val)
                 return self.session_class(data, sid=sid)
             except:
-                return self.session_class(sid=sid)
-        return self.session_class(sid=sid)
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
         domain = self.get_cookie_domain(app)
@@ -168,12 +171,13 @@ class MemcachedSessionInterface(SessionInterface):
     :param client: A ``memcache.Client`` instance.
     :param key_prefix: A prefix that is added to all Memcached store keys.
     :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
     """
 
     serializer = pickle
     session_class = MemcachedSession
 
-    def __init__(self, client, key_prefix, use_signer=False):
+    def __init__(self, client, key_prefix, use_signer=False, permanent=True):
         if client is None:
             client = self._get_preferred_memcache_client()
             if client is None:
@@ -181,6 +185,7 @@ class MemcachedSessionInterface(SessionInterface):
         self.client = client
         self.key_prefix = key_prefix
         self.use_signer = use_signer
+        self.permanent = permanent
 
     def _get_preferred_memcache_client(self):
         servers = ['127.0.0.1:11211']
@@ -217,7 +222,7 @@ class MemcachedSessionInterface(SessionInterface):
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
             sid = self._generate_sid()
-            return self.session_class(sid=sid)
+            return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
             signer = self._get_signer(app)
             if signer is None:
@@ -226,7 +231,7 @@ class MemcachedSessionInterface(SessionInterface):
                 sid = signer.unsign(sid)
             except BadSignature:
                 sid = self._generate_sid()
-                return self.session_class(sid=sid)
+                return self.session_class(sid=sid, permanent=self.permanent)
 
         full_session_key = self.key_prefix + sid
         if isinstance(full_session_key, unicode):
@@ -237,8 +242,8 @@ class MemcachedSessionInterface(SessionInterface):
                 data = self.serializer.loads(val)
                 return self.session_class(data, sid=sid)
             except:
-                return self.session_class(sid=sid)
-        return self.session_class(sid=sid)
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
         domain = self.get_cookie_domain(app)
@@ -281,22 +286,24 @@ class FileSystemSessionInterface(SessionInterface):
     :param mode: the file mode wanted for the session files, default 0600
     :param key_prefix: A prefix that is added to FileSystemCache store keys.
     :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
     """
 
     session_class = FileSystemSession
 
     def __init__(self, cache_dir, threshold, mode, key_prefix,
-                 use_signer=False):
+                 use_signer=False, permanent=True):
         from werkzeug.contrib.cache import FileSystemCache
         self.cache = FileSystemCache(cache_dir, threshold=threshold, mode=mode)
         self.key_prefix = key_prefix
         self.use_signer = use_signer
+        self.permanent = permanent
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
             sid = self._generate_sid()
-            return self.session_class(sid=sid)
+            return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
             signer = self._get_signer(app)
             if signer is None:
@@ -305,12 +312,12 @@ class FileSystemSessionInterface(SessionInterface):
                 sid = signer.unsign(sid)
             except BadSignature:
                 sid = self._generate_sid()
-                return self.session_class(sid=sid)
+                return self.session_class(sid=sid, permanent=self.permanent)
 
         data = self.cache.get(self.key_prefix + sid)
         if data is not None:
             return self.session_class(data, sid=sid)
-        return self.session_class(sid=sid)
+        return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
         domain = self.get_cookie_domain(app)
@@ -348,12 +355,14 @@ class MongoDBSessionInterface(SessionInterface):
     :param collection: The collection you want to use.
     :param key_prefix: A prefix that is added to all MongoDB store keys.
     :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
     """
 
     serializer = pickle
     session_class = MongoDBSession
 
-    def __init__(self, client, db, collection, key_prefix, use_signer=False):
+    def __init__(self, client, db, collection, key_prefix, use_signer=False,
+                 permanent=True):
         if client is None:
             from pymongo import MongoClient
             client = MongoClient()
@@ -361,12 +370,13 @@ class MongoDBSessionInterface(SessionInterface):
         self.store = client[db][collection]
         self.key_prefix = key_prefix
         self.use_signer = use_signer
+        self.permanent = permanent
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
             sid = self._generate_sid()
-            return self.session_class(sid=sid)
+            return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
             signer = self._get_signer(app)
             if signer is None:
@@ -375,7 +385,7 @@ class MongoDBSessionInterface(SessionInterface):
                 sid = signer.unsign(sid)
             except BadSignature:
                 sid = self._generate_sid()
-                return self.session_class(sid=sid)
+                return self.session_class(sid=sid, permanent=self.permanent)
 
         store_id = self.key_prefix + sid
         document = self.store.find_one({'id': store_id})
@@ -389,8 +399,8 @@ class MongoDBSessionInterface(SessionInterface):
                 data = self.serializer.loads(str(val))
                 return self.session_class(data, sid=sid)
             except:
-                return self.session_class(sid=sid)
-        return self.session_class(sid=sid)
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
         domain = self.get_cookie_domain(app)
@@ -430,18 +440,21 @@ class SqlAlchemySessionInterface(SessionInterface):
     :param table: The table name you want to use.
     :param key_prefix: A prefix that is added to all store keys.
     :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
     """
 
     serializer = pickle
     session_class = SqlAlchemySession
 
-    def __init__(self, app, db, table, key_prefix, use_signer=False):
+    def __init__(self, app, db, table, key_prefix, use_signer=False,
+                 permanent=True):
         if db is None:
             from flask.ext.sqlalchemy import SQLAlchemy
             db = SQLAlchemy(app)
         self.db = db
         self.key_prefix = key_prefix
         self.use_signer = use_signer
+        self.permanent = permanent
 
         class Session(self.db.Model):
             __tablename__ = table
@@ -466,7 +479,7 @@ class SqlAlchemySessionInterface(SessionInterface):
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
             sid = self._generate_sid()
-            return self.session_class(sid=sid)
+            return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
             signer = self._get_signer(app)
             if signer is None:
@@ -475,7 +488,7 @@ class SqlAlchemySessionInterface(SessionInterface):
                 sid = signer.unsign(sid)
             except BadSignature:
                 sid = self._generate_sid()
-                return self.session_class(sid=sid)
+                return self.session_class(sid=sid, permanent=self.permanent)
 
         store_id = self.key_prefix + sid
         saved_session = self.sql_session_model.query.filter_by(
@@ -491,8 +504,8 @@ class SqlAlchemySessionInterface(SessionInterface):
                 data = self.serializer.loads(str(val))
                 return self.session_class(data, sid=sid)
             except:
-                return self.session_class(sid=sid)
-        return self.session_class(sid=sid)
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
         domain = self.get_cookie_domain(app)
