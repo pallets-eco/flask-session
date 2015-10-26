@@ -19,7 +19,7 @@ except ImportError:
 from flask.sessions import SessionInterface as FlaskSessionInterface
 from flask.sessions import SessionMixin
 from werkzeug.datastructures import CallbackDict
-from itsdangerous import Signer, BadSignature
+from itsdangerous import Signer, BadSignature, want_bytes
 
 
 def total_seconds(td):
@@ -154,7 +154,7 @@ class RedisSessionInterface(SessionInterface):
         self.redis.setex(self.key_prefix + session.sid, val,
                          total_seconds(app.permanent_session_lifetime))
         if self.use_signer:
-            session_id = self._get_signer(app).sign(session.sid)
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
             session_id = session.sid
         response.set_cookie(app.session_cookie_name, session_id,
@@ -265,7 +265,7 @@ class MemcachedSessionInterface(SessionInterface):
         self.client.set(full_session_key, val, self._get_memcache_timeout(
                         total_seconds(app.permanent_session_lifetime)))
         if self.use_signer:
-            session_id = self._get_signer(app).sign(session.sid)
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
             session_id = session.sid
         response.set_cookie(app.session_cookie_name, session_id,
@@ -336,7 +336,7 @@ class FileSystemSessionInterface(SessionInterface):
         self.cache.set(self.key_prefix + session.sid, data,
                        total_seconds(app.permanent_session_lifetime))
         if self.use_signer:
-            session_id = self._get_signer(app).sign(session.sid)
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
             session_id = session.sid
         response.set_cookie(app.session_cookie_name, session_id,
@@ -422,7 +422,7 @@ class MongoDBSessionInterface(SessionInterface):
                            'val': val,
                            'expiration': expires}, True)
         if self.use_signer:
-            session_id = self._get_signer(app).sign(session.sid)
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
             session_id = session.sid
         response.set_cookie(app.session_cookie_name, session_id,
@@ -535,7 +535,7 @@ class SqlAlchemySessionInterface(SessionInterface):
             self.db.session.add(new_session)
             self.db.session.commit()
         if self.use_signer:
-            session_id = self._get_signer(app).sign(session.sid)
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
             session_id = session.sid
         response.set_cookie(app.session_cookie_name, session_id,

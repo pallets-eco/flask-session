@@ -27,3 +27,8 @@ Version 0.2.2
 `````````````
 
 Added support for non-permanent session.
+
+Version 0.2.3
+`````````````
+
+- Fixed signing failure in Python 3.x
