@@ -396,7 +396,7 @@ class MongoDBSessionInterface(SessionInterface):
         if document is not None:
             try:
                 val = document['val']
-                data = self.serializer.loads(str(val))
+                data = self.serializer.loads(want_bytes(val))
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid, permanent=self.permanent)
