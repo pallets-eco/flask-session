@@ -33,3 +33,4 @@ Version 0.2.3
 
 - Fixed signing failure in Python 3.x
 - Fixed MongoDBSessionInterface failure in Python 3.x
+- Fixed SqlAlchemySessionInterface failure in Python 3.x
