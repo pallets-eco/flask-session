@@ -151,8 +151,8 @@ class RedisSessionInterface(SessionInterface):
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session))
-        self.redis.setex(self.key_prefix + session.sid, val,
-                         total_seconds(app.permanent_session_lifetime))
+        self.redis.setex(self.key_prefix + session.sid,
+                         total_seconds(app.permanent_session_lifetime), val)
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
