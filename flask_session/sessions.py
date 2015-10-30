@@ -123,14 +123,31 @@ class RedisSessionInterface(SessionInterface):
                 return self.session_class(sid=sid)
         return self.session_class(sid=sid)
 
+    def destroy(self, session):
+        # Delete from our session store
+        self.redis.delete(self.key_prefix + session.sid)
+
+        # Remove `sid` so `save_session` knows to delete the cookie
+        session.sid = None
+
+    def regenerate(self, session):
+        # Delete old session info
+        self.redis.delete(self.key_prefix + session.sid)
+
+        # Generate a new sid and mark the session as modified
+        session.sid = self._generate_sid()
+        session.modified = True
+
+        # Session data will be preserved on the `session` dict
+        # `save_session` will take care of updating the cookie
+
     def save_session(self, app, session, response):
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
-        if not session:
-            if session.modified:
-                self.redis.delete(self.key_prefix + session.sid)
-                response.delete_cookie(app.session_cookie_name,
-                                       domain=domain, path=path)
+
+        if not session.sid:
+            response.delete_cookie(app.session_cookie_name,
+                                   domain=domain, path=path)
             return
 
         # Modification case.  There are upsides and downsides to

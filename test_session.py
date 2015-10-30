@@ -6,7 +6,12 @@ from flask.ext.session import Session
 
 
 class FlaskSessionTestCase(unittest.TestCase):
-    
+    def _get_cookie_dict(self, test_client):
+        return {
+            cookie.name: cookie
+            for cookie in test_client.cookie_jar
+        }
+
     def test_null_session(self):
         app = flask.Flask(__name__)
         Session(app)
@@ -32,18 +37,57 @@ class FlaskSessionTestCase(unittest.TestCase):
             return 'value set'
         @app.route('/get')
         def get():
-            return flask.session['value']
+            return flask.session.get('value', '')
         @app.route('/delete', methods=['POST'])
         def delete():
             del flask.session['value']
             return 'value deleted'
+        @app.route('/destroy', methods=['POST'])
+        def destroy():
+            app.session_interface.destroy(flask.session)
+            return 'session destroyed'
+        @app.route('/regenerate', methods=['POST'])
+        def regenerate():
+            app.session_interface.regenerate(flask.session)
+            return 'session regenerated'
+        @app.errorhandler(500)
+        def errorhandler_500(exc):
+            raise exc
 
+        # Create, retrieve, delete tests
         c = app.test_client()
         self.assertEqual(c.post('/set', data={'value': '42'}).data, b'value set')
         self.assertEqual(c.get('/get').data, b'42')
         c.post('/delete')
-    
-    
+        self.assertEqual(c.get('/get').data, b'')
+
+        # Destruction test
+        # Verify destruction works
+        c = app.test_client()
+        self.assertEqual(c.post('/set', data={'value': '42'}).data, b'value set')
+        session_cookie = self._get_cookie_dict(c)['session']
+        c.post('/destroy')
+        self.assertNotIn('session', self._get_cookie_dict(c))
+
+        # Verify our session was erased from the underlying store
+        # `session=abcdef-original-session-id`
+        cookie_header = 'session={value}'.format(value=session_cookie.value)
+        self.assertEqual(app.test_client().get('/get', headers={'Cookie': cookie_header}).data, b'')
+
+        # Regeneration test
+        # Verify regeneration preserves data but gives us a new session id
+        c = app.test_client()
+        self.assertEqual(c.post('/set', data={'value': '42'}).data, b'value set')
+        original_session_cookie = self._get_cookie_dict(c)['session']
+        c.post('/regenerate')
+        self.assertEqual(c.get('/get').data, b'42')
+        self.assertNotEqual(self._get_cookie_dict(c)['session'].value, original_session_cookie.value)
+
+        # Verify our original session was erased from the underlying store
+        # `session=abcdef-original-session-id`
+        cookie_header = 'session={value}'.format(value=original_session_cookie.value)
+        self.assertEqual(app.test_client().get('/get', headers={'Cookie': cookie_header}).data, b'')
+
     def test_memcached_session(self):
         app = flask.Flask(__name__)
         app.config['SESSION_TYPE'] = 'memcached'
