@@ -8,6 +8,7 @@
     :copyright: (c) 2014 by Shipeng Feng.
     :license: BSD, see LICENSE for more details.
 """
+import sys
 import time
 from datetime import datetime
 from uuid import uuid4
@@ -20,6 +21,13 @@ from flask.sessions import SessionInterface as FlaskSessionInterface
 from flask.sessions import SessionMixin
 from werkzeug.datastructures import CallbackDict
 from itsdangerous import Signer, BadSignature, want_bytes
+
+
+PY2 = sys.version_info[0] == 2
+if not PY2:
+    text_type = str
+else:
+    text_type = unicode
 
 
 def total_seconds(td):
@@ -118,6 +126,8 @@ class RedisSessionInterface(SessionInterface):
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
 
+        if not PY2 and not isinstance(sid, text_type):
+            sid = sid.decode('utf-8', 'strict')
         val = self.redis.get(self.key_prefix + sid)
         if val is not None:
             try:
@@ -234,11 +244,13 @@ class MemcachedSessionInterface(SessionInterface):
                 return self.session_class(sid=sid, permanent=self.permanent)
 
         full_session_key = self.key_prefix + sid
-        if isinstance(full_session_key, unicode):
+        if PY2 and isinstance(full_session_key, unicode):
             full_session_key = full_session_key.encode('utf-8')
         val = self.client.get(full_session_key)
         if val is not None:
             try:
+                if not PY2:
+                    val = want_bytes(val)
                 data = self.serializer.loads(val)
                 return self.session_class(data, sid=sid)
             except:
@@ -249,7 +261,7 @@ class MemcachedSessionInterface(SessionInterface):
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         full_session_key = self.key_prefix + session.sid
-        if isinstance(full_session_key, unicode):
+        if PY2 and isinstance(full_session_key, unicode):
             full_session_key = full_session_key.encode('utf-8')
         if not session:
             if session.modified:
@@ -261,7 +273,10 @@ class MemcachedSessionInterface(SessionInterface):
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
-        val = self.serializer.dumps(dict(session))
+        if not PY2:
+            val = self.serializer.dumps(dict(session), 0)
+        else:
+            val = self.serializer.dumps(dict(session))
         self.client.set(full_session_key, val, self._get_memcache_timeout(
                         total_seconds(app.permanent_session_lifetime)))
         if self.use_signer:
