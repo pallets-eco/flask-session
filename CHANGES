@@ -41,3 +41,4 @@ Version 0.3
 
 - SqlAlchemySessionInterface is using LargeBinary type to store data now
 - Fixed MongoDBSessionInterface delete method not found
+- Fixed TypeError when getting store_id using a signer

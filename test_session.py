@@ -90,6 +90,7 @@ class FlaskSessionTestCase(unittest.TestCase):
     
     def test_mongodb_session(self):
         app = flask.Flask(__name__)
+        app.testing = True
         app.config['SESSION_TYPE'] = 'mongodb'
         Session(app)
         @app.route('/set', methods=['POST'])
