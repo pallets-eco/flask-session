@@ -121,7 +121,8 @@ class RedisSessionInterface(SessionInterface):
             if signer is None:
                 return None
             try:
-                sid = signer.unsign(sid)
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -238,7 +239,8 @@ class MemcachedSessionInterface(SessionInterface):
             if signer is None:
                 return None
             try:
-                sid = signer.unsign(sid)
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -324,7 +326,8 @@ class FileSystemSessionInterface(SessionInterface):
             if signer is None:
                 return None
             try:
-                sid = signer.unsign(sid)
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -397,7 +400,8 @@ class MongoDBSessionInterface(SessionInterface):
             if signer is None:
                 return None
             try:
-                sid = signer.unsign(sid)
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -500,7 +504,8 @@ class SqlAlchemySessionInterface(SessionInterface):
             if signer is None:
                 return None
             try:
-                sid = signer.unsign(sid)
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
