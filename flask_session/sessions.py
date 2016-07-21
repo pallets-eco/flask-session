@@ -464,7 +464,7 @@ class SqlAlchemySessionInterface(SessionInterface):
     def __init__(self, app, db, table, key_prefix, use_signer=False,
                  permanent=True):
         if db is None:
-            from flask.ext.sqlalchemy import SQLAlchemy
+            from flask_sqlalchemy import SQLAlchemy
             db = SQLAlchemy(app)
         self.db = db
         self.key_prefix = key_prefix
