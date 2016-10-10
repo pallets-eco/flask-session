@@ -229,6 +229,15 @@ class MemcachedSessionInterface(SessionInterface):
             timeout += int(time.time())
         return timeout
 
+    def _encode_key(self, key, encoding='utf-8'):
+        if sys.version_info.major == 2:
+            if isinstance(key, unicode):
+                return key.encode(encoding)
+        else:
+            if isinstance(key, bytes):
+                return key.decode(encoding)
+        return key
+
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
@@ -245,9 +254,7 @@ class MemcachedSessionInterface(SessionInterface):
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
 
-        full_session_key = self.key_prefix + sid
-        if PY2 and isinstance(full_session_key, unicode):
-            full_session_key = full_session_key.encode('utf-8')
+        full_session_key = self._encode_key(self.key_prefix) + self._encode_key(sid)
         val = self.client.get(full_session_key)
         if val is not None:
             try:
@@ -262,9 +269,7 @@ class MemcachedSessionInterface(SessionInterface):
     def save_session(self, app, session, response):
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
-        full_session_key = self.key_prefix + session.sid
-        if PY2 and isinstance(full_session_key, unicode):
-            full_session_key = full_session_key.encode('utf-8')
+        full_session_key = self._encode_key(self.key_prefix) + self._encode_key(session.sid)
         if not session:
             if session.modified:
                 self.client.delete(full_session_key)
