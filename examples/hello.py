@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 from flask import Flask, session
-from flask.ext.session import Session
+from flask_session import Session
 
 
 SESSION_TYPE = 'redis'
