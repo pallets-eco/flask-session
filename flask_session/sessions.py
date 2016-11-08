@@ -121,7 +121,8 @@ class RedisSessionInterface(SessionInterface):
             if signer is None:
                 return None
             try:
-                sid = signer.unsign(sid)
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -238,7 +239,8 @@ class MemcachedSessionInterface(SessionInterface):
             if signer is None:
                 return None
             try:
-                sid = signer.unsign(sid)
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -324,7 +326,8 @@ class FileSystemSessionInterface(SessionInterface):
             if signer is None:
                 return None
             try:
-                sid = signer.unsign(sid)
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -397,7 +400,8 @@ class MongoDBSessionInterface(SessionInterface):
             if signer is None:
                 return None
             try:
-                sid = signer.unsign(sid)
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -406,7 +410,7 @@ class MongoDBSessionInterface(SessionInterface):
         document = self.store.find_one({'id': store_id})
         if document and document.get('expiration') <= datetime.utcnow():
             # Delete expired session
-            self.store.delete({'id': store_id})
+            self.store.remove({'id': store_id})
             document = None
         if document is not None:
             try:
@@ -423,7 +427,7 @@ class MongoDBSessionInterface(SessionInterface):
         store_id = self.key_prefix + session.sid
         if not session:
             if session.modified:
-                self.store.delete({'id': store_id})
+                self.store.remove({'id': store_id})
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
             return
@@ -464,7 +468,7 @@ class SqlAlchemySessionInterface(SessionInterface):
     def __init__(self, app, db, table, key_prefix, use_signer=False,
                  permanent=True):
         if db is None:
-            from flask.ext.sqlalchemy import SQLAlchemy
+            from flask_sqlalchemy import SQLAlchemy
             db = SQLAlchemy(app)
         self.db = db
         self.key_prefix = key_prefix
@@ -476,7 +480,7 @@ class SqlAlchemySessionInterface(SessionInterface):
 
             id = self.db.Column(self.db.Integer, primary_key=True)
             session_id = self.db.Column(self.db.String(256), unique=True)
-            data = self.db.Column(self.db.Text)
+            data = self.db.Column(self.db.LargeBinary)
             expiry = self.db.Column(self.db.DateTime)
 
             def __init__(self, session_id, data, expiry):
@@ -500,7 +504,8 @@ class SqlAlchemySessionInterface(SessionInterface):
             if signer is None:
                 return None
             try:
-                sid = signer.unsign(sid)
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
