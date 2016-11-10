@@ -476,6 +476,7 @@ class SqlAlchemySessionInterface(SessionInterface):
         self.permanent = permanent
         self.bind_key = 0
         if app.config['SQLALCHEMY_BINDS'] is not None:
+            if 'sessions' in app.config['SQLALCHEMY_BINDS']:
                 self.bind_key = 'sessions'
 
         class Session(self.db.Model):
