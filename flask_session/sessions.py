@@ -474,8 +474,13 @@ class SqlAlchemySessionInterface(SessionInterface):
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
+        self.bind_key = 0
+        if app.config['SQLALCHEMY_BINDS'] is not None:
+                self.bind_key = 'sessions'
 
         class Session(self.db.Model):
+            if self.bind_key:
+                __bind_key__ = self.bind_key
             __tablename__ = table
 
             id = self.db.Column(self.db.Integer, primary_key=True)
