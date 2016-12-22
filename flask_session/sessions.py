@@ -22,6 +22,8 @@ from flask.sessions import SessionMixin
 from werkzeug.datastructures import CallbackDict
 from itsdangerous import Signer, BadSignature, want_bytes
 
+import logging
+logger = logging.getLogger(__name__)
 
 PY2 = sys.version_info[0] == 2
 if not PY2:
@@ -69,6 +71,25 @@ class SqlAlchemySession(ServerSideSession):
 
 class SessionInterface(FlaskSessionInterface):
 
+    def get_sid(self, app, request ):
+        
+        sid = request.cookies.get(app.session_cookie_name)
+        logger.debug("cookie sid  %s" % sid)        
+        if not sid:
+            if 'sid' in request.args:
+                sid =  request.args.get('sid')
+                logger.debug("request sid  %s" % sid)
+            else:
+                logger.debug("sid not in request args  %s" % request.args)
+                        
+        if not sid:
+            if 'sid' in request.form:
+                sid=request.form['sid']
+                logger.debug("request form sid  %s" % sid)
+            else:
+                logger.debug("request form  %s" % request.form)        
+        return sid
+    
     def _generate_sid(self):
         return str(uuid4())
 
@@ -112,7 +133,8 @@ class RedisSessionInterface(SessionInterface):
         self.permanent = permanent
 
     def open_session(self, app, request):
-        sid = request.cookies.get(app.session_cookie_name)
+        sid = self.get_sid(app, request)
+
         if not sid:
             sid = self._generate_sid()
             return self.session_class(sid=sid, permanent=self.permanent)
@@ -230,7 +252,8 @@ class MemcachedSessionInterface(SessionInterface):
         return timeout
 
     def open_session(self, app, request):
-        sid = request.cookies.get(app.session_cookie_name)
+
+        sid = self.get_sid(app, request)
         if not sid:
             sid = self._generate_sid()
             return self.session_class(sid=sid, permanent=self.permanent)
@@ -317,9 +340,12 @@ class FileSystemSessionInterface(SessionInterface):
         self.permanent = permanent
 
     def open_session(self, app, request):
-        sid = request.cookies.get(app.session_cookie_name)
+
+        sid = self.get_sid(app, request)
+        logger.debug(sid)
         if not sid:
             sid = self._generate_sid()
+            logger.debug("New sid %s" % sid)
             return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
             signer = self._get_signer(app)
@@ -351,6 +377,8 @@ class FileSystemSessionInterface(SessionInterface):
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
         data = dict(session)
+        logger.debug("save sid %s" % session.sid)
+        logger.debug("save sid data %s" % data)
         self.cache.set(self.key_prefix + session.sid, data,
                        total_seconds(app.permanent_session_lifetime))
         if self.use_signer:
@@ -391,7 +419,8 @@ class MongoDBSessionInterface(SessionInterface):
         self.permanent = permanent
 
     def open_session(self, app, request):
-        sid = request.cookies.get(app.session_cookie_name)
+
+        sid = self.get_sid(app, request)
         if not sid:
             sid = self._generate_sid()
             return self.session_class(sid=sid, permanent=self.permanent)
@@ -495,7 +524,8 @@ class SqlAlchemySessionInterface(SessionInterface):
         self.sql_session_model = Session
 
     def open_session(self, app, request):
-        sid = request.cookies.get(app.session_cookie_name)
+
+        sid = self.get_sid(app, request)
         if not sid:
             sid = self._generate_sid()
             return self.session_class(sid=sid, permanent=self.permanent)
