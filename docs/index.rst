@@ -151,6 +151,17 @@ A list of configuration keys also understood by the extension:
                               using the ``SQLALCHEMY_DATABASE_URI`` parameter
 ``SESSION_SQLALCHEMY_TABLE``  The name of the SQL table you want to use,
                               default "sessions"
+``SESSION_DYNAMODB``          A ``boto3.Session`` instance, default creates an
+                              instance with credentials in environment variables
+                              or in the local aws config.
+``SESSION_DYNAMODB_KEY_ID``   The AWS key id for connecting to Dynamo. Uses environment
+                              variable or local config if not set.
+``SESSION_DYNAMODB_SECRET``   The AWS secret access key for connecting to Dynamo. Uses
+                              environment variable or local config if not set.
+``SESSION_DYNAMODB_REGION``   The region where the dynamodb table is located. Uses
+                              environment variable or the local config if not set.
+``SESSION_DYNAMODB_TABLE``    The name of the table in DyanmoDB to store session
+                              data. Default is "sessions".
 ============================= ==============================================
 
 Basically you only need to configure ``SESSION_TYPE``.
@@ -224,6 +235,17 @@ Uses SQLAlchemy as a session backend. (`Flask-SQLAlchemy`_ required)
 
 .. _Flask-SQLAlchemy: https://pythonhosted.org/Flask-SQLAlchemy/
 
+:class:`DynamoDBSessionInterface`
+```````````````````````````````````
+
+.. versionadded:: 0.4
+
+Uses AWS DynamoDB as a session backend. (`boto3`_ required)
+
+- SESSION_DYNAMODB_TABLE
+
+.. _boto3: https://boto3.readthedocs.io/en/latest/
+
 API
 ---
 
@@ -243,5 +265,6 @@ API
 .. autoclass:: FileSystemSessionInterface
 .. autoclass:: MongoDBSessionInterface
 .. autoclass:: SqlAlchemySessionInterface
+.. autoclass:: DynamoDBSessionInterface
 
 .. include:: ../CHANGES
