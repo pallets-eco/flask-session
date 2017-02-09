@@ -42,3 +42,9 @@ Version 0.3
 - SqlAlchemySessionInterface is using LargeBinary type to store data now
 - Fixed MongoDBSessionInterface delete method not found
 - Fixed TypeError when getting store_id using a signer
+
+Version 0.3.1
+`````````````
+
+- SqlAlchemySessionInterface is using VARCHAR(255) to store session id now
+- SqlAlchemySessionInterface won't run `db.create_all` anymore
