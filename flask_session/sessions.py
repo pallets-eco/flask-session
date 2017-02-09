@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-    flaskext.session.sessions
-    ~~~~~~~~~~~~~~~~~~~~~~~~~
+    flask_session.sessions
+    ~~~~~~~~~~~~~~~~~~~~~~
 
     Server-side Sessions and SessionInterfaces.
 

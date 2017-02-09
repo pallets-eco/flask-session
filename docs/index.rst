@@ -1,7 +1,7 @@
 Flask-Session
 =============
 
-.. module:: flask.ext.session
+.. module:: flask_session
 
 Welcome to Flask-Session's documentation.  Flask-Session is an extension for
 `Flask`_ that adds support for Server-side ``Session`` to your application.
@@ -41,7 +41,7 @@ The ``Session`` instance is not used for direct access, you should always use
 :class:`flask.session`::
     
     from flask import Flask, session
-    from flask.ext.session import Session
+    from flask_session import Session
 
     app = Flask(__name__)
     # Check Configuration section for more details
@@ -146,7 +146,7 @@ A list of configuration keys also understood by the extension:
                               "flask_session"
 ``SESSION_MONGODB_COLLECT``   The MongoDB collection you want to use, default
                               "sessions"
-``SESSION_SQLALCHEMY``        A ``flask.ext.sqlalchemy.SQLAlchemy`` instance
+``SESSION_SQLALCHEMY``        A ``flask_sqlalchemy.SQLAlchemy`` instance
                               whose database connection URI is configured
                               using the ``SQLALCHEMY_DATABASE_URI`` parameter
 ``SESSION_SQLALCHEMY_TABLE``  The name of the SQL table you want to use,
@@ -230,7 +230,7 @@ API
 .. autoclass:: Session
    :members: init_app
 
-.. autoclass:: flask.ext.session.sessions.ServerSideSession
+.. autoclass:: flask_session.sessions.ServerSideSession
    
    .. attribute:: sid
        
