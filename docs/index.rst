@@ -219,6 +219,12 @@ Uses the MongoDB as a session backend. (`pymongo`_ required)
 
 Uses SQLAlchemy as a session backend. (`Flask-SQLAlchemy`_ required)
 
+The bind is required if you want to store session data in a separate database.
+The database will be created if you use a separate database. Only the name
+"sessions" is valid for the database bind name.
+
+- SQLALCHEMY_BINDS = {'sessions':'sqlite:///sesh.db'}
+
 - SESSION_SQLALCHEMY
 - SESSION_SQLALCHEMY_TABLE
 
