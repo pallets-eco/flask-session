@@ -38,13 +38,24 @@ class ServerSideSession(CallbackDict, SessionMixin):
     """Baseclass for server-side based sessions."""
 
     def __init__(self, initial=None, sid=None, permanent=None):
-        def on_update(self):
-            self.modified = True
-        CallbackDict.__init__(self, initial, on_update)
-        self.sid = sid
+        CallbackDict.__init__(self, initial, self.on_update())
+        if type(initial) is dict:
+            self.recursive_bind(initial, self)
         if permanent:
             self.permanent = permanent
+        self.sid = sid
         self.modified = False
+
+    def on_update(self):
+        def wrapper(session_data):
+            self.modified = True
+        return wrapper
+
+    def recursive_bind(self, session_dict, starting_point):
+        for key, value in session_dict.items():
+            if type(value) is dict:
+                starting_point[key] = CallbackDict(value, self.on_update)
+                self.recursive_bind(value, starting_point[key])
 
 
 class RedisSession(ServerSideSession):
@@ -77,6 +88,14 @@ class SessionInterface(FlaskSessionInterface):
             return None
         return Signer(app.secret_key, salt='flask-session',
                       key_derivation='hmac')
+
+    def recursive_dict(self, session_data):
+        converted = dict(session_data)
+        for key, value in converted.items():
+            if type(value) is CallbackDict:
+                converted[key] = self.recursive_dict(value)
+
+        return converted
 
 
 class NullSessionInterface(SessionInterface):
@@ -161,7 +180,7 @@ class RedisSessionInterface(SessionInterface):
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
-        val = self.serializer.dumps(dict(session))
+        val = self.serializer.dumps(self.recursive_dict(session))
         self.redis.setex(name=self.key_prefix + session.sid, value=val,
                          time=total_seconds(app.permanent_session_lifetime))
         if self.use_signer:
@@ -276,9 +295,9 @@ class MemcachedSessionInterface(SessionInterface):
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
         if not PY2:
-            val = self.serializer.dumps(dict(session), 0)
+            val = self.serializer.dumps(self.recursive_dict(session), 0)
         else:
-            val = self.serializer.dumps(dict(session))
+            val = self.serializer.dumps(self.recursive_dict(session))
         self.client.set(full_session_key, val, self._get_memcache_timeout(
                         total_seconds(app.permanent_session_lifetime)))
         if self.use_signer:
@@ -350,7 +369,7 @@ class FileSystemSessionInterface(SessionInterface):
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
-        data = dict(session)
+        data = self.recursive_dict(session)
         self.cache.set(self.key_prefix + session.sid, data,
                        total_seconds(app.permanent_session_lifetime))
         if self.use_signer:
@@ -435,7 +454,7 @@ class MongoDBSessionInterface(SessionInterface):
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
-        val = self.serializer.dumps(dict(session))
+        val = self.serializer.dumps(self.recursive_dict(session))
         self.store.update({'id': store_id},
                           {'id': store_id,
                            'val': val,
@@ -545,7 +564,7 @@ class SqlAlchemySessionInterface(SessionInterface):
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
-        val = self.serializer.dumps(dict(session))
+        val = self.serializer.dumps(self.recursive_dict(session))
         if saved_session:
             saved_session.data = val
             saved_session.expiry = expires

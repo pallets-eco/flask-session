@@ -6,7 +6,7 @@ from flask_session import Session
 
 
 class FlaskSessionTestCase(unittest.TestCase):
-    
+
     def test_null_session(self):
         app = flask.Flask(__name__)
         Session(app)
@@ -42,8 +42,7 @@ class FlaskSessionTestCase(unittest.TestCase):
         self.assertEqual(c.post('/set', data={'value': '42'}).data, b'value set')
         self.assertEqual(c.get('/get').data, b'42')
         c.post('/delete')
-    
-    
+
     def test_memcached_session(self):
         app = flask.Flask(__name__)
         app.config['SESSION_TYPE'] = 'memcached'
@@ -64,8 +63,7 @@ class FlaskSessionTestCase(unittest.TestCase):
         self.assertEqual(c.post('/set', data={'value': '42'}).data, b'value set')
         self.assertEqual(c.get('/get').data, b'42')
         c.post('/delete')
-    
-    
+
     def test_filesystem_session(self):
         app = flask.Flask(__name__)
         app.config['SESSION_TYPE'] = 'filesystem'
@@ -87,7 +85,7 @@ class FlaskSessionTestCase(unittest.TestCase):
         self.assertEqual(c.post('/set', data={'value': '42'}).data, b'value set')
         self.assertEqual(c.get('/get').data, b'42')
         c.post('/delete')
-    
+
     def test_mongodb_session(self):
         app = flask.Flask(__name__)
         app.testing = True
@@ -177,6 +175,34 @@ class FlaskSessionTestCase(unittest.TestCase):
         c = app.test_client()
         self.assertEqual(c.post('/set', data={'value': '42'}).data, b'value set')
         self.assertEqual(c.get('/get').data, b'42')
+
+    def test_session_modified(self):
+        app = flask.Flask(__name__)
+        app.config['SESSION_TYPE'] = 'filesystem'
+        app.config['SESSION_FILE_DIR'] = tempfile.gettempdir()
+        Session(app)
+        @app.route('/set_basic', methods=['POST'])
+        def set_basic():
+            flask.session['value'] = {}
+            return str(flask.session.modified)
+        @app.route('/set_advanced', methods=['POST'])
+        def set_advanced():
+            flask.session['value']['test'] = {}
+            return str(flask.session.modified)
+        @app.route('/set_deeper', methods=['POST'])
+        def set_deeper():
+            flask.session['value']['test']['foo'] = 'bar'
+            return str(flask.session.modified)
+        @app.route('/get')
+        def get():
+            test = flask.session['value']['test']['foo']
+            return str(flask.session.modified)
+
+        c = app.test_client()
+        self.assertEqual(c.post('/set_basic').data, b'True')
+        self.assertEqual(c.post('/set_advanced').data, b'True')
+        self.assertEqual(c.post('/set_deeper').data, b'True')
+        self.assertEqual(c.get('/get').data, b'False')
 
 if __name__ == "__main__":
     unittest.main()
