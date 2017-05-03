@@ -139,6 +139,8 @@ class RedisSessionInterface(SessionInterface):
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
+        if not self.should_set_cookie(app, session):
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         if not session:
@@ -260,6 +262,8 @@ class MemcachedSessionInterface(SessionInterface):
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
+        if not self.should_set_cookie(app, session):
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         full_session_key = self.key_prefix + session.sid
@@ -338,6 +342,8 @@ class FileSystemSessionInterface(SessionInterface):
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
+        if not self.should_set_cookie(app, session):
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         if not session:
@@ -422,6 +428,8 @@ class MongoDBSessionInterface(SessionInterface):
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
+        if not self.should_set_cookie(app, session):
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         store_id = self.key_prefix + session.sid
