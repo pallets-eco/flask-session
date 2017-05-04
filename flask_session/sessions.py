@@ -418,6 +418,8 @@ class MongoDBSessionInterface(SessionInterface):
             # Delete expired session
             self.store.remove({'id': store_id})
             document = None
+        if not document:
+            sid = self._generate_sid()
         if document is not None:
             try:
                 val = document['val']
