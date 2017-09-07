@@ -408,7 +408,7 @@ class MongoDBSessionInterface(SessionInterface):
 
         store_id = self.key_prefix + sid
         document = self.store.find_one({'id': store_id})
-        if document and document.get('expiration') <= datetime.utcnow():
+        if document and ((not document.get('expiration')) or document.get('expiration') <= datetime.utcnow()):
             # Delete expired session
             self.store.remove({'id': store_id})
             document = None
