@@ -20,7 +20,7 @@ except ImportError:
 from flask.sessions import SessionInterface as FlaskSessionInterface
 from flask.sessions import SessionMixin
 from werkzeug.datastructures import CallbackDict
-from itsdangerous import Signer, BadSignature, want_bytes
+from itsdangerous import Signer, BadSignature, encoding
 
 
 PY2 = sys.version_info[0] == 2
@@ -165,7 +165,7 @@ class RedisSessionInterface(SessionInterface):
         self.redis.setex(name=self.key_prefix + session.sid, value=val,
                          time=total_seconds(app.permanent_session_lifetime))
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._get_signer(app).sign(encoding.want_bytes(session.sid))
         else:
             session_id = session.sid
         response.set_cookie(app.session_cookie_name, session_id,
@@ -252,7 +252,7 @@ class MemcachedSessionInterface(SessionInterface):
         if val is not None:
             try:
                 if not PY2:
-                    val = want_bytes(val)
+                    val = encoding.want_bytes(val)
                 data = self.serializer.loads(val)
                 return self.session_class(data, sid=sid)
             except:
@@ -282,7 +282,7 @@ class MemcachedSessionInterface(SessionInterface):
         self.client.set(full_session_key, val, self._get_memcache_timeout(
                         total_seconds(app.permanent_session_lifetime)))
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._get_signer(app).sign(encoding.want_bytes(session.sid))
         else:
             session_id = session.sid
         response.set_cookie(app.session_cookie_name, session_id,
@@ -354,7 +354,7 @@ class FileSystemSessionInterface(SessionInterface):
         self.cache.set(self.key_prefix + session.sid, data,
                        total_seconds(app.permanent_session_lifetime))
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._get_signer(app).sign(encoding.want_bytes(session.sid))
         else:
             session_id = session.sid
         response.set_cookie(app.session_cookie_name, session_id,
@@ -415,7 +415,7 @@ class MongoDBSessionInterface(SessionInterface):
         if document is not None:
             try:
                 val = document['val']
-                data = self.serializer.loads(want_bytes(val))
+                data = self.serializer.loads(encoding.want_bytes(val))
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -441,7 +441,7 @@ class MongoDBSessionInterface(SessionInterface):
                            'val': val,
                            'expiration': expires}, True)
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._get_signer(app).sign(encoding.want_bytes(session.sid))
         else:
             session_id = session.sid
         response.set_cookie(app.session_cookie_name, session_id,
@@ -521,7 +521,7 @@ class SqlAlchemySessionInterface(SessionInterface):
         if saved_session:
             try:
                 val = saved_session.data
-                data = self.serializer.loads(want_bytes(val))
+                data = self.serializer.loads(encoding.want_bytes(val))
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -555,7 +555,7 @@ class SqlAlchemySessionInterface(SessionInterface):
             self.db.session.add(new_session)
             self.db.session.commit()
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._get_signer(app).sign(encoding.want_bytes(session.sid))
         else:
             session_id = session.sid
         response.set_cookie(app.session_cookie_name, session_id,
