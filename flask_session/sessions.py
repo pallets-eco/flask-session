@@ -20,7 +20,12 @@ except ImportError:
 from flask.sessions import SessionInterface as FlaskSessionInterface
 from flask.sessions import SessionMixin
 from werkzeug.datastructures import CallbackDict
-from itsdangerous import Signer, BadSignature, want_bytes
+
+try:
+    from itsdangerous import Signer, BadSignature, want_bytes
+except ImportError:
+    from itsdangerous import Signer, BadSignature
+    from itsdangerous.encoding import want_bytes
 
 
 PY2 = sys.version_info[0] == 2
