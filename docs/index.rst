@@ -70,7 +70,7 @@ Configuration
 The following configuration values exist for Flask-Session.  Flask-Session
 loads these values from your Flask application config, so you should configure
 your app first before you pass it to Flask-Session.  Note that these values
-cannot be modified after the ``init_app`` was applyed so make sure to not
+cannot be modified after the ``init_app`` was applied so make sure to not
 modify them at runtime.
 
 We are not supplying something like ``SESSION_REDIS_HOST`` and 
