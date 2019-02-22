@@ -56,9 +56,17 @@ class Session(object):
     def init_app(self, app):
         """This is used to set up session for your app object.
 
+        When app.session_interface is None
+        or
+        app.config['SESSION_TYPE'] == 'custom'
+        we using custom implementation from application.
+
         :param app: the Flask app object with proper configuration.
         """
-        app.session_interface = self._get_interface(app)
+        if app.session_interface is None \
+                or ('SESSION_TYPE' in app.config
+                    and app.config['SESSION_TYPE'] != 'custom'):
+            app.session_interface = self._get_interface(app)
 
     def _get_interface(self, app):
         config = app.config.copy()
