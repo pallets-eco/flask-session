@@ -75,6 +75,7 @@ class Session(object):
         config.setdefault('SESSION_MONGODB', None)
         config.setdefault('SESSION_MONGODB_DB', 'flask_session')
         config.setdefault('SESSION_MONGODB_COLLECT', 'sessions')
+        config.setdefault('SESSION_MONGODB_TZ_AWARE', False)
         config.setdefault('SESSION_SQLALCHEMY', None)
         config.setdefault('SESSION_SQLALCHEMY_TABLE', 'sessions')
 
@@ -96,7 +97,7 @@ class Session(object):
                 config['SESSION_MONGODB'], config['SESSION_MONGODB_DB'],
                 config['SESSION_MONGODB_COLLECT'],
                 config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'],
-                config['SESSION_PERMANENT'])
+                config['SESSION_PERMANENT'], config['SESSION_MONGODB_TZ_AWARE'])
         elif config['SESSION_TYPE'] == 'sqlalchemy':
             session_interface = SqlAlchemySessionInterface(
                 app, config['SESSION_SQLALCHEMY'],

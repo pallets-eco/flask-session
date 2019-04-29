@@ -375,6 +375,7 @@ class MongoDBSessionInterface(SessionInterface):
     :param key_prefix: A prefix that is added to all MongoDB store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
+    :param tz_aware: Whether to use tz_aware MongoClient or not.
     """
 
     serializer = pickle
@@ -384,7 +385,10 @@ class MongoDBSessionInterface(SessionInterface):
                  permanent=True, tz_aware=False):
         if client is None:
             from pymongo import MongoClient
-            client = MongoClient()
+            if tz_aware:
+                client = MongoClient(tz_aware=tz_aware)
+            else:
+                client = MongoClient()
         self.client = client
         self.store = client[db][collection]
         self.key_prefix = key_prefix
