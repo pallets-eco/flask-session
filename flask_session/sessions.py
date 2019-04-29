@@ -146,7 +146,10 @@ class RedisSessionInterface(SessionInterface):
                 self.redis.delete(self.key_prefix + session.sid)
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
-            return
+            return None
+        elif not session.modified:
+            # session was not changed no need to update storage or cookie
+            return None
 
         # Modification case.  There are upsides and downsides to
         # emitting a set-cookie header each request.  The behavior
@@ -270,7 +273,10 @@ class MemcachedSessionInterface(SessionInterface):
                 self.client.delete(full_session_key)
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
-            return
+            return None
+        elif not session.modified:
+            # session was not changed no need to update storage or cookie
+            return None
 
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
@@ -345,7 +351,10 @@ class FileSystemSessionInterface(SessionInterface):
                 self.cache.delete(self.key_prefix + session.sid)
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
-            return
+            return None
+        elif not session.modified:
+            # session was not changed no need to update storage or cookie
+            return None
 
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
@@ -430,7 +439,10 @@ class MongoDBSessionInterface(SessionInterface):
                 self.store.remove({'id': store_id})
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
-            return
+            return None
+        elif not session.modified:
+            # session was not changed no need to update storage or cookie
+            return None
 
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
@@ -540,7 +552,10 @@ class SqlAlchemySessionInterface(SessionInterface):
                     self.db.session.commit()
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
-            return
+            return None
+        elif not session.modified:
+            # session was not changed no need to update storage or cookie
+            return None
 
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
