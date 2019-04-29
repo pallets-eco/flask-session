@@ -9,6 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 import sys
+import pytz
 import time
 from datetime import datetime
 from uuid import uuid4
@@ -380,7 +381,7 @@ class MongoDBSessionInterface(SessionInterface):
     session_class = MongoDBSession
 
     def __init__(self, client, db, collection, key_prefix, use_signer=False,
-                 permanent=True):
+                 permanent=True, tz_aware=False):
         if client is None:
             from pymongo import MongoClient
             client = MongoClient()
@@ -389,6 +390,7 @@ class MongoDBSessionInterface(SessionInterface):
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
+        self.tz_aware = tz_aware
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.session_cookie_name)
@@ -408,7 +410,14 @@ class MongoDBSessionInterface(SessionInterface):
 
         store_id = self.key_prefix + sid
         document = self.store.find_one({'id': store_id})
-        if document and document.get('expiration') <= datetime.utcnow():
+
+        # Workaround for tz_aware MongoClient
+        if self.tz_aware:
+            utc_now = datetime.utcnow().replace(tzinfo=pytz.UTC)
+        else:
+            utc_now = datetime.utcnow()
+
+        if document and document.get('expiration') <= utc_now:
             # Delete expired session
             self.store.remove({'id': store_id})
             document = None
