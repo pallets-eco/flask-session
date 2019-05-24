@@ -466,7 +466,7 @@ class SqlAlchemySessionInterface(SessionInterface):
     session_class = SqlAlchemySession
 
     def __init__(self, app, db, table, key_prefix, use_signer=False,
-                 permanent=True):
+                 permanent=True, sequence=None):
         if db is None:
             from flask_sqlalchemy import SQLAlchemy
             db = SQLAlchemy(app)
@@ -474,11 +474,18 @@ class SqlAlchemySessionInterface(SessionInterface):
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
+        self.sequence = sequence
 
         class Session(self.db.Model):
             __tablename__ = table
 
-            id = self.db.Column(self.db.Integer, primary_key=True)
+            if sequence:
+                id = self.db.Column(self.db.Integer,
+                                    self.db.Sequence(sequence),
+                                    primary_key=True)
+            else:
+                id = self.db.Column(self.db.Integer, primary_key=True)
+                
             session_id = self.db.Column(self.db.String(255), unique=True)
             data = self.db.Column(self.db.LargeBinary)
             expiry = self.db.Column(self.db.DateTime)

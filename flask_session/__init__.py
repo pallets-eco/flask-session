@@ -77,6 +77,7 @@ class Session(object):
         config.setdefault('SESSION_MONGODB_COLLECT', 'sessions')
         config.setdefault('SESSION_SQLALCHEMY', None)
         config.setdefault('SESSION_SQLALCHEMY_TABLE', 'sessions')
+        config.setdefault('SESSION_SQLALCHEMY_SEQUENCE', None)
 
         if config['SESSION_TYPE'] == 'redis':
             session_interface = RedisSessionInterface(
@@ -102,7 +103,7 @@ class Session(object):
                 app, config['SESSION_SQLALCHEMY'],
                 config['SESSION_SQLALCHEMY_TABLE'],
                 config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'],
-                config['SESSION_PERMANENT'])
+                config['SESSION_PERMANENT'], config['SESSION_SQLALCHEMY_SEQUENCE'])
         else:
             session_interface = NullSessionInterface()
 
