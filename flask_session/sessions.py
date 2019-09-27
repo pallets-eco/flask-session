@@ -458,9 +458,9 @@ class ElasticsearchSessionInterface(SessionInterface):
 
     .. versionadded:: 0.X
 
-    :param client: A ``pymongo.MongoClient`` instance.
-    :param db: The database you want to use.
-    :param collection: The collection you want to use.
+    :param client: A ``elasticsearch.Elasticsearch`` instance.
+    :param host: The elasticsearch host url you want to use.
+    :param index: The elasticsearch index you want to use.
     :param key_prefix: A prefix that is added to all MongoDB store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
