@@ -15,7 +15,8 @@ import os
 
 from .sessions import NullSessionInterface, RedisSessionInterface, \
     MemcachedSessionInterface, FileSystemSessionInterface, \
-    MongoDBSessionInterface, SqlAlchemySessionInterface
+    MongoDBSessionInterface, SqlAlchemySessionInterface, \
+    ElasticsearchSessionInterface
 
 
 class Session(object):
@@ -75,6 +76,9 @@ class Session(object):
         config.setdefault('SESSION_MONGODB', None)
         config.setdefault('SESSION_MONGODB_DB', 'flask_session')
         config.setdefault('SESSION_MONGODB_COLLECT', 'sessions')
+        config.setdefault('SESSION_ELASTICSEARCH', None)
+        config.setdefault('SESSION_ELASTICSEARCH_HOST', 'http://localhost:9200')
+        config.setdefault('SESSION_ELASTICSEARCH_INDEX', 'sessions')
         config.setdefault('SESSION_SQLALCHEMY', None)
         config.setdefault('SESSION_SQLALCHEMY_TABLE', 'sessions')
 
@@ -95,6 +99,12 @@ class Session(object):
             session_interface = MongoDBSessionInterface(
                 config['SESSION_MONGODB'], config['SESSION_MONGODB_DB'],
                 config['SESSION_MONGODB_COLLECT'],
+                config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'],
+                config['SESSION_PERMANENT'])
+        elif config['SESSION_TYPE'] == 'elasticsearch':
+            session_interface = ElasticsearchSessionInterface(
+                config['SESSION_ELASTICSEARCH'], config['SESSION_ELASTICSEARCH_HOST'],
+                config['SESSION_ELASTICSEARCH_INDEX'],
                 config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'],
                 config['SESSION_PERMANENT'])
         elif config['SESSION_TYPE'] == 'sqlalchemy':

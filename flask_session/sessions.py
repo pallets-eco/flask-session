@@ -63,6 +63,10 @@ class MongoDBSession(ServerSideSession):
     pass
 
 
+class ElasticsearchSession(ServerSideSession):
+    pass
+
+
 class SqlAlchemySession(ServerSideSession):
     pass
 
@@ -440,6 +444,115 @@ class MongoDBSessionInterface(SessionInterface):
                           {'id': store_id,
                            'val': val,
                            'expiration': expires}, True)
+        if self.use_signer:
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+        else:
+            session_id = session.sid
+        response.set_cookie(app.session_cookie_name, session_id,
+                            expires=expires, httponly=httponly,
+                            domain=domain, path=path, secure=secure)
+
+
+class ElasticsearchSessionInterface(SessionInterface):
+    """A Session interface that uses Elasticsearch as backend.
+
+    .. versionadded:: 0.X
+
+    :param client: A ``pymongo.MongoClient`` instance.
+    :param db: The database you want to use.
+    :param collection: The collection you want to use.
+    :param key_prefix: A prefix that is added to all MongoDB store keys.
+    :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
+    """
+
+    serializer = None
+    session_class = ElasticsearchSession
+
+    def __init__(self, client, host, index, key_prefix, use_signer=False,
+                    permanent=True):
+        if client is None:
+            from elasticsearch import Elasticsearch
+            client = Elasticsearch(host)
+        self.client = client
+        self.index = index
+        try:
+            self.client.indices.create(index=self.index)
+        except:
+            pass
+        self.key_prefix = key_prefix
+        self.use_signer = use_signer
+        self.permanent = permanent
+
+    def open_session(self, app, request):
+        sid = request.cookies.get(app.session_cookie_name)
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid, permanent=self.permanent)
+        if self.use_signer:
+            signer = self._get_signer(app)
+            if signer is None:
+                return None
+            try:
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
+            except BadSignature:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
+
+        store_id = self.key_prefix + sid
+        document = self.client.get(index=self.index, id=store_id, ignore=404)
+        if document["found"]:
+            expiration = document["_source"]["expiration"]
+            expiration = datetime.strptime(expiration, "%Y-%m-%dT%H:%M:%S.%f")
+            if expiration <= datetime.utcnow():
+                # Delete expired session
+                self.store.remove({'id': store_id})
+                document = None
+        if document is not None:
+            try:
+                val = document["_source"]['val']
+                return self.session_class(val, sid=sid)
+            except:
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
+
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        store_id = self.key_prefix + session.sid
+        if not session:
+            if session.modified:
+                self.client.delete(index=self.index, id=store_id)
+                response.delete_cookie(app.session_cookie_name,
+                                        domain=domain, path=path)
+            return
+
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        expires = self.get_expiration_time(app, session)
+        val = dict(session)
+        document = self.client.get(self.index, id=store_id, ignore=404)
+        if document["found"]:
+            self.client.update(index=self.index, 
+                id=store_id, 
+                body={
+                    'doc': {
+                        'id': store_id,
+                        'val': val,
+                        'expiration': expires
+                    }
+                }
+            )
+        else:
+            self.client.index(index=self.index,
+                id=store_id,
+                body={
+                    'id': store_id,
+                    'val': val,
+                    'expiration': expires
+                }
+            )
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
