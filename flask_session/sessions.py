@@ -507,7 +507,7 @@ class ElasticsearchSessionInterface(SessionInterface):
             expiration = datetime.strptime(expiration, "%Y-%m-%dT%H:%M:%S.%f")
             if expiration <= datetime.utcnow():
                 # Delete expired session
-                self.store.remove({'id': store_id})
+                self.client.delete(index=self.index, id=store_id)
                 document = None
         if document is not None:
             try:
@@ -532,27 +532,14 @@ class ElasticsearchSessionInterface(SessionInterface):
         secure = self.get_cookie_secure(app)
         expires = self.get_expiration_time(app, session)
         val = dict(session)
-        document = self.client.get(self.index, id=store_id, ignore=404)
-        if document["found"]:
-            self.client.update(index=self.index, 
-                id=store_id, 
-                body={
-                    'doc': {
-                        'id': store_id,
-                        'val': val,
-                        'expiration': expires
-                    }
-                }
-            )
-        else:
-            self.client.index(index=self.index,
-                id=store_id,
-                body={
-                    'id': store_id,
-                    'val': val,
-                    'expiration': expires
-                }
-            )
+        self.client.index(index=self.index,
+            id=store_id,
+            body={
+                'id': store_id,
+                'val': val,
+                'expiration': expires
+            }
+        )
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
