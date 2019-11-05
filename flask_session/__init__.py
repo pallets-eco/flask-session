@@ -15,7 +15,8 @@ import os
 
 from .sessions import NullSessionInterface, RedisSessionInterface, \
     MemcachedSessionInterface, FileSystemSessionInterface, \
-    MongoDBSessionInterface, SqlAlchemySessionInterface
+    MongoDBSessionInterface, SqlAlchemySessionInterface, \
+    GoogleCloudDatastoreSessionInterface
 
 
 class Session(object):
@@ -101,6 +102,10 @@ class Session(object):
             session_interface = SqlAlchemySessionInterface(
                 app, config['SESSION_SQLALCHEMY'],
                 config['SESSION_SQLALCHEMY_TABLE'],
+                config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'],
+                config['SESSION_PERMANENT'])
+        elif config['SESSION_TYPE'] == 'datastore':
+            session_interface = GoogleCloudDatastoreSessionInterface(
                 config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'],
                 config['SESSION_PERMANENT'])
         else:
