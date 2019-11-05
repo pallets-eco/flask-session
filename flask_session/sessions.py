@@ -118,7 +118,6 @@ class RedisSessionInterface(SessionInterface):
         self.permanent = permanent
 
     def open_session(self, app, request):
-        logging.warning('open redis session')
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
             sid = self._generate_sid()
@@ -583,7 +582,6 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
 
     def __init__(
             self, gcloud_project, key_prefix, use_signer=False, permanent=True):
-        logging.warning('creating datastore interface')
         self.gcloud_project = gcloud_project
         self.key_prefix = key_prefix
         self.use_signer = use_signer
@@ -599,7 +597,6 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
         return datastore.Client(credentials=compute_engine.Credentials())
 
     def open_session(self, app, request):
-        logging.warning('open_session')
         ds_client = self.get_client()
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
@@ -632,7 +629,6 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
-        logging.warning('save_session')
         from google.cloud import datastore
         ds_client = self.get_client()
         domain = self.get_cookie_domain(app)
@@ -653,11 +649,13 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
         expires = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session))
         if saved_session:
+            logging.warning(saved_session)
             saved_session['data'] = val
             saved_session['expiry'] = expires
             ds_client.put(saved_session)
         else:
-            new_session = datastore.Entity(key=session_key)
+            new_session = datastore.Entity(
+                key=session_key, exclude_from_indexes=('data',))
             new_session['data'] = val
             new_session['expiry'] = expires
             ds_client.put(new_session)
