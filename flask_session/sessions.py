@@ -118,6 +118,7 @@ class RedisSessionInterface(SessionInterface):
         self.permanent = permanent
 
     def open_session(self, app, request):
+        logging.warning('open redis session')
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
             sid = self._generate_sid()
@@ -582,6 +583,7 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
 
     def __init__(
             self, gcloud_project, key_prefix, use_signer=False, permanent=True):
+        logging.warning('creating datastore interface')
         self.gcloud_project = gcloud_project
         self.key_prefix = key_prefix
         self.use_signer = use_signer
@@ -598,7 +600,6 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
 
     def open_session(self, app, request):
         logging.warning('open_session')
-        from google.cloud import datastore
         ds_client = self.get_client()
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
