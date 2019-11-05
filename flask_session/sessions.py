@@ -10,6 +10,7 @@
 """
 import sys
 import time
+import pytz
 from datetime import datetime
 from uuid import uuid4
 try:
@@ -583,11 +584,10 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
-        self.logger = logging.getLogger(__name__)
 
     def open_session(self, app, request):
         from google.cloud import datastore
-        self.logger.warning('open_session')
+        ds_client = datastore.Client()
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
             sid = self._generate_sid()
@@ -603,11 +603,11 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
 
-        ds_client = datastore.Client()
         store_id = self.key_prefix + sid
-        saved_session = ds_client.get(store_id)
-        if saved_session and saved_session['expiry'] <= datetime.utcnow():
-            ds_client.delete(ds_client.key('session', store_id))
+        session_key = ds_client.key('session', store_id)
+        saved_session = ds_client.get(session_key)
+        if saved_session and saved_session['expiry'] <= pytz.utc.localize(datetime.now()):
+            ds_client.delete(session_key)
             saved_session = None
         if saved_session:
             try:
@@ -619,17 +619,16 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
-        from google.cloud import datastore
-        self.logger.warning('save_session')
         ds_client = datastore.Client()
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         store_id = self.key_prefix + session.sid
-        saved_session = ds_client.get(store_id)
+        session_key = ds_client.key('session', store_id)
+        saved_session = ds_client.get(session_key)
         if not session:
             if session.modified:
                 if saved_session:
-                    ds_client.delete(ds_client.key('session', store_id))
+                    ds_client.delete(session_key)
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
             return
@@ -643,7 +642,6 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
             saved_session['expiry'] = expires
             ds_client.put(saved_session)
         else:
-            session_key = ds_client.key('session', store_id)
             new_session = datastore.Entity(key=session_key)
             new_session['data'] = val
             new_session['expiry'] = expires
