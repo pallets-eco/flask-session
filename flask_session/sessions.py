@@ -11,7 +11,6 @@
 import sys
 import time
 import pytz
-import logging
 import os
 from datetime import datetime
 from uuid import uuid4
@@ -649,7 +648,6 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
         expires = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session))
         if saved_session:
-            logging.warning(saved_session)
             saved_session['data'] = val
             saved_session['expiry'] = expires
             ds_client.put(saved_session)
