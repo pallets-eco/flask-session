@@ -578,23 +578,16 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
     session_class = GoogleCloudDataStoreSession
 
     def __init__(self, key_prefix, use_signer=False, permanent=True):
-        from google.appengine.ext import db
+        import logging
 
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
-
-        class Session(db.Model):
-
-            data = db.BlobProperty()
-            expiry = db.DateTimeProperty()
-
-            def __repr__(self):
-                return '<Session data %s>' % self.data
-
-        self.session_model = Session
+        self.logger = logging.getLogger(__name__)
 
     def open_session(self, app, request):
+        from google.cloud import datastore
+        self.logger.warning('open_session')
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
             sid = self._generate_sid()
@@ -610,14 +603,15 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
 
+        ds_client = datastore.Client()
         store_id = self.key_prefix + sid
-        saved_session = self.session_model.get_by_key_name(store_id)
-        if saved_session and saved_session.expiry <= datetime.utcnow():
-            saved_session.delete()
+        saved_session = ds_client.get(store_id)
+        if saved_session and saved_session['expiry'] <= datetime.utcnow():
+            ds_client.delete(ds_client.key('session', store_id))
             saved_session = None
         if saved_session:
             try:
-                val = saved_session.data
+                val = saved_session['data']
                 data = self.serializer.loads(want_bytes(val))
                 return self.session_class(data, sid=sid)
             except:
@@ -625,14 +619,17 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
+        from google.cloud import datastore
+        self.logger.warning('save_session')
+        ds_client = datastore.Client()
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         store_id = self.key_prefix + session.sid
-        saved_session = self.session_model.get_by_key_name(store_id)
+        saved_session = ds_client.get(store_id)
         if not session:
             if session.modified:
                 if saved_session:
-                    saved_session.delete()
+                    ds_client.delete(ds_client.key('session', store_id))
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
             return
@@ -642,13 +639,15 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
         expires = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session))
         if saved_session:
-            saved_session.data = val
-            saved_session.expiry = expires
-            saved_session.put()
+            saved_session['data'] = val
+            saved_session['expiry'] = expires
+            ds_client.put(saved_session)
         else:
-            new_session = self.session_model(
-                key_name=store_id, data=val, expiry=expires)
-            new_session.put()
+            session_key = ds_client.key('session', store_id)
+            new_session = datastore.Entity(key=session_key)
+            new_session['data'] = val
+            new_session['expiry'] = expires
+            ds_client.put(new_session)
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
