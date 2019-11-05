@@ -12,6 +12,7 @@ import sys
 import time
 import pytz
 import logging
+import os
 from datetime import datetime
 from uuid import uuid4
 try:
@@ -579,15 +580,26 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
     serializer = pickle
     session_class = GoogleCloudDataStoreSession
 
-    def __init__(self, key_prefix, use_signer=False, permanent=True):
+    def __init__(
+            self, gcloud_project, key_prefix, use_signer=False, permanent=True):
+        self.gcloud_project = gcloud_project
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
 
+    def get_client(self):
+        import requests
+        from google.cloud import datastore
+        from google.auth import compute_engine
+        if os.environ.get('DATASTORE_EMULATOR_HOST'):
+            return datastore.Client(_http=requests.Session,
+                                    project='virustotal-avs-control')
+        return datastore.Client(credentials=compute_engine.Credentials())
+
     def open_session(self, app, request):
         logging.warning('open_session')
         from google.cloud import datastore
-        ds_client = datastore.Client()
+        ds_client = self.get_client()
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
             sid = self._generate_sid()
@@ -620,7 +632,8 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
 
     def save_session(self, app, session, response):
         logging.warning('save_session')
-        ds_client = datastore.Client()
+        from google.cloud import datastore
+        ds_client = self.get_client()
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         store_id = self.key_prefix + session.sid
