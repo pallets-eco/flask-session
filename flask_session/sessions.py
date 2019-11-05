@@ -11,6 +11,7 @@
 import sys
 import time
 import pytz
+import logging
 from datetime import datetime
 from uuid import uuid4
 try:
@@ -579,13 +580,12 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
     session_class = GoogleCloudDataStoreSession
 
     def __init__(self, key_prefix, use_signer=False, permanent=True):
-        import logging
-
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
 
     def open_session(self, app, request):
+        logging.warning('open_session')
         from google.cloud import datastore
         ds_client = datastore.Client()
         sid = request.cookies.get(app.session_cookie_name)
@@ -619,6 +619,7 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
+        logging.warning('save_session')
         ds_client = datastore.Client()
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
