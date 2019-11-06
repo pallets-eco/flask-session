@@ -615,7 +615,9 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
         store_id = self.key_prefix + sid
         session_key = ds_client.key('session', store_id)
         saved_session = ds_client.get(session_key)
-        if saved_session and saved_session['expiry'] <= pytz.utc.localize(datetime.now()):
+        time = pytz.utc.localize(datetime.now())
+        expiry = saved_session.get('expiry') or time
+        if saved_session and expiry <= time:
             ds_client.delete(session_key)
             saved_session = None
         if saved_session:
