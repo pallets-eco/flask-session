@@ -615,9 +615,7 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
         store_id = self.key_prefix + sid
         session_key = ds_client.key('session', store_id)
         saved_session = ds_client.get(session_key)
-        time = pytz.utc.localize(datetime.now())
-        expiry = saved_session.get('expiry') or time
-        if saved_session and expiry <= time:
+        if saved_session and saved_session['expiry'] <= pytz.utc.localize(datetime.now()):
             ds_client.delete(session_key)
             saved_session = None
         if saved_session:
@@ -650,6 +648,9 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
         expires = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session))
         if saved_session:
+            if not expires:
+                ds_client.delete(session_key)
+                return
             saved_session['data'] = val
             saved_session['expiry'] = expires
             ds_client.put(saved_session)
