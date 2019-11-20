@@ -10,6 +10,8 @@
 """
 import sys
 import time
+import pytz
+import os
 from datetime import datetime
 from uuid import uuid4
 try:
@@ -64,6 +66,9 @@ class MongoDBSession(ServerSideSession):
 
 
 class SqlAlchemySession(ServerSideSession):
+    pass
+
+class GoogleCloudDataStoreSession(ServerSideSession):
     pass
 
 
@@ -554,6 +559,107 @@ class SqlAlchemySessionInterface(SessionInterface):
             new_session = self.sql_session_model(store_id, val, expires)
             self.db.session.add(new_session)
             self.db.session.commit()
+        if self.use_signer:
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+        else:
+            session_id = session.sid
+        response.set_cookie(app.session_cookie_name, session_id,
+                            expires=expires, httponly=httponly,
+                            domain=domain, path=path, secure=secure)
+
+
+class GoogleCloudDatastoreSessionInterface(SessionInterface):
+    """Uses the Google cloud datastore as a session backend.
+
+    :param key_prefix: A prefix that is added to all store keys.
+    :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
+    """
+
+    serializer = pickle
+    session_class = GoogleCloudDataStoreSession
+
+    def __init__(
+            self, gcloud_project, key_prefix, use_signer=False, permanent=True):
+        self.gcloud_project = gcloud_project
+        self.key_prefix = key_prefix
+        self.use_signer = use_signer
+        self.permanent = permanent
+
+    def get_client(self):
+        import requests
+        from google.cloud import datastore
+        from google.auth import compute_engine
+        if os.environ.get('DATASTORE_EMULATOR_HOST'):
+            return datastore.Client(_http=requests.Session,
+                                    project='virustotal-avs-control')
+        return datastore.Client(credentials=compute_engine.Credentials())
+
+    def open_session(self, app, request):
+        ds_client = self.get_client()
+        sid = request.cookies.get(app.session_cookie_name)
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid, permanent=self.permanent)
+        if self.use_signer:
+            signer = self._get_signer(app)
+            if signer is None:
+                return None
+            try:
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
+            except BadSignature:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
+
+        store_id = self.key_prefix + sid
+        session_key = ds_client.key('session', store_id)
+        saved_session = ds_client.get(session_key)
+        if saved_session and saved_session['expiry'] <= pytz.utc.localize(datetime.now()):
+            ds_client.delete(session_key)
+            saved_session = None
+        if saved_session:
+            try:
+                val = saved_session['data']
+                data = self.serializer.loads(want_bytes(val))
+                return self.session_class(data, sid=sid)
+            except:
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
+
+    def save_session(self, app, session, response):
+        from google.cloud import datastore
+        ds_client = self.get_client()
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        store_id = self.key_prefix + session.sid
+        session_key = ds_client.key('session', store_id)
+        saved_session = ds_client.get(session_key)
+        if not session:
+            if session.modified:
+                if saved_session:
+                    ds_client.delete(session_key)
+                response.delete_cookie(app.session_cookie_name,
+                                       domain=domain, path=path)
+            return
+
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        expires = self.get_expiration_time(app, session)
+        val = self.serializer.dumps(dict(session))
+        if saved_session:
+            if not expires:
+                ds_client.delete(session_key)
+                return
+            saved_session['data'] = val
+            saved_session['expiry'] = expires
+            ds_client.put(saved_session)
+        else:
+            new_session = datastore.Entity(
+                key=session_key, exclude_from_indexes=('data',))
+            new_session['data'] = val
+            new_session['expiry'] = expires
+            ds_client.put(new_session)
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:

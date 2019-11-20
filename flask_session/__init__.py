@@ -15,7 +15,8 @@ import os
 
 from .sessions import NullSessionInterface, RedisSessionInterface, \
     MemcachedSessionInterface, FileSystemSessionInterface, \
-    MongoDBSessionInterface, SqlAlchemySessionInterface
+    MongoDBSessionInterface, SqlAlchemySessionInterface, \
+    GoogleCloudDatastoreSessionInterface
 
 
 class Session(object):
@@ -78,6 +79,8 @@ class Session(object):
         config.setdefault('SESSION_SQLALCHEMY', None)
         config.setdefault('SESSION_SQLALCHEMY_TABLE', 'sessions')
 
+        config.setdefault('GCLOUD_APP_PROJECT_ID', 'unknown')
+
         if config['SESSION_TYPE'] == 'redis':
             session_interface = RedisSessionInterface(
                 config['SESSION_REDIS'], config['SESSION_KEY_PREFIX'],
@@ -103,6 +106,10 @@ class Session(object):
                 config['SESSION_SQLALCHEMY_TABLE'],
                 config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'],
                 config['SESSION_PERMANENT'])
+        elif config['SESSION_TYPE'] == 'datastore':
+            session_interface = GoogleCloudDatastoreSessionInterface(
+                config['GCLOUD_APP_PROJECT_ID'], config['SESSION_KEY_PREFIX'],
+                config['SESSION_USE_SIGNER'], config['SESSION_PERMANENT'])
         else:
             session_interface = NullSessionInterface()
 
