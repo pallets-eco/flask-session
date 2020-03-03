@@ -65,6 +65,7 @@ class Session(object):
         config.setdefault('SESSION_TYPE', 'null')
         config.setdefault('SESSION_PERMANENT', True)
         config.setdefault('SESSION_USE_SIGNER', False)
+        config.setdefault('SESSION_AUTODELETE', False)
         config.setdefault('SESSION_KEY_PREFIX', 'session:')
         config.setdefault('SESSION_REDIS', None)
         config.setdefault('SESSION_MEMCACHED', None)
@@ -102,7 +103,8 @@ class Session(object):
                 app, config['SESSION_SQLALCHEMY'],
                 config['SESSION_SQLALCHEMY_TABLE'],
                 config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'],
-                config['SESSION_PERMANENT'])
+                config['SESSION_PERMANENT'],
+                config['SESSION_AUTODELETE'])
         else:
             session_interface = NullSessionInterface()
 

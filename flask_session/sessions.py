@@ -460,13 +460,16 @@ class SqlAlchemySessionInterface(SessionInterface):
     :param key_prefix: A prefix that is added to all store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
+    :param autodelete: If set to `True`, the expired sessions are
+                       automatically deleted at the beginning of opening a
+                       session.
     """
 
     serializer = pickle
     session_class = SqlAlchemySession
 
     def __init__(self, app, db, table, key_prefix, use_signer=False,
-                 permanent=True):
+                 permanent=True, autodelete=False):
         if db is None:
             from flask_sqlalchemy import SQLAlchemy
             db = SQLAlchemy(app)
@@ -474,6 +477,7 @@ class SqlAlchemySessionInterface(SessionInterface):
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
+        self.autodelete = autodelete
 
         class Session(self.db.Model):
             __tablename__ = table
@@ -495,6 +499,9 @@ class SqlAlchemySessionInterface(SessionInterface):
         self.sql_session_model = Session
 
     def open_session(self, app, request):
+        if self.autodelete:
+            self.delete_expired_sessions()
+
         sid = request.cookies.get(app.session_cookie_name)
         if not sid:
             sid = self._generate_sid()
@@ -561,3 +568,13 @@ class SqlAlchemySessionInterface(SessionInterface):
         response.set_cookie(app.session_cookie_name, session_id,
                             expires=expires, httponly=httponly,
                             domain=domain, path=path, secure=secure)
+
+    def delete_expired_sessions(self):
+        expired_sessions = self.sql_session_model.query.filter(
+            self.sql_session_model.expiry < datetime.utcnow()
+        ).all()
+
+        for expired_session in expired_sessions:
+            self.db.session.delete(expired_session)
+
+        self.db.session.commit()
