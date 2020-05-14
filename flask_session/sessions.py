@@ -291,8 +291,7 @@ class MemcachedSessionInterface(SessionInterface):
 
 
 class FileSystemSessionInterface(SessionInterface):
-    """Uses the :class:`werkzeug.contrib.cache.FileSystemCache` as a session
-    backend.
+    """Uses the :class:`cachelib.file.FileSystemCache` as a session backend.
 
     .. versionadded:: 0.2
         The `use_signer` parameter was added.

@@ -48,3 +48,8 @@ Version 0.3.1
 
 - SqlAlchemySessionInterface is using VARCHAR(255) to store session id now
 - SqlAlchemySessionInterface won't run `db.create_all` anymore
+
+Version 0.3.2
+`````````````
+
+- Changed `werkzeug.contrib.cache` to `cachelib`
