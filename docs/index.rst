@@ -192,7 +192,7 @@ Uses the Memcached as a session backend. (`pylibmc`_ or `memcache`_ required)
 :class:`FileSystemSessionInterface`
 ```````````````````````````````````
 
-Uses the :class:`werkzeug.contrib.cache.FileSystemCache` as a session backend.
+Uses the :class:`cachelib.file.FileSystemCache` as a session backend.
 
 - SESSION_FILE_DIR
 - SESSION_FILE_THRESHOLD
