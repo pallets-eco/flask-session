@@ -53,3 +53,8 @@ Version 0.3.2
 `````````````
 
 - Changed `werkzeug.contrib.cache` to `cachelib`
+
+Version 0.4.0
+`````````````
+
+- Added support for `SESSION_COOKIE_SAMESITE`
