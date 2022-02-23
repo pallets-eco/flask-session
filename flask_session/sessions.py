@@ -424,7 +424,7 @@ class MongoDBSessionInterface(SessionInterface):
         document = self.store.find_one({'id': store_id})
         if document and document.get('expiration') <= datetime.utcnow():
             # Delete expired session
-            self.store.remove({'id': store_id})
+            self.store.delete_one({'id': store_id})
             document = None
         if document is not None:
             try:
@@ -441,7 +441,7 @@ class MongoDBSessionInterface(SessionInterface):
         store_id = self.key_prefix + session.sid
         if not session:
             if session.modified:
-                self.store.remove({'id': store_id})
+                self.store.delete_one({'id': store_id})
                 response.delete_cookie(app.session_cookie_name,
                                        domain=domain, path=path)
             return
