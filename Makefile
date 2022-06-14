@@ -9,5 +9,7 @@ clean-pyc:
 	find . -name '*~' -exec rm -f {} +
 
 release:
-	python setup.py sdist upload
-	python setup.py bdist_wheel upload
+	python -m build
+	twine upload dist/*
+
+.PHONY: all test clean-pyc release
