@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     flask_session
     ~~~~~~~~~~~~~
@@ -93,6 +92,7 @@ class Session:
             )
         elif config["SESSION_TYPE"] == "memcached":
             session_interface = MemcachedSessionInterface(
+                app,
                 config["SESSION_MEMCACHED"],
                 config["SESSION_KEY_PREFIX"],
                 config["SESSION_USE_SIGNER"],

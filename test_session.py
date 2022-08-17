@@ -156,7 +156,7 @@ class FlaskSessionTestCase(unittest.TestCase):
         app.config["SESSION_TYPE"] = "sqlalchemy"
         app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///"
         app.config["SESSION_USE_SIGNER"] = True
-        session = Session(app)
+        Session(app)
 
         @app.route("/set", methods=["POST"])
         def set():

@@ -1,6 +1,9 @@
 .python-version
 node_modules/
-# Byte-compiled / optimized / DLL files
+# Byte-compiled / optim
+.mypy_cache
+
+ized / DLL files
 __pycache__/
 *.py[cod]
 
@@ -53,4 +56,3 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
-
