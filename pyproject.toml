@@ -1,0 +1,55 @@
+[tool.poetry]
+name = "Flask-Session2"
+version = "0.1.0"
+description = "Adds server-side session support to your Flask application"
+authors = ["Shipeng Feng <fsp261@gmail.com>"]
+maintainers=["Christopher Pickering <christopher@going.bg>"]
+license = "BSD"
+readme="README.md"
+classifiers=[
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+        'Topic :: Software Development :: Libraries :: Python Modules'
+    ]
+packages=[{ include = 'flask_session'}]
+
+[tool.poetry.dependencies]
+python = "^3.7.2"
+Flask = "^2.2.2"
+cachelib = "^0.9.0"
+
+[tool.poetry.dev-dependencies]
+black = "^22.6.0"
+isort = "^5.10.1"
+redis = "^4.3.4"
+pymongo = "^4.2.0"
+Flask-SQLAlchemy = "^2.5.1"
+pymemcache = "^3.5.2"
+mypy = "^0.971"
+pylint = "^2.14.5"
+flake8 = "^5.0.4"
+flake8-simplify = "^0.19.3"
+flake8-builtins = "^1.5.3"
+flake8-comprehensions = "^3.10.0"
+flake8-variables-names = "^0.0.5"
+tox = "^3.25.1"
+types-redis = "^4.3.14"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+max_line_length = 99
+quiet = true
+
+[tool.isort]
+profile = "black"
+quiet = true
+
+[tool.pylint.messages_control]
+disable = "W0702,R0903,C0415,C0103,R0913,E0602,C0116,C0115,R1710,W0223"
