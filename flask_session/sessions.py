@@ -166,12 +166,15 @@ class RedisSessionInterface(SessionInterface):
         if self.has_same_site_capability:
             conditional_cookie_kwargs["samesite"] = self.get_cookie_samesite(app)
         expires = self.get_expiration_time(app, session)
-        value = self.serializer.dumps(dict(session))
-        self.redis.setex(
-            name=self.key_prefix + session.sid,
-            value=value,
-            time=total_seconds(app.permanent_session_lifetime),
-        )
+
+        if session.permanent:
+            value = self.serializer.dumps(dict(session))
+            self.redis.setex(
+                name=self.key_prefix + session.sid,
+                value=value,
+                time=total_seconds(app.permanent_session_lifetime),
+            )
+
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
