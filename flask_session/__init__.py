@@ -15,6 +15,7 @@ import os
 from .sessions import (
     ElasticsearchSessionInterface,
     FileSystemSessionInterface,
+    GoogleCloudDatastoreSessionInterface,
     MemcachedSessionInterface,
     MongoDBSessionInterface,
     NullSessionInterface,
@@ -96,6 +97,7 @@ class Session:
         config.setdefault("SESSION_SQLALCHEMY", None)
         config.setdefault("SESSION_SQLALCHEMY_TABLE", "sessions")
         config.setdefault("SESSION_SQLALCHEMY_SEQUENCE", None)
+        config.setdefault("GCLOUD_APP_PROJECT_ID", "unknown")
 
         if config["SESSION_TYPE"] == "redis":
             session_interface = RedisSessionInterface(
@@ -146,6 +148,13 @@ class Session:
                 config["SESSION_ELASTICSEARCH"],
                 config["SESSION_ELASTICSEARCH_HOST"],
                 config["SESSION_ELASTICSEARCH_INDEX"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
+        elif config["SESSION_TYPE"] == "datastore":
+            session_interface = GoogleCloudDatastoreSessionInterface(
+                config["GCLOUD_APP_PROJECT_ID"],
                 config["SESSION_KEY_PREFIX"],
                 config["SESSION_USE_SIGNER"],
                 config["SESSION_PERMANENT"],

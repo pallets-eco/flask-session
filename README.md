@@ -162,6 +162,12 @@ Uses elasticsearch as a session backend. ([elasticsearch](https://elasticsearch-
 - SESSION_ELASTICSEARCH_HOST
 - SESSION_ELASTICSEARCH_INDEX
 
+### `GoogleCloudDatastoreSessionInterface`
+
+Uses Google Cloud Datastore as a session backend. ([google-cloud-datastore](https://github.com/googleapis/python-datastore) required)
+
+- GCLOUD_APP_PROJECT_ID
+
 ## Credits
 
 This project is a fork of [flask-session](https://github.com/fengsp/flask-session), created by [Shipeng Feng](https://github.com/fengsp).
