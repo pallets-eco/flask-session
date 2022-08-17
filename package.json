@@ -1,6 +1,6 @@
 {
   "name": "flask-session2",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Adds server-side session support to your Flask application",
   "directories": {
     "doc": "docs",
