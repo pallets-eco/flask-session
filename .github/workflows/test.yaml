@@ -26,9 +26,10 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
     - name: Start MongoDB
-      uses: supercharge/mongodb-github-action@1.7.0
-      with:
-        mongodb-version: '5.0'
+      run: docker run --name mongodb -d -p 27017:27017 mongo
+      # uses: supercharge/mongodb-github-action@1.7.0
+      # with:
+      #   mongodb-version: '5.0'
     - name: Start MemCache
       uses: niden/actions-memcached@v7
     - name: install deps
