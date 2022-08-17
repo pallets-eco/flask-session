@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "Flask-Session2"
-version = "1.0.0"
+version = "1.1.0"
 description = "Adds server-side session support to your Flask application"
 authors = ["Shipeng Feng <fsp261@gmail.com>"]
 maintainers=["Christopher Pickering"]
