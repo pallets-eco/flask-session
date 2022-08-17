@@ -109,7 +109,7 @@ session but fail on setting.
 
 ### `RedisSessionInterface`
 
-Uses the Redis key-value store as a session backend. ([redis-py](https://github.com/andymccurdy/redis-py) required)
+Uses the Redis key-value store as a session backend. ([redis-py](https://pypi.org/project/redis/) required)
 
 Relevant configuration values:
 
@@ -117,7 +117,7 @@ Relevant configuration values:
 
 ### `MemcachedSessionInterface`
 
-Uses the Memcached as a session backend. ([pylibmc](http://sendapatch.se/projects/pylibmc/) or [memcache](https://github.com/linsomniac/python-memcached) required)
+Uses the Memcached as a session backend. ([pymemcache](https://pypi.org/project/pymemcache/) required)
 
 - SESSION_MEMCACHED
 

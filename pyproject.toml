@@ -3,7 +3,7 @@ name = "Flask-Session2"
 version = "0.1.0"
 description = "Adds server-side session support to your Flask application"
 authors = ["Shipeng Feng <fsp261@gmail.com>"]
-maintainers=["Christopher Pickering <christopher@going.bg>"]
+maintainers=["Christopher Pickering"]
 license = "BSD"
 readme="README.md"
 classifiers=[
@@ -38,6 +38,7 @@ flake8-variables-names = "^0.0.5"
 tox = "^3.25.1"
 types-redis = "^4.3.14"
 redis = "^4.3.4"
+coverage = "^6.4.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
