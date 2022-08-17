@@ -452,14 +452,16 @@ class MongoDBSessionInterface(SessionInterface):
         permanent=True,
         tz_aware=False,
     ):
+        import pymongo
+
         if client is None:
-            from pymongo import MongoClient
 
             if tz_aware:
-                client = MongoClient(tz_aware=tz_aware)
+                client = pymongo.MongoClient(tz_aware=tz_aware)
             else:
-                client = MongoClient()
+                client = pymongo.MongoClient()
 
+        self.use_deprecated_method = int(pymongo.version.split(".")[0]) < 4
         self.client = client
         self.store = client[db][collection]
         self.key_prefix = key_prefix
@@ -495,7 +497,10 @@ class MongoDBSessionInterface(SessionInterface):
 
         if document and document.get("expiration") <= utc_now:
             # Delete expired session
-            self.store.delete_one({"id": store_id})
+            if self.use_deprecated_method:
+                self.store.remove({"id": store_id})
+            else:
+                self.store.delete_one({"id": store_id})
             document = None
 
         if document is not None:
@@ -515,7 +520,10 @@ class MongoDBSessionInterface(SessionInterface):
         store_id = self.key_prefix + session.sid
         if not session:
             if session.modified:
-                self.store.delete_one({"id": store_id})
+                if self.use_deprecated_method:
+                    self.store.remove({"id": store_id})
+                else:
+                    self.store.delete_one({"id": store_id})
                 response.delete_cookie(
                     app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
                 )
@@ -528,11 +536,18 @@ class MongoDBSessionInterface(SessionInterface):
             conditional_cookie_kwargs["samesite"] = self.get_cookie_samesite(app)
         expires = self.get_expiration_time(app, session)
         value = self.serializer.dumps(dict(session))
-        self.store.update_one(
-            {"id": store_id},
-            {"$set": {"id": store_id, "val": value, "expiration": expires}},
-            True,
-        )
+        if self.use_deprecated_method:
+            self.store.update(
+                {"id": store_id},
+                {"id": store_id, "val": value, "expiration": expires},
+                True,
+            )
+        else:
+            self.store.update_one(
+                {"id": store_id},
+                {"$set": {"id": store_id, "val": value, "expiration": expires}},
+                True,
+            )
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
