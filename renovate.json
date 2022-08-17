@@ -1,0 +1,50 @@
+{
+  "extends": [
+    "config:base", 
+    "group:allNonMajor",
+    ":separateMultipleMajorReleases",
+    ":ignoreUnstable",
+    ":enableVulnerabilityAlertsWithLabel(security)",
+    ":rebaseStalePrs", 
+    ":npm",
+    "npm:unpublishSafe"
+  ],
+  "bumpVersion": "patch",
+  "commitMessagePrefix": "chore(deps)",
+  "labels": [
+    "maintenance", 
+    "renovate"
+  ],
+  "baseBranches": ["dev"],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["pin","digest"],
+      "automerge": true
+    },
+    {
+      "matchDepTypes": ["devDependencies"],
+      "automerge": true
+    },
+    {
+      "extends": "packages:linters",
+      "groupName": "linters",
+      "automerge": true
+    },
+    {
+      "extends": "packages:test",
+      "groupName": "test packages",
+      "automerge": true
+    },
+    {
+      "matchDepTypes": [
+        "devDependencies"
+      ],
+      "automerge": true
+    }
+  ],
+  "pre-commit": {
+    "enabled": true
+  },
+  "schedule": ["on monday before 8:00am"],
+  "timezone": "America/Chicago"
+}
