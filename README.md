@@ -4,10 +4,18 @@
   <br>
 </h1>
 
-<h4 align="center">Adds support for Server-side Session to your Flask application.</h4>
+<h4 align="center">Adds support for Server-side Session to your [Flask](https://flask.palletsprojects.com) application.</h4>
 
-
-Welcome to Flask-Session's documentation.  Flask-Session is an extension for [Flask](https://flask.palletsprojects.com) that adds support for Server-side `Session` to your application.
+<p align="center">
+<a href="https://codecov.io/gh/christopherpickering/flask-session2" >  <img src="https://codecov.io/gh/christopherpickering/flask-session2/branch/master/graph/badge.svg?token=97G1F34PKY"/>  </a>
+  <a href="https://www.codacy.com/gh/christopherpickering/flask-session2/dashboard?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=christopherpickering/flask-session2&amp;utm_campaign=Badge_Grade"><img src="https://app.codacy.com/project/badge/Grade/4f05bcca902448b1aecacc51aa94d363"/></a>
+<a href="https://pepy.tech/project/flask-session2">
+     <img src="https://pepy.tech/badge/flask-session2" alt="Downloads">
+   </a>
+ <a href="https://pypi.org/project/flask-session2/">
+     <img src="https://img.shields.io/pypi/v/flask-session2" alt="Pypi Download">
+   </a>
+</p>
 
 
 ## Installation
@@ -59,7 +67,7 @@ sess.init_app(app)
 The following configuration values exist for Flask-Session.  Flask-Session loads these values from your Flask application config, so you should configure
 your app first before you pass it to Flask-Session.  Note that these values cannot be modified after the ``init_app`` was applyed so make sure to not modify them at runtime.
 
-We are not supplying something like ``SESSION_REDIS_HOST`` and ``SESSION_REDIS_PORT``, if you want to use the ``RedisSessionInterface``, you should configure ``SESSION_REDIS`` to your own ``redis.Redis`` instance. This gives you more flexibility, like maybe you want to use the same ``redis.Redis`` instance for cache purpose too, then you do not need to keep two ``redis.Redis`` instance in the same process.
+We are not supplying something like `SESSION_REDIS_HOST` and `SESSION_REDIS_PORT`, if you want to use the `RedisSessionInterface`, you should configure `SESSION_REDIS` to your own `redis.Redis` instance. This gives you more flexibility, like maybe you want to use the same `redis.Redis` instance for cache purpose too, then you do not need to keep two `redis.Redis` instance in the same process.
 
 The following configuration values are builtin configuration values within Flask itself that are related to session.  **They are all understood by
 Flask-Session, for example, you should use PERMANENT_SESSION_LIFETIME to control your session lifetime.**
@@ -109,7 +117,7 @@ session but fail on setting.
 
 ### `RedisSessionInterface`
 
-Uses the Redis key-value store as a session backend. ([redis-py](https://pypi.org/project/redis/) required)
+Uses the Redis key-value store as a session backend. ([redis-py](https://github.com/andymccurdy/redis-py) required)
 
 Relevant configuration values:
 
@@ -117,7 +125,7 @@ Relevant configuration values:
 
 ### `MemcachedSessionInterface`
 
-Uses the Memcached as a session backend. ([pymemcache](https://pypi.org/project/pymemcache/) required)
+Uses the Memcached as a session backend. ([pylibmc](http://sendapatch.se/projects/pylibmc/) or [memcache](https://github.com/linsomniac/python-memcached) required)
 
 - SESSION_MEMCACHED
 
@@ -145,3 +153,7 @@ Uses SQLAlchemy as a session backend. ([Flask-SQLAlchemy](https://pythonhosted.o
 
 - SESSION_SQLALCHEMY
 - SESSION_SQLALCHEMY_TABLE
+
+## Credits
+
+This project is a fork of [flask-session](https://github.com/fengsp/flask-session), created by [Shipeng Feng](https://github.com/fengsp).
