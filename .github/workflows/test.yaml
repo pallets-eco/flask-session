@@ -2,10 +2,10 @@ name: test
 on:
   push:
     branches:
-    - 'master'
+    - master
   pull_request:
     branches:
-    - 'master'
+    - master
 
 jobs:
   test:
@@ -28,7 +28,7 @@ jobs:
     - name: Start MongoDB
       uses: supercharge/mongodb-github-action@1.7.0
       with:
-        mongodb-version: ${{ matrix.mongodb-version }}
+        mongodb-version: '5.0'
     - name: Start MemCache
       uses: niden/actions-memcached@v7
     - name: install deps

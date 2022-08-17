@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
     flask_session.sessions
     ~~~~~~~~~~~~~~~~~~~~~~
@@ -227,7 +226,12 @@ class MemcachedSessionInterface(SessionInterface):
         except ImportError:
             pass
         else:
-            return pymemcache.Client(server,timeout=self._get_memcache_timeout(total_seconds(app.permanent_session_lifetime)))
+            return pymemcache.Client(
+                server,
+                timeout=self._get_memcache_timeout(
+                    total_seconds(app.permanent_session_lifetime)
+                ),
+            )
 
     def _get_memcache_timeout(self, timeout):
         """
@@ -490,7 +494,7 @@ class MongoDBSessionInterface(SessionInterface):
         value = self.serializer.dumps(dict(session))
         self.store.update_one(
             {"id": store_id},
-            {'$set':{"id": store_id, "val": value, "expiration": expires}},
+            {"$set": {"id": store_id, "val": value, "expiration": expires}},
             True,
         )
         if self.use_signer:
@@ -553,6 +557,7 @@ class SqlAlchemySessionInterface(SessionInterface):
                 return f"<Session data {self.data}>"
 
         from sqlalchemy import inspect
+
         if not inspect(db.engine).has_table("Session"):
             self.db.create_all()
 
