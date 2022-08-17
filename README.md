@@ -65,7 +65,7 @@ sess.init_app(app)
 ## Configuration
 
 The following configuration values exist for Flask-Session.  Flask-Session loads these values from your Flask application config, so you should configure
-your app first before you pass it to Flask-Session.  Note that these values cannot be modified after the ``init_app`` was applyed so make sure to not modify them at runtime.
+your app first before you pass it to Flask-Session.  Note that these values cannot be modified after the ``init_app`` was applied so make sure to not modify them at runtime.
 
 We are not supplying something like `SESSION_REDIS_HOST` and `SESSION_REDIS_PORT`, if you want to use the `RedisSessionInterface`, you should configure `SESSION_REDIS` to your own `redis.Redis` instance. This gives you more flexibility, like maybe you want to use the same `redis.Redis` instance for cache purpose too, then you do not need to keep two `redis.Redis` instance in the same process.
 
