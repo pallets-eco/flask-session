@@ -35,6 +35,21 @@ jobs:
       uses: supercharge/redis-github-action@1.4.0
       with:
         redis-version: 6
+    - name: Configure sysctl limits for elasticsearch
+      run: |
+        sudo swapoff -a
+        sudo sysctl -w vm.swappiness=1
+        sudo sysctl -w fs.file-max=262144
+        sudo sysctl -w vm.max_map_count=262144
+    - name: Start elasticsearch
+      uses: getong/elasticsearch-action@v1.2
+      with:
+        elasticsearch version: 8.3.3
+        host port: 9200
+        container port: 9200
+        host node port: 9300
+        node port: 9300
+        discovery type: single-node
     - name: install deps
       run: python -m pip install tox poetry tox-poetry
     - name: test

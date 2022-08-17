@@ -13,7 +13,9 @@ __version__ = "0.4.0"
 import os
 
 from .sessions import (
+    ElasticsearchSessionInterface,
     FileSystemSessionInterface,
+    GoogleCloudDatastoreSessionInterface,
     MemcachedSessionInterface,
     MongoDBSessionInterface,
     NullSessionInterface,
@@ -60,15 +62,24 @@ class Session:
     def init_app(self, app):
         """This is used to set up session for your app object.
 
+        When app.session_interface is None
+        or
+        app.config['SESSION_TYPE'] == 'custom'
+        we using custom implementation from application.
+
         :param app: the Flask app object with proper configuration.
         """
-        app.session_interface = self._get_interface(app)
+        if app.session_interface is None or (
+            "SESSION_TYPE" in app.config and app.config["SESSION_TYPE"] != "custom"
+        ):
+            app.session_interface = self._get_interface(app)
 
     def _get_interface(self, app):
         config = app.config.copy()
         config.setdefault("SESSION_TYPE", "null")
         config.setdefault("SESSION_PERMANENT", True)
         config.setdefault("SESSION_USE_SIGNER", False)
+        config.setdefault("SESSION_AUTODELETE", False)
         config.setdefault("SESSION_KEY_PREFIX", "session:")
         config.setdefault("SESSION_REDIS", None)
         config.setdefault("SESSION_MEMCACHED", None)
@@ -80,8 +91,14 @@ class Session:
         config.setdefault("SESSION_MONGODB", None)
         config.setdefault("SESSION_MONGODB_DB", "flask_session")
         config.setdefault("SESSION_MONGODB_COLLECT", "sessions")
+        config.setdefault("SESSION_MONGODB_TZ_AWARE", False)
+        config.setdefault("SESSION_ELASTICSEARCH", None)
+        config.setdefault("SESSION_ELASTICSEARCH_HOST", "http://localhost:9200")
+        config.setdefault("SESSION_ELASTICSEARCH_INDEX", "sessions")
         config.setdefault("SESSION_SQLALCHEMY", None)
         config.setdefault("SESSION_SQLALCHEMY_TABLE", "sessions")
+        config.setdefault("SESSION_SQLALCHEMY_SEQUENCE", None)
+        config.setdefault("GCLOUD_APP_PROJECT_ID", "unknown")
 
         if config["SESSION_TYPE"] == "redis":
             session_interface = RedisSessionInterface(
@@ -115,12 +132,31 @@ class Session:
                 config["SESSION_KEY_PREFIX"],
                 config["SESSION_USE_SIGNER"],
                 config["SESSION_PERMANENT"],
+                config["SESSION_MONGODB_TZ_AWARE"],
             )
         elif config["SESSION_TYPE"] == "sqlalchemy":
             session_interface = SqlAlchemySessionInterface(
                 app,
                 config["SESSION_SQLALCHEMY"],
                 config["SESSION_SQLALCHEMY_TABLE"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+                config["SESSION_SQLALCHEMY_SEQUENCE"],
+                config["SESSION_AUTODELETE"],
+            )
+        elif config["SESSION_TYPE"] == "elasticsearch":
+            session_interface = ElasticsearchSessionInterface(
+                config["SESSION_ELASTICSEARCH"],
+                config["SESSION_ELASTICSEARCH_HOST"],
+                config["SESSION_ELASTICSEARCH_INDEX"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
+        elif config["SESSION_TYPE"] == "datastore":
+            session_interface = GoogleCloudDatastoreSessionInterface(
+                config["GCLOUD_APP_PROJECT_ID"],
                 config["SESSION_KEY_PREFIX"],
                 config["SESSION_USE_SIGNER"],
                 config["SESSION_PERMANENT"],
