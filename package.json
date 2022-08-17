@@ -6,7 +6,7 @@
     "doc": "docs",
     "example": "examples"
   },
-  "private":true,
+  "private": true,
   "scripts": {
     "commit": "git add . && pre-commit run; git add . && cz --no-verify"
   },
