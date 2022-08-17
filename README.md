@@ -4,7 +4,7 @@
   <br>
 </h1>
 
-<h4 align="center">Adds support for Server-side Session to your [Flask](https://flask.palletsprojects.com) application.</h4>
+<h4 align="center">Adds support for Server-side Session to your <a href="https://flask.palletsprojects.com">Flask</a> application.</h4>
 
 <p align="center">
 <a href="https://codecov.io/gh/christopherpickering/flask-session2" >  <img src="https://codecov.io/gh/christopherpickering/flask-session2/branch/master/graph/badge.svg?token=97G1F34PKY"/>  </a>
