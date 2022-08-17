@@ -79,6 +79,7 @@ class Session:
         config.setdefault("SESSION_TYPE", "null")
         config.setdefault("SESSION_PERMANENT", True)
         config.setdefault("SESSION_USE_SIGNER", False)
+        config.setdefault("SESSION_AUTODELETE", False)
         config.setdefault("SESSION_KEY_PREFIX", "session:")
         config.setdefault("SESSION_REDIS", None)
         config.setdefault("SESSION_MEMCACHED", None)
@@ -142,6 +143,7 @@ class Session:
                 config["SESSION_USE_SIGNER"],
                 config["SESSION_PERMANENT"],
                 config["SESSION_SQLALCHEMY_SEQUENCE"],
+                config["SESSION_AUTODELETE"],
             )
         elif config["SESSION_TYPE"] == "elasticsearch":
             session_interface = ElasticsearchSessionInterface(

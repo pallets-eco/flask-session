@@ -58,4 +58,4 @@ profile = "black"
 quiet = true
 
 [tool.pylint.messages_control]
-disable = "W0702,R0903,C0415,C0103,R0913,E0602,C0116,C0115,R1710,W0223,R0914"
+disable = "W0702,R0903,C0415,C0103,R0913,E0602,C0116,C0115,R1710,W0223,R0914,R0902"

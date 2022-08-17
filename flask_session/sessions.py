@@ -560,6 +560,9 @@ class SqlAlchemySessionInterface(SessionInterface):
     :param key_prefix: A prefix that is added to all store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
+    :param autodelete: If set to `True`, the expired sessions are
+                        automatically deleted at the beginning of opening a
+                        session.
     """
 
     serializer = pickle
@@ -574,6 +577,7 @@ class SqlAlchemySessionInterface(SessionInterface):
         use_signer=False,
         permanent=True,
         sequence=None,
+        autodelete=False,
     ):
         if db is None:
             from flask_sqlalchemy import SQLAlchemy
@@ -583,6 +587,7 @@ class SqlAlchemySessionInterface(SessionInterface):
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
+        self.autodelete = autodelete
         self.sequence = sequence
         self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
 
@@ -617,7 +622,16 @@ class SqlAlchemySessionInterface(SessionInterface):
 
         self.sql_session_model = Session
 
+    def _delete_expired_sessions(self):
+        self.sql_session_model.query.filter(
+            self.sql_session_model.expiry < datetime.utcnow()
+        ).delete()
+        self.db.session.commit()
+
     def open_session(self, app, request):
+        if self.autodelete:
+            self._delete_expired_sessions()
+
         sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
         if not sid:
             sid = self._generate_sid()

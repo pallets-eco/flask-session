@@ -153,6 +153,7 @@ Uses SQLAlchemy as a session backend. ([Flask-SQLAlchemy](https://pythonhosted.o
 
 - SESSION_SQLALCHEMY
 - SESSION_SQLALCHEMY_TABLE
+- SESSION_AUTODELETE
 
 ### `ElasticsearchSessionInterface`
 
