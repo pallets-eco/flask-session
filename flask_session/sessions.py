@@ -66,6 +66,10 @@ class MongoDBSession(ServerSideSession):
     pass
 
 
+class ElasticsearchSession(ServerSideSession):
+    pass
+
+
 class SqlAlchemySession(ServerSideSession):
     pass
 
@@ -221,12 +225,6 @@ class MemcachedSessionInterface(SessionInterface):
 
     def _get_preferred_memcache_client(self, app):
         server = "127.0.0.1:11211"
-        # try:
-        #     import pylibmc
-        # except ImportError:
-        #     pass
-        # else:
-        #     return pylibmc.Client(servers)
 
         try:
             import pymemcache
@@ -587,13 +585,13 @@ class SqlAlchemySessionInterface(SessionInterface):
             __tablename__ = table
 
             if sequence:
-                id = self.db.Column(
+                id = self.db.Column(  # noqa: A003, VNE003, A001
                     self.db.Integer, self.db.Sequence(sequence), primary_key=True
                 )
             else:
-                id = self.db.Column(
+                id = self.db.Column(  # noqa: A003, VNE003, A001
                     self.db.Integer, primary_key=True
-                )  # noqa: A003, VNE003
+                )
 
             session_id = self.db.Column(self.db.String(255), unique=True)
             data = self.db.Column(self.db.LargeBinary)
@@ -697,4 +695,108 @@ class SqlAlchemySessionInterface(SessionInterface):
             path=path,
             secure=secure,
             **conditional_cookie_kwargs,
+        )
+
+
+class ElasticsearchSessionInterface(SessionInterface):
+    """A Session interface that uses Elasticsearch as backend.
+    .. versionadded:: 0.X
+    :param client: A ``elasticsearch.Elasticsearch`` instance.
+    :param host: The elasticsearch host url you want to use.
+    :param index: The elasticsearch index you want to use.
+    :param key_prefix: A prefix that is added to all MongoDB store keys.
+    :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
+    """
+
+    serializer = None
+    session_class = ElasticsearchSession
+
+    def __init__(
+        self, client, host, index, key_prefix, use_signer=False, permanent=True
+    ):
+        if client is None:
+            from elasticsearch import Elasticsearch
+
+            client = Elasticsearch(host)
+
+        self.client = client
+        self.index = index
+        try:  # noqa: SIM105
+            self.client.indices.create(index=self.index)
+        except:
+            pass
+        self.key_prefix = key_prefix
+        self.use_signer = use_signer
+        self.permanent = permanent
+
+    def open_session(self, app, request):
+        sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid, permanent=self.permanent)
+        if self.use_signer:
+            signer = self._get_signer(app)
+
+            if signer is None:
+                return None
+
+            try:
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
+            except BadSignature:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
+
+        store_id = self.key_prefix + sid
+        document = self.client.get(index=self.index, id=store_id, ignore=404)
+        if document["found"]:
+            expiration = document["_source"]["expiration"]
+
+            expiration = datetime.strptime(expiration, "%Y-%m-%dT%H:%M:%S.%f%z")
+            if expiration <= datetime.utcnow().replace(tzinfo=pytz.UTC):
+                # Delete expired session
+                self.client.delete(index=self.index, id=store_id)
+                document = None
+        if document is not None:
+            try:
+                value = document["_source"]["val"]
+                return self.session_class(value, sid=sid)
+            except:
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
+
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        store_id = self.key_prefix + session.sid
+        if not session:
+            if session.modified:
+                self.client.delete(index=self.index, id=store_id)
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
+            return
+
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        expires = self.get_expiration_time(app, session)
+        value = dict(session)
+        self.client.index(
+            index=self.index,
+            id=store_id,
+            body={"id": store_id, "val": value, "expiration": expires},
+        )
+        if self.use_signer:
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+        else:
+            session_id = session.sid
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
         )

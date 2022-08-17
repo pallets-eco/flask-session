@@ -13,6 +13,7 @@ __version__ = "0.4.0"
 import os
 
 from .sessions import (
+    ElasticsearchSessionInterface,
     FileSystemSessionInterface,
     MemcachedSessionInterface,
     MongoDBSessionInterface,
@@ -89,6 +90,9 @@ class Session:
         config.setdefault("SESSION_MONGODB_DB", "flask_session")
         config.setdefault("SESSION_MONGODB_COLLECT", "sessions")
         config.setdefault("SESSION_MONGODB_TZ_AWARE", False)
+        config.setdefault("SESSION_ELASTICSEARCH", None)
+        config.setdefault("SESSION_ELASTICSEARCH_HOST", "http://localhost:9200")
+        config.setdefault("SESSION_ELASTICSEARCH_INDEX", "sessions")
         config.setdefault("SESSION_SQLALCHEMY", None)
         config.setdefault("SESSION_SQLALCHEMY_TABLE", "sessions")
         config.setdefault("SESSION_SQLALCHEMY_SEQUENCE", None)
@@ -136,6 +140,15 @@ class Session:
                 config["SESSION_USE_SIGNER"],
                 config["SESSION_PERMANENT"],
                 config["SESSION_SQLALCHEMY_SEQUENCE"],
+            )
+        elif config["SESSION_TYPE"] == "elasticsearch":
+            session_interface = ElasticsearchSessionInterface(
+                config["SESSION_ELASTICSEARCH"],
+                config["SESSION_ELASTICSEARCH_HOST"],
+                config["SESSION_ELASTICSEARCH_INDEX"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
             )
         else:
             session_interface = NullSessionInterface()

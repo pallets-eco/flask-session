@@ -154,6 +154,14 @@ Uses SQLAlchemy as a session backend. ([Flask-SQLAlchemy](https://pythonhosted.o
 - SESSION_SQLALCHEMY
 - SESSION_SQLALCHEMY_TABLE
 
+### `ElasticsearchSessionInterface`
+
+Uses elasticsearch as a session backend. ([elasticsearch](https://elasticsearch-py.readthedocs.io/en/v8.3.3/) required)
+
+- SESSION_ELASTICSEARCH
+- SESSION_ELASTICSEARCH_HOST
+- SESSION_ELASTICSEARCH_INDEX
+
 ## Credits
 
 This project is a fork of [flask-session](https://github.com/fengsp/flask-session), created by [Shipeng Feng](https://github.com/fengsp).

@@ -1,9 +1,9 @@
 .python-version
 node_modules/
-# Byte-compiled / optim
+# Byte-compiled / optimized / DLL files
 .mypy_cache
+.DS_Store
 
-ized / DLL files
 __pycache__/
 *.py[cod]
 
