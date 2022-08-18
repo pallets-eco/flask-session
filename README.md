@@ -205,35 +205,35 @@ This project is a fork of [flask-session](https://github.com/fengsp/flask-sessio
 
 Thanks for many who have contributed to this project. Submit a PR if you have contributed and your name is missing.
 
-- https://github.com/sulantha2006 | Google Cloud Firestore session backend
-- https://github.com/bsmar, https://github.com/Nilkree, https://github.com/km445, https://github.com/PavelTsaritsynKS, https://github.com/PetruninAleksey | Peewee session backend
-- https://github.com/JimBroad | DynamoDB session backend
-- https://github.com/bieli | Custom session backend
-- https://github.com/jesserobles | Elasticsearch session backend
-- https://github.com/ghost | Google Datastore session backend
-- https://github.com/PjrCodes
-- https://github.com/treycucco
-- https://github.com/tassaron
-- https://github.com/rsyring
-- https://github.com/Junzki
-- https://github.com/gdoumenc
-- https://github.com/twolfson
-- https://github.com/splbio
-- https://github.com/moskitos80
-- https://github.com/h4ck3rm1k3
-- https://github.com/grutz
-- https://github.com/zebpalmer
-- https://github.com/knivre
-- https://github.com/funoverip
-- https://github.com/isopropanol
-- https://github.com/ronsmith
-- https://github.com/marcuspen
-- https://github.com/lucassus
-- https://github.com/loukash
-- https://github.com/najamansari
-- https://github.com/brunokim
-- https://github.com/Ricky-Hao
-- https://github.com/slastrina
-- https://github.com/Kolarovski
-- https://github.com/wangsha
-- https://github.com/christopherpickering
+- [sulantha2006](https://github.com/sulantha2006) | Google Cloud Firestore session backend
+- [bsmar](https://github.com/bsmar), [Nilkree](https://github.com/Nilkree), [km445](https://github.com/km445), [](https://github.com/PavelTsaritsynKS), [PetruninAleksey](https://github.com/PetruninAleksey) | Peewee session backend
+- [JimBroad](https://github.com/JimBroad) | DynamoDB session backend
+- [bieli](https://github.com/bieli) | Custom session backend
+- [jesserobles](https://github.com/jesserobles) | Elasticsearch session backend
+- [ghost](https://github.com/ghost) | Google Datastore session backend
+- [PjrCodes](https://github.com/PjrCodes)
+- [treycucco](https://github.com/treycucco)
+- [tassaron](https://github.com/tassaron)
+- [rsyring](https://github.com/rsyring)
+- [Junzki](https://github.com/Junzki)
+- [gdoumenc](https://github.com/gdoumenc)
+- [twolfson](https://github.com/twolfson)
+- [splbio](https://github.com/splbio)
+- [moskitos80](https://github.com/moskitos80)
+- [h4ck3rm1k3](https://github.com/h4ck3rm1k3)
+- [grutz](https://github.com/grutz)
+- [zebpalmer](https://github.com/zebpalmer)
+- [knivre](https://github.com/knivre)
+- [funoverip](https://github.com/funoverip)
+- [isopropanol](https://github.com/isopropanol)
+- [ronsmith](https://github.com/ronsmith)
+- [marcuspen](https://github.com/marcuspen)
+- [lucassus](https://github.com/lucassus)
+- [loukash](https://github.com/loukash)
+- [najamansari](https://github.com/najamansari)
+- [brunokim](https://github.com/brunokim)
+- [Ricky-Hao](https://github.com/Ricky-Hao)
+- [slastrina](https://github.com/slastrina)
+- [Kolarovski](https://github.com/Kolarovski)
+- [wangsha](https://github.com/wangsha)
+- [christopherpickering](https://github.com/christopherpickering)
