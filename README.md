@@ -90,22 +90,11 @@ A list of configuration keys also understood by the extension:
 | `SESSION_PERMANENT`       |  Whether use permanent session or not, default to be `True` |
 | `SESSION_USE_SIGNER`      |  Whether sign the session cookie sid or not, if set to `True`, you have to set :attr:`flask.Flask.secret_key`, default to be `False` |
 | `SESSION_KEY_PREFIX`      |  A prefix that is added before all session keys. This makes it possible to use the same backend storage server for different apps, default "session:" |
-| `SESSION_REDIS`           |  A `redis.Redis` instance, default connect to `127.0.0.1:6379` |
-| `SESSION_MEMCACHED`       |  A `memcache.Client` instance, default connect to `127.0.0.1:11211` |
-| `SESSION_FILE_DIR`        |  The directory where session files are stored. Default to use `flask_session` directory under current working directory. |
-| `SESSION_FILE_THRESHOLD`  |  The maximum number of items the session stores before it starts deleting some, default 500 |
-| `SESSION_FILE_MODE`       |  The file mode wanted for the session files, default 0600 |
-| `SESSION_MONGODB`         |  A `pymongo.MongoClient` instance, default connect to `127.0.0.1:27017` |
-| `SESSION_MONGODB_DB`      |  The MongoDB database you want to use, default "flask_session" |
-| `SESSION_MONGODB_COLLECT` |  The MongoDB collection you want to use, default "sessions" |
-| `SESSION_SQLALCHEMY`      |  A `flask_sqlalchemy.SQLAlchemy` instance whose database connection URI is configured using the `SQLALCHEMY_DATABASE_URI` parameter |
-| `SESSION_SQLALCHEMY_TABLE`|  The name of the SQL table you want to use, default "sessions" |
 
 
 Basically you only need to configure `SESSION_TYPE`.
 
     By default, all non-null sessions in Flask-Session are permanent.
-
 
 ## Built-in Session Interfaces
 
@@ -119,41 +108,48 @@ session but fail on setting.
 
 Uses the Redis key-value store as a session backend. ([redis-py](https://github.com/andymccurdy/redis-py) required)
 
-Relevant configuration values:
-
-- SESSION_REDIS
+| Name | Description |
+|--|--|
+| `SESSION_REDIS`           |  A `redis.Redis` instance, default connect to `127.0.0.1:6379` |
 
 ### `MemcachedSessionInterface`
 
 Uses the Memcached as a session backend. ([pylibmc](http://sendapatch.se/projects/pylibmc/) or [memcache](https://github.com/linsomniac/python-memcached) required)
 
-- SESSION_MEMCACHED
+| Name | Description |
+|--|--|
+| `SESSION_MEMCACHED`       |  A `memcache.Client` instance, default connect to `127.0.0.1:11211` |
 
 ### `FileSystemSessionInterface`
 
 Uses the `cachelib.file.FileSystemCache` as a session backend.
 
-- SESSION_FILE_DIR
-- SESSION_FILE_THRESHOLD
-- SESSION_FILE_MODE
+| Name | Description |
+|--|--|
+| `SESSION_FILE_DIR`        |  The directory where session files are stored. Default to use `flask_session` directory under current working directory. |
+| `SESSION_FILE_THRESHOLD`  |  The maximum number of items the session stores before it starts deleting some, default 500 |
+| `SESSION_FILE_MODE`       |  The file mode wanted for the session files, default 0600 |
+
 
 ### `MongoDBSessionInterface`
 
 Uses the MongoDB as a session backend. ([pymongo](http://api.mongodb.org/python/current/index.html) required)
 
-- SESSION_MONGODB
-- SESSION_MONGODB_DB
-- SESSION_MONGODB_COLLECT
-
+| Name | Description |
+|--|--|
+| `SESSION_MONGODB`         |  A `pymongo.MongoClient` instance, default connect to `127.0.0.1:27017` |
+| `SESSION_MONGODB_DB`      |  The MongoDB database you want to use, default "flask_session" |
+| `SESSION_MONGODB_COLLECT` |  The MongoDB collection you want to use, default "sessions" |
 
 ### `SqlAlchemySessionInterface`
 
-
 Uses SQLAlchemy as a session backend. ([Flask-SQLAlchemy](https://pythonhosted.org/Flask-SQLAlchemy/) required)
 
-- SESSION_SQLALCHEMY
-- SESSION_SQLALCHEMY_TABLE
-- SESSION_AUTODELETE
+| Name | Description |
+|--|--|
+| `SESSION_SQLALCHEMY`      |  A `flask_sqlalchemy.SQLAlchemy` instance whose database connection URI is configured using the `SQLALCHEMY_DATABASE_URI` parameter |
+| `SESSION_SQLALCHEMY_TABLE`|  The name of the SQL table you want to use, default "sessions" |
+| SESSION_AUTODELETE        |  Auto remove old sessions from database |
 
 ### `ElasticsearchSessionInterface`
 
