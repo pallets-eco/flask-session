@@ -176,10 +176,19 @@ Uses Google Firebase as a session backend. ([google-cloud-firestore](https://pyp
 - SESSION_FIRESTORE
 - SESSION_FIRESTORE_COLLECT
 
+
+### `PeeweeSessionInterface`
+
+Uses Peewee as a session backend. ([peewee](https://pypi.org/project/peewee/) required)
+
+- SESSION_PEEWEE_TABLE
+- SESSION_PEEWEE_CONFIG
+
 ## Credits
 
 This project is a fork of [flask-session](https://github.com/fengsp/flask-session), created by [Shipeng Feng](https://github.com/fengsp).
 
 ### Contributors
 
-@sulantha2006 | Google Cloud Firestore
+@sulantha2006 | Google Cloud Firestore session backend
+@bsmar, @Nilkree | Peewee session backend

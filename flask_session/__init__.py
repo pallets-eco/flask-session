@@ -20,6 +20,7 @@ from .sessions import (
     MemcachedSessionInterface,
     MongoDBSessionInterface,
     NullSessionInterface,
+    PeeweeSessionInterface,
     RedisSessionInterface,
     SqlAlchemySessionInterface,
 )
@@ -102,6 +103,7 @@ class Session:
         config.setdefault("GCLOUD_APP_PROJECT_ID", "unknown")
         config.setdefault("SESSION_FIRESTORE", None)
         config.setdefault("SESSION_FIRESTORE_COLLECT", "flask_session")
+        config.setdefault("SESSION_PEEWEE_TABLE", "sessions")
 
         if config["SESSION_TYPE"] == "redis":
             session_interface = RedisSessionInterface(
@@ -168,6 +170,16 @@ class Session:
             session_interface = GoogleFireStoreSessionInterface(
                 config["SESSION_FIRESTORE"],
                 config["SESSION_FIRESTORE_COLLECT"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
+        elif config["SESSION_TYPE"] == "peewee":
+            session_interface = PeeweeSessionInterface(
+                config.get("SESSION_DB"),
+                config["SESSION_PEEWEE_CONFIG"],
+                config["SESSION_DB_CLASS"],
+                config["SESSION_PEEWEE_TABLE"],
                 config["SESSION_KEY_PREFIX"],
                 config["SESSION_USE_SIGNER"],
                 config["SESSION_PERMANENT"],

@@ -45,6 +45,7 @@ types-pytz = "^2022.1.2"
 google-cloud-datastore = "^2.8.1"
 types-requests = "^2.28.8"
 google-cloud-firestore = "^2.6.1"
+peewee = "^3.15.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
