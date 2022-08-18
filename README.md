@@ -114,7 +114,7 @@ Uses the Redis key-value store as a session backend. ([redis-py](https://github.
 
 ### `MemcachedSessionInterface`
 
-Uses the Memcached as a session backend. ([pylibmc](http://sendapatch.se/projects/pylibmc/) or [memcache](https://github.com/linsomniac/python-memcached) required)
+Uses the Memcached as a session backend. ([pymemecache](https://pypi.org/project/pymemcache/) required)
 
 | Name | Description |
 |--|--|
