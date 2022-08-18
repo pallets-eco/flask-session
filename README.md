@@ -191,4 +191,4 @@ This project is a fork of [flask-session](https://github.com/fengsp/flask-sessio
 ### Contributors
 
 @sulantha2006 | Google Cloud Firestore session backend
-@bsmar, @Nilkree | Peewee session backend
+@bsmar, @Nilkree, @km445, @PavelTsaritsynKS, @PetruninAleksey | Peewee session backend
