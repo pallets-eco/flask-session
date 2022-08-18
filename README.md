@@ -184,6 +184,19 @@ Uses Peewee as a session backend. ([peewee](https://pypi.org/project/peewee/) re
 - SESSION_PEEWEE_TABLE
 - SESSION_PEEWEE_CONFIG
 
+### `DynamoDBSessionInterface`
+
+Uses DynamoDB as a session backend. ([boto3](https://pypi.org/project/boto3/) required)
+
+| Name | Description |
+|---|---|
+| `SESSION_DYNAMODB`          | A `boto3.Session` instance, default creates an instance with credentials in environment variables or in the local aws config. |
+| `SESSION_DYNAMODB_KEY_ID`   | The AWS key id for connecting to Dynamo. Uses environment variable or local config if not set. |
+| `SESSION_DYNAMODB_ENDPOINT` | The AWS DynamoDB endpoint_url. Default is none, primarily used for local DynamoDB config. |
+| `SESSION_DYNAMODB_SECRET`   | The AWS secret access key for connecting to Dynamo. Uses environment variable or local config if not set. |
+| `SESSION_DYNAMODB_REGION`   | The region where the dynamodb table is located. Uses environment variable or the local config if not set. |
+| `SESSION_DYNAMODB_TABLE`    | The name of the table in DyanmoDB to store session data. Default is "sessions". |
+
 ## Credits
 
 This project is a fork of [flask-session](https://github.com/fengsp/flask-session), created by [Shipeng Feng](https://github.com/fengsp).
@@ -192,3 +205,4 @@ This project is a fork of [flask-session](https://github.com/fengsp/flask-sessio
 
 @sulantha2006 | Google Cloud Firestore session backend
 @bsmar, @Nilkree, @km445, @PavelTsaritsynKS, @PetruninAleksey | Peewee session backend
+@JimBroad | DynamoDB session backend

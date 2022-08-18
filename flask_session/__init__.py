@@ -13,6 +13,7 @@ __version__ = "0.4.0"
 import os
 
 from .sessions import (
+    DynamoDBSessionInterface,
     ElasticsearchSessionInterface,
     FileSystemSessionInterface,
     GoogleCloudDatastoreSessionInterface,
@@ -104,6 +105,12 @@ class Session:
         config.setdefault("SESSION_FIRESTORE", None)
         config.setdefault("SESSION_FIRESTORE_COLLECT", "flask_session")
         config.setdefault("SESSION_PEEWEE_TABLE", "sessions")
+        config.setdefault("SESSION_DYNAMODB", None)
+        config.setdefault("SESSION_DYNAMODB_ENDPOINT", None)
+        config.setdefault("SESSION_DYNAMODB_TABLE", "sessions")
+        config.setdefault("SESSION_DYNAMODB_KEY_ID", None)
+        config.setdefault("SESSION_DYNAMODB_SECRET", None)
+        config.setdefault("SESSION_DYNAMODB_REGION", None)
 
         if config["SESSION_TYPE"] == "redis":
             session_interface = RedisSessionInterface(
@@ -181,6 +188,18 @@ class Session:
                 config["SESSION_DB_CLASS"],
                 config["SESSION_PEEWEE_TABLE"],
                 config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
+        elif config["SESSION_TYPE"] == "dynamodb":
+            session_interface = DynamoDBSessionInterface(
+                config["SESSION_DYNAMODB"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_DYNAMODB_ENDPOINT"],
+                config["SESSION_DYNAMODB_TABLE"],
+                config["SESSION_DYNAMODB_KEY_ID"],
+                config["SESSION_DYNAMODB_SECRET"],
+                config["SESSION_DYNAMODB_REGION"],
                 config["SESSION_USE_SIGNER"],
                 config["SESSION_PERMANENT"],
             )

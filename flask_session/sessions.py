@@ -8,6 +8,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
+import json
 import os
 import sys
 import time
@@ -80,6 +81,10 @@ class GoogleCloudDataStoreSession(ServerSideSession):
 
 
 class GoogleFireStoreSession(ServerSideSession):
+    pass
+
+
+class DynamoDBSession(ServerSideSession):
     pass
 
 
@@ -1224,6 +1229,116 @@ class PeeweeSessionInterface(SessionInterface):
             self.sql_session_model.create(
                 session_id=store_id, data=value, expiry=expires, ip=ip
             )
+        if self.use_signer:
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+        else:
+            session_id = session.sid
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+        )
+
+
+class DynamoDBSessionInterface(SessionInterface):
+    """Uses the AWS DyanmoDB key-value store as a session backend.
+    :param session: A ``boto3.Session`` instance.
+    :param key_prefix: A prefix that is added to all DynamoDB store keys.
+    :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
+    """
+
+    serializer = json
+    session_class = DynamoDBSession
+
+    def __init__(
+        self,
+        session,
+        key_prefix,
+        endpoint_url,
+        table_name,
+        aws_access_key_id=None,
+        aws_secret_access_key=None,
+        region=None,
+        use_signer=False,
+        permanent=True,
+    ):
+        if session is None:
+            from boto3 import Session
+
+            session = Session(
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key,
+                region_name=region,
+            )
+        self.client = session.client("dynamodb", endpoint_url=endpoint_url)
+        self.key_prefix = key_prefix
+        self.use_signer = use_signer
+        self.permanent = permanent
+        self.table_name = table_name
+
+    def open_session(self, app, request):
+        sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid, permanent=self.permanent)
+        if self.use_signer:
+            signer = self._get_signer(app)
+            if signer is None:
+                return None
+            try:
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
+            except BadSignature:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
+
+        if not PY2 and not isinstance(sid, text_type):
+            sid = sid.decode("utf-8", "strict")
+
+        response = self.client.get_item(
+            TableName=self.table_name, Key={"SessionId": {"S": self.key_prefix + sid}}
+        )
+
+        value = response.get("Item", {}).get("Session", {}).get("S")
+        if value is not None:
+            try:
+                data = self.serializer.loads(value)
+                return self.session_class(data, sid=sid)
+            except:
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
+
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        if not session:
+            if session.modified:
+                self.client.delete_item(
+                    TableName=self.table_name,
+                    Key={"SessionId": {"S": self.key_prefix + session.sid}},
+                )
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
+            return
+
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        expires = self.get_expiration_time(app, session)
+        value = self.serializer.dumps(dict(session))
+        self.client.put_item(
+            TableName=self.table_name,
+            Item={
+                "SessionId": {"S": self.key_prefix + session.sid},
+                "Session": {"S": value},
+            },
+        )
+
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
