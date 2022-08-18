@@ -8,8 +8,6 @@
     :license: BSD, see LICENSE for more details.
 """
 
-__version__ = "0.4.0"
-
 import os
 
 from .sessions import (
