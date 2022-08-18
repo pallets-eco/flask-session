@@ -206,7 +206,7 @@ This project is a fork of [flask-session](https://github.com/fengsp/flask-sessio
 Thanks for many who have contributed to this project. Submit a PR if you have contributed and your name is missing.
 
 - [sulantha2006](https://github.com/sulantha2006) | Google Cloud Firestore session backend
-- [bsmar](https://github.com/bsmar), [Nilkree](https://github.com/Nilkree), [km445](https://github.com/km445), [](https://github.com/PavelTsaritsynKS), [PetruninAleksey](https://github.com/PetruninAleksey) | Peewee session backend
+- [bsmar](https://github.com/bsmar), [Nilkree](https://github.com/Nilkree), [km445](https://github.com/km445), [PavelTsaritsynKS](https://github.com/PavelTsaritsynKS), [PetruninAleksey](https://github.com/PetruninAleksey) | Peewee session backend
 - [JimBroad](https://github.com/JimBroad) | DynamoDB session backend
 - [bieli](https://github.com/bieli) | Custom session backend
 - [jesserobles](https://github.com/jesserobles) | Elasticsearch session backend
