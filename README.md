@@ -205,34 +205,35 @@ This project is a fork of [flask-session](https://github.com/fengsp/flask-sessio
 
 Thanks for many who have contributed to this project. Submit a PR if you have contributed and your name is missing.
 
-@sulantha2006 | Google Cloud Firestore session backend
-@bsmar, @Nilkree, @km445, @PavelTsaritsynKS, @PetruninAleksey | Peewee session backend
-@JimBroad | DynamoDB session backend
-@bieli | Custom session backend
-@jesserobles | Elasticsearch session backend
-@ghost | Google Datastore session backend
-@PjrCodes
-@treycucco
-@tassaron
-@rsyring
-@Junzki
-@gdoumenc
-@twolfson
-@splbio
-@moskitos80
-@h4ck3rm1k3
-@grutz
-@zebpalmer
-@knivre
-@funoverip
-@isopropanol
-@ronsmith
-@marcuspen
-@lucassus
-@loukash
-@najamansari
-@brunokim
-@Ricky-Hao
-@slastrina
-@Kolarovski
-@wangsha
+- https://github.com/sulantha2006 | Google Cloud Firestore session backend
+- https://github.com/bsmar, https://github.com/Nilkree, https://github.com/km445, https://github.com/PavelTsaritsynKS, https://github.com/PetruninAleksey | Peewee session backend
+- https://github.com/JimBroad | DynamoDB session backend
+- https://github.com/bieli | Custom session backend
+- https://github.com/jesserobles | Elasticsearch session backend
+- https://github.com/ghost | Google Datastore session backend
+- https://github.com/PjrCodes
+- https://github.com/treycucco
+- https://github.com/tassaron
+- https://github.com/rsyring
+- https://github.com/Junzki
+- https://github.com/gdoumenc
+- https://github.com/twolfson
+- https://github.com/splbio
+- https://github.com/moskitos80
+- https://github.com/h4ck3rm1k3
+- https://github.com/grutz
+- https://github.com/zebpalmer
+- https://github.com/knivre
+- https://github.com/funoverip
+- https://github.com/isopropanol
+- https://github.com/ronsmith
+- https://github.com/marcuspen
+- https://github.com/lucassus
+- https://github.com/loukash
+- https://github.com/najamansari
+- https://github.com/brunokim
+- https://github.com/Ricky-Hao
+- https://github.com/slastrina
+- https://github.com/Kolarovski
+- https://github.com/wangsha
+- https://github.com/christopherpickering
