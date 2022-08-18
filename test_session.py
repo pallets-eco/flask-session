@@ -222,6 +222,63 @@ class FlaskSessionTestCase(unittest.TestCase):
         self.assertEqual(c.get("/get").data, b"42")
         c.post("/delete")
 
+    def test_peewee_session(self):
+        from peewee import SqliteDatabase
+
+        app = flask.Flask(__name__)
+        app.debug = True
+        app.config["SESSION_DB"] = None
+        app.config["SESSION_TYPE"] = "peewee"
+        app.config["SESSION_DB_CLASS"] = SqliteDatabase
+        app.config["SESSION_PEEWEE_CONFIG"] = {"database": "sqlite"}
+        Session(app)
+
+        @app.route("/set", methods=["POST"])
+        def set():
+            flask.session["value"] = flask.request.form["value"]
+            return "value set"
+
+        @app.route("/get")
+        def get():
+            return flask.session["value"]
+
+        @app.route("/delete", methods=["POST"])
+        def delete():
+            del flask.session["value"]
+            return "value deleted"
+
+        c = app.test_client()
+        self.assertEqual(c.post("/set", data={"value": "42"}).data, b"value " b"set")
+        self.assertEqual(c.get("/get").data, b"42")
+        c.post("/delete")
+
+    # Test requires AWS key.
+    # if you modify this backend, please run the test to verify changes.
+    # def test_dynamodb_session(self):
+    #     app = flask.Flask(__name__)
+    #     app.testing = True
+    #     app.config["SESSION_TYPE"] = "dynamodb"
+    #     Session(app)
+
+    #     @app.route("/set", methods=["POST"])
+    #     def set():
+    #         flask.session["value"] = flask.request.form["value"]
+    #         return "value set"
+
+    #     @app.route("/get")
+    #     def get():
+    #         return flask.session["value"]
+
+    #     @app.route("/delete", methods=["POST"])
+    #     def delete():
+    #         del flask.session["value"]
+    #         return "value deleted"
+
+    #     c = app.test_client()
+    #     self.assertEqual(c.post("/set", data={"value": "42"}).data, b"value set")
+    #     self.assertEqual(c.get("/get").data, b"42")
+    #     c.post("/delete")
+
 
 if __name__ == "__main__":
     unittest.main()

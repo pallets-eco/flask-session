@@ -44,6 +44,9 @@ elasticsearch = "^8.3.3"
 types-pytz = "^2022.1.2"
 google-cloud-datastore = "^2.8.1"
 types-requests = "^2.28.8"
+google-cloud-firestore = "^2.6.1"
+peewee = "^3.15.1"
+boto3 = "^1.24.54"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -58,4 +61,4 @@ profile = "black"
 quiet = true
 
 [tool.pylint.messages_control]
-disable = "W0702,R0903,C0415,C0103,R0913,E0602,C0116,C0115,R1710,W0223,R0914,R0902"
+disable = "W0702,R0903,C0415,C0103,R0913,E0602,C0116,C0115,R1710,W0223,R0914,R0902,C0302,R0915"
