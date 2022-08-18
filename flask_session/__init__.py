@@ -16,6 +16,7 @@ from .sessions import (
     ElasticsearchSessionInterface,
     FileSystemSessionInterface,
     GoogleCloudDatastoreSessionInterface,
+    GoogleFireStoreSessionInterface,
     MemcachedSessionInterface,
     MongoDBSessionInterface,
     NullSessionInterface,
@@ -99,6 +100,8 @@ class Session:
         config.setdefault("SESSION_SQLALCHEMY_TABLE", "sessions")
         config.setdefault("SESSION_SQLALCHEMY_SEQUENCE", None)
         config.setdefault("GCLOUD_APP_PROJECT_ID", "unknown")
+        config.setdefault("SESSION_FIRESTORE", None)
+        config.setdefault("SESSION_FIRESTORE_COLLECT", "flask_session")
 
         if config["SESSION_TYPE"] == "redis":
             session_interface = RedisSessionInterface(
@@ -157,6 +160,14 @@ class Session:
         elif config["SESSION_TYPE"] == "datastore":
             session_interface = GoogleCloudDatastoreSessionInterface(
                 config["GCLOUD_APP_PROJECT_ID"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
+        elif config["SESSION_TYPE"] == "firestore":
+            session_interface = GoogleFireStoreSessionInterface(
+                config["SESSION_FIRESTORE"],
+                config["SESSION_FIRESTORE_COLLECT"],
                 config["SESSION_KEY_PREFIX"],
                 config["SESSION_USE_SIGNER"],
                 config["SESSION_PERMANENT"],

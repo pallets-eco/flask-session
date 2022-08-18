@@ -169,6 +169,17 @@ Uses Google Cloud Datastore as a session backend. ([google-cloud-datastore](http
 
 - GCLOUD_APP_PROJECT_ID
 
+### `GoogleFireStoreSessionInterface`
+
+Uses Google Firebase as a session backend. ([google-cloud-firestore](https://pypi.org/project/google-cloud-firestore/) required)
+
+- SESSION_FIRESTORE
+- SESSION_FIRESTORE_COLLECT
+
 ## Credits
 
 This project is a fork of [flask-session](https://github.com/fengsp/flask-session), created by [Shipeng Feng](https://github.com/fengsp).
+
+### Contributors
+
+@sulantha2006 | Google Cloud Firestore

@@ -79,6 +79,10 @@ class GoogleCloudDataStoreSession(ServerSideSession):
     pass
 
 
+class GoogleFireStoreSession(ServerSideSession):
+    pass
+
+
 class SessionInterface(FlaskSessionInterface):
     def _generate_sid(self):
         return str(uuid4())
@@ -819,7 +823,7 @@ class ElasticsearchSessionInterface(SessionInterface):
         self.client.index(
             index=self.index,
             id=store_id,
-            body={"id": store_id, "val": value, "expiration": expires},
+            document={"id": store_id, "val": value, "expiration": expires},
         )
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
@@ -946,4 +950,119 @@ class GoogleCloudDatastoreSessionInterface(SessionInterface):
             domain=domain,
             path=path,
             secure=secure,
+        )
+
+
+class GoogleFireStoreSessionInterface(SessionInterface):
+    """A Session interface that uses GCP firestore as backend"""
+
+    from google.cloud import firestore_v1 as firestore
+
+    serializer = pickle
+    session_class = GoogleFireStoreSession
+
+    def __init__(
+        self, client, collection, key_prefix, use_signer=False, permanent=True
+    ):
+
+        if client is None:
+            raise Exception("Please set Firestore Client")
+            # client = firestore.Client()
+        self.client = client
+        self.store = client.collection(collection)
+        self.key_prefix = key_prefix
+        self.use_signer = use_signer
+        self.permanent = permanent
+        self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
+
+    @firestore.transactional
+    def _fs_get_doc(self, transaction, doc_ref):
+        doc = doc_ref.get(transaction=transaction)
+        if doc.exists:
+            return doc.to_dict()
+        return None
+
+    @firestore.transactional
+    def _fs_set_doc(self, transaction, doc_ref, doc_data):
+        transaction.set(doc_ref, doc_data)
+
+    def _fs_delete_doc(self, doc_ref):
+        doc_ref.delete()
+
+    def open_session(self, app, request):
+        sid = request.cookies.get(app.session_cookie_name)
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid, permanent=self.permanent)
+        if self.use_signer:
+            signer = self._get_signer(app)
+            if signer is None:
+                return None
+            try:
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
+            except BadSignature:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
+
+        store_id = self.key_prefix + sid
+        document_ref = self.store.document(document_id=store_id)
+        transaction = self.client.transaction()
+        document = self._fs_get_doc(transaction, document_ref)
+
+        if document and document["expiration"] <= datetime.utcnow().replace(
+            tzinfo=pytz.UTC
+        ):
+            # Delete expired session
+            self._fs_delete_doc(document_ref)
+            document = None
+        if document is not None:
+            try:
+                value = document["val"]
+                data = self.serializer.loads(want_bytes(value))
+                return self.session_class(data, sid=sid)
+            except:
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
+
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        store_id = self.key_prefix + session.sid
+        if not session:
+            if session.modified:
+                document_ref = self.store.document(document_id=store_id)
+                self._fs_delete_doc(document_ref)
+                response.delete_cookie(
+                    app.session_cookie_name, domain=domain, path=path
+                )
+            return
+
+        conditional_cookie_kwargs = {}
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        if self.has_same_site_capability:
+            conditional_cookie_kwargs["samesite"] = self.get_cookie_samesite(app)
+        expires = self.get_expiration_time(app, session)
+        value = self.serializer.dumps(dict(session))
+
+        document_ref = self.store.document(document_id=store_id)
+        transaction = self.client.transaction()
+
+        s_data = {"id": store_id, "val": value, "expiration": expires}
+        self._fs_set_doc(transaction, document_ref, s_data)
+
+        if self.use_signer:
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+        else:
+            session_id = session.sid
+        response.set_cookie(
+            app.session_cookie_name,
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+            **conditional_cookie_kwargs,
         )
