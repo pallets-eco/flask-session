@@ -31,7 +31,7 @@ pip install Flask-Session2
 Flask-Session is really easy to use.
 
 Basically for the common use of having one Flask application all you have to do is to create your Flask application, load the configuration of choice and
-then create the :class:`Session` object by passing it the application.
+then create the `Session` object by passing it the application.
 
 The `Session` instance is not used for direct access, you should always use `flask.session`:
 
@@ -86,7 +86,7 @@ A list of configuration keys also understood by the extension:
 
 | Name | Description |
 |--|--|
-| `SESSION_TYPE`            |  Specifies which type of session interface to use.  Built-in session types:<br>- **null**: NullSessionInterface (default) <br> - **redis**: RedisSessionInterface <br> - **memcached**: MemcachedSessionInterface <br> - **filesystem**: FileSystemSessionInterface <br> - **mongodb**: MongoDBSessionInterface <br> - **sqlalchemy**: SqlAlchemySessionInterface |
+| `SESSION_TYPE`            |  Specifies which type of session interface to use.  Built-in session types:<br>- **null**: NullSessionInterface (default) <br> - **redis**: RedisSessionInterface <br> - **memcached**: MemcachedSessionInterface <br> - **filesystem**: FileSystemSessionInterface <br> - **mongodb**: MongoDBSessionInterface <br> - **sqlalchemy**: SqlAlchemySessionInterface <br> - **elasticsearch**: ElasticsearchSessionInterface <br> - **datastore**: GoogleCloudDatastoreSessionInterface <br> - **firestore**: GoogleFireStoreSessionInterface <br> - **peewee**: PeeweeSessionInterface <br> - **dynamodb**: DynamoDBSessionInterface |
 | `SESSION_PERMANENT`       |  Whether use permanent session or not, default to be `True` |
 | `SESSION_USE_SIGNER`      |  Whether sign the session cookie sid or not, if set to `True`, you have to set :attr:`flask.Flask.secret_key`, default to be `False` |
 | `SESSION_KEY_PREFIX`      |  A prefix that is added before all session keys. This makes it possible to use the same backend storage server for different apps, default "session:" |
