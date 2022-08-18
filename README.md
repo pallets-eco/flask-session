@@ -203,6 +203,36 @@ This project is a fork of [flask-session](https://github.com/fengsp/flask-sessio
 
 ### Contributors
 
+Thanks for many who have contributed to this project. Submit a PR if you have contributed and your name is missing.
+
 @sulantha2006 | Google Cloud Firestore session backend
 @bsmar, @Nilkree, @km445, @PavelTsaritsynKS, @PetruninAleksey | Peewee session backend
 @JimBroad | DynamoDB session backend
+@bieli | Custom session backend
+@jesserobles | Elasticsearch session backend
+@ghost | Google Datastore session backend
+@PjrCodes
+@treycucco
+@tassaron
+@rsyring
+@Junzki
+@gdoumenc
+@twolfson
+@splbio
+@moskitos80
+@h4ck3rm1k3
+@grutz
+@zebpalmer
+@knivre
+@funoverip
+@isopropanol
+@ronsmith
+@marcuspen
+@lucassus
+@loukash
+@najamansari
+@brunokim
+@Ricky-Hao
+@slastrina
+@Kolarovski
+@wangsha
