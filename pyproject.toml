@@ -4,6 +4,8 @@ version = "0.1.0"
 description = "Adds server-side session support to your Flask application"
 authors = ["Shipeng Feng <fsp261@gmail.com>"]
 maintainers=["Christopher Pickering"]
+repository="https://github.com/christopherpickering/flask-session2"
+homepage="https://github.com/christopherpickering/flask-session2#readme"
 license = "BSD"
 readme="README.md"
 classifiers=[
@@ -16,6 +18,9 @@ classifiers=[
         'Topic :: Software Development :: Libraries :: Python Modules'
     ]
 packages=[{ include = 'flask_session'}]
+
+[tool.poetry.urls]
+"Issue Tracker" = "https://github.com/christopherpickering/flask-session2/issues"
 
 [tool.poetry.dependencies]
 python = "^3.7.2"
