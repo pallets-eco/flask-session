@@ -36,11 +36,6 @@ Flask-SQLAlchemy = "^2.5.1"
 pymemcache = "^3.5.2"
 mypy = "^0.971"
 pylint = "^2.14.5"
-flake8 = "^5.0.4"
-flake8-simplify = "^0.19.3"
-flake8-builtins = "^1.5.3"
-flake8-comprehensions = "^3.10.0"
-flake8-variables-names = "^0.0.5"
 tox = "^3.25.1"
 types-redis = "^4.3.14"
 redis = "^4.3.4"
@@ -52,6 +47,8 @@ types-requests = "^2.28.8"
 google-cloud-firestore = "^2.6.1"
 peewee = "^3.15.1"
 boto3 = "^1.24.54"
+pylint-print = "^1.0.0"
+bandit = "^1.7.4"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
@@ -67,3 +64,5 @@ quiet = true
 
 [tool.pylint.messages_control]
 disable = "W0702,R0903,C0415,C0103,R0913,E0602,C0116,C0115,R1710,W0223,R0914,R0902,C0302,R0915"
+[tool.pylint.MASTER]
+load-plugins="pylint_print"
