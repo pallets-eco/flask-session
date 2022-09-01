@@ -10,6 +10,7 @@
     "npm:unpublishSafe"
   ],
   "bumpVersion": "patch",
+  "includeForks": true,
   "commitMessagePrefix": "chore(deps)",
   "labels": [
     "maintenance",
