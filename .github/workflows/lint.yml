@@ -8,6 +8,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v3
 
+    - name: install ubuntu fix
+      run: |
+        sudo apt-get update
+        sudo apt-get install python3-testresources
+
     - name: run lint
       run: |
         pip install tox poetry tox-poetry
