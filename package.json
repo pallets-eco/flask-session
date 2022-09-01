@@ -1,6 +1,6 @@
 {
   "name": "flask-session2",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Adds server-side session support to your Flask application",
   "directories": {
     "doc": "docs",
@@ -26,11 +26,11 @@
     "@semantic-release/commit-analyzer": "9.0.2",
     "@semantic-release/exec": "6.0.3",
     "@semantic-release/git": "10.0.1",
-    "@semantic-release/github": "8.0.5",
+    "@semantic-release/github": "8.0.6",
     "@semantic-release/npm": "9.0.1",
     "@semantic-release/release-notes-generator": "10.0.3",
     "cz-conventional-changelog": "3.3.0",
-    "semantic-release": "19.0.3"
+    "semantic-release": "19.0.5"
   },
   "config": {
     "commitizen": {
