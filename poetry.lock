@@ -699,14 +699,11 @@ pylint = "*"
 
 [[package]]
 name = "pymemcache"
-version = "3.5.2"
+version = "4.0.0"
 description = "A comprehensive, fast, pure Python memcached client"
 category = "dev"
 optional = false
-python-versions = "*"
-
-[package.dependencies]
-six = "*"
+python-versions = ">=3.7"
 
 [[package]]
 name = "pymongo"
@@ -1052,7 +1049,7 @@ testing = ["func-timeout", "jaraco.itertools", "pytest (>=6)", "pytest-black (>=
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.7.2"
-content-hash = "f3228e0b1fe23998ee6c44f907ecd88668db23eaf4ab56723384424922ee883a"
+content-hash = "decd2ef7af5dd548e4edc5a1655ce9f005f3f75c6da9cc1f6aae26d058c72e7d"
 
 [metadata.files]
 astroid = [
@@ -1551,8 +1548,8 @@ pylint-print = [
     {file = "pylint_print-1.0.0-py3-none-any.whl", hash = "sha256:3655f6a5473f6d50f874d599b18db46ff7fd590b951cf2004c80c2190dad75ad"},
 ]
 pymemcache = [
-    {file = "pymemcache-3.5.2-py2.py3-none-any.whl", hash = "sha256:3fca0215845d7b2ecd5f4c627fcf4ce2345a703a897b7e116380115b5a197be2"},
-    {file = "pymemcache-3.5.2.tar.gz", hash = "sha256:8923ab59840f0d5338f1c52dba229fa835545b91c3c2f691c118e678d0fb974e"},
+    {file = "pymemcache-4.0.0-py2.py3-none-any.whl", hash = "sha256:f507bc20e0dc8d562f8df9d872107a278df049fa496805c1431b926f3ddd0eab"},
+    {file = "pymemcache-4.0.0.tar.gz", hash = "sha256:27bf9bd1bbc1e20f83633208620d56de50f14185055e49504f4f5e94e94aff94"},
 ]
 pymongo = [
     {file = "pymongo-4.2.0-cp310-cp310-macosx_10_15_universal2.whl", hash = "sha256:b9e4981a65f8500a3a46bb3a1e81b9feb45cf0b2115ad9c4f8d517326d026940"},
