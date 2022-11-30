@@ -647,8 +647,9 @@ class SqlAlchemySessionInterface(SessionInterface):
 
         from sqlalchemy import inspect
 
-        if not inspect(db.engine).has_table("Session"):
-            self.db.create_all()
+        with app.app_context():
+            if not inspect(db.engine).has_table("Session"):
+                self.db.create_all()
 
         self.sql_session_model = Session
 
