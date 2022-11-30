@@ -50,10 +50,15 @@ jobs:
         host node port: 9300
         node port: 9300
         discovery type: single-node
+    - name: setup poetry
+      uses: abatilo/actions-poetry@v2
+      with:
+        poetry-version: 1.2.2
+
     - name: install deps
-      run: python -m pip install tox poetry tox-poetry
+      run: poetry install
     - name: test
-      run: tox -e test
+      run: poetry run tox -e test
     - name: upload cov
       uses: codecov/codecov-action@v3
       with:
