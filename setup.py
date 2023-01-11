@@ -16,30 +16,30 @@ from setuptools import setup
 
 
 setup(
-    name='Flask-Session',
-    version='0.4.0',
-    url='https://github.com/fengsp/flask-session',
-    license='BSD',
-    author='Shipeng Feng',
-    author_email='fsp261@gmail.com',
-    description='Adds server-side session support to your Flask application',
+    name="Flask-Session",
+    version="0.4.0",
+    url="https://github.com/fengsp/flask-session",
+    license="BSD",
+    author="Shipeng Feng",
+    author_email="fsp261@gmail.com",
+    description="Adds server-side session support to your Flask application",
     long_description=__doc__,
-    packages=['flask_session'],
+    packages=["flask_session"],
     zip_safe=False,
     include_package_data=True,
-    platforms='any',
+    platforms="any",
     install_requires=[
-        'Flask>=0.8',
-        'cachelib'
+        "Flask>=0.8",
+        "cachelib @ git+https://github.com/wangsha/cachelib.git",
     ],
-    test_suite='test_session',
+    test_suite="test_session",
     classifiers=[
-        'Environment :: Web Environment',
-        'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python :: 2',
-        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
-        'Topic :: Software Development :: Libraries :: Python Modules'
-    ]
+        "Environment :: Web Environment",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python :: 2",
+        "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ],
 )
