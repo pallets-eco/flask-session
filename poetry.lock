@@ -147,14 +147,14 @@ crt = ["awscrt (==0.15.3)"]
 
 [[package]]
 name = "cachelib"
-version = "0.9.0"
+version = "0.10.1"
 description = "A collection of cache libraries in the same API interface."
 category = "main"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "cachelib-0.9.0-py3-none-any.whl", hash = "sha256:811ceeb1209d2fe51cd2b62810bd1eccf70feba5c52641532498be5c675493b3"},
-    {file = "cachelib-0.9.0.tar.gz", hash = "sha256:38222cc7c1b79a23606de5c2607f4925779e37cdcea1c2ad21b8bae94b5425a5"},
+    {file = "cachelib-0.10.1-py3-none-any.whl", hash = "sha256:c91e94f13a439356b19cf0945e773543918cfd09befcb6b6d572fc38f5eafe4b"},
+    {file = "cachelib-0.10.1.tar.gz", hash = "sha256:0b51af1913ad7ed21372864c0649e916bac30897160e68d1de0e3aac104df49b"},
 ]
 
 [[package]]
@@ -1887,4 +1887,4 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.7.2"
-content-hash = "d0f5649dc1b69a19d72cfed7342cf7a66894ac7423643c7aac21064cbe717096"
+content-hash = "7f09cbb662288df74f298828d818bdf8fdbbe485f393e3e9d28c17d3968c8e44"
