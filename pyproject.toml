@@ -29,7 +29,7 @@ cachelib = "^0.10.0"
 pytz = "^2022.2.1"
 
 [tool.poetry.dev-dependencies]
-black = "^22.6.0"
+black = "^23.0.0"
 isort = "^5.10.1"
 pymongo = "^4.2.0"
 Flask-SQLAlchemy = "^3.0.0"
@@ -63,6 +63,6 @@ profile = "black"
 quiet = true
 
 [tool.pylint.messages_control]
-disable = "W0702,R0903,C0415,C0103,R0913,E0602,C0116,C0115,R1710,W0223,R0914,R0902,C0302,R0915"
+disable = "W0702,R0903,C0415,C0103,R0913,E0602,C0116,C0115,R1710,W0223,R0914,R0902,C0302,R0915, W0719"
 [tool.pylint.MASTER]
-load-plugins="pylint_print"
+# load-plugins="pylint_print"
