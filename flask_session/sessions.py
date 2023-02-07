@@ -470,7 +470,6 @@ class MongoDBSessionInterface(SessionInterface):
         import pymongo
 
         if client is None:
-
             if tz_aware:
                 client = pymongo.MongoClient(tz_aware=tz_aware)
             else:
@@ -1108,7 +1107,6 @@ class PeeweeSessionInterface(SessionInterface):
         use_signer=False,
         permanent=True,
     ):
-
         import peewee
 
         if db:
