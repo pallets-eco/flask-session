@@ -1,0 +1,35 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: CI/CD
+
+on:
+  push:
+  pull_request:
+    branches: [ dev ]
+
+    # This guards against unknown PR until a community member vet it and label it.
+    types: [ labeled ]
+
+jobs:
+  cd:
+    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags') || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python 3.9
+      uses: actions/setup-python@v3
+      with:
+        python-version: 3.9
+    - name: Build a package for release
+      run: |
+        python -m pip install build --user
+        python -m build --sdist --wheel --outdir dist/ .
+    - name: Publish to TestPyPI
+      run: echo "Last time I tried, I do not have permission to release it on Test PyPI"
+    - name: Publish to PyPI
+      if: startsWith(github.ref, 'refs/tags')
+      uses: pypa/gh-action-pypi-publish@v1.4.2
+      with:
+        user: __token__
+        password: ${{ secrets.PYPI_API_TOKEN }}

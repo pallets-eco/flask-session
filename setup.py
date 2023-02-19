@@ -12,12 +12,18 @@ Links
   <https://github.com/fengsp/flask-session/zipball/master#egg=Flask-dev>`_
 
 """
+import re, io
 from setuptools import setup
 
+# setup.py shall not import main package
+__version__ = re.search(
+    r'__version__\s*=\s*[\'"]([^\'"]*)[\'"]',  # It excludes inline comment too
+    io.open('flask_session/__init__.py', encoding='utf_8_sig').read()
+    ).group(1)
 
 setup(
     name='Flask-Session',
-    version='0.4.0',
+    version=__version__,
     url='https://github.com/fengsp/flask-session',
     license='BSD',
     author='Shipeng Feng',
