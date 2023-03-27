@@ -19,7 +19,7 @@
   "baseBranches": ["dev"],
   "packageRules": [
     {
-      "matchUpdateTypes": ["pin","digest"],
+      "matchUpdateTypes": ["pin","digest", "minor", "patch"],
       "automerge": true
     },
     {
@@ -35,17 +35,11 @@
       "extends": "packages:test",
       "groupName": "test packages",
       "automerge": true
-    },
-    {
-      "matchDepTypes": [
-        "devDependencies"
-      ],
-      "automerge": true
     }
   ],
   "pre-commit": {
     "enabled": true
   },
-  "schedule": ["on monday before 8:00am"],
+  "schedule": ["before 10pm on Sunday"],
   "timezone": "America/Chicago"
 }
