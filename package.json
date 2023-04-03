@@ -1,6 +1,6 @@
 {
   "name": "flask-session2",
-  "version": "1.3.5",
+  "version": "1.3.6",
   "description": "Adds server-side session support to your Flask application",
   "directories": {
     "doc": "docs",
@@ -22,7 +22,7 @@
   },
   "homepage": "https://github.com/christopherpickering/flask-session2#readme",
   "devDependencies": {
-    "@semantic-release/changelog": "6.0.2",
+    "@semantic-release/changelog": "6.0.3",
     "@semantic-release/commit-analyzer": "9.0.2",
     "@semantic-release/exec": "6.0.3",
     "@semantic-release/git": "10.0.1",
