@@ -9,7 +9,7 @@
     :license: BSD, see LICENSE for more details.
 """
 
-__version__ = '0.4.1'
+__version__ = '0.5.0'
 
 import os
 

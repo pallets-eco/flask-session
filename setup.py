@@ -35,7 +35,7 @@ setup(
     include_package_data=True,
     platforms='any',
     install_requires=[
-        'Flask>=0.8,<2.3',  # Flask 2.3 removed app.session_cookie_name
+        'Flask>=2.2',
         'cachelib'
     ],
     test_suite='test_session',
