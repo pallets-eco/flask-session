@@ -27,7 +27,7 @@ dynamic = ["version"]
 
 [project.urls]
 Documentation = "https://flasksession.readthedocs.io"
-Changes = "https://flasksession.readthedocs.io/changes/"
+Changes = "https://flasksession.readthedocs.io/changes.html"
 "Source Code" = "https://github.com/pallets-eco/flask-session/"
 "Issue Tracker" = "https://github.com/pallets-eco/flask-session/issues/"
 Chat = "https://discord.gg/pallets"
