@@ -1,0 +1,11 @@
+pymongo
+Flask-SQLAlchemy
+pymemcache
+tox
+redis
+coverage
+elasticsearch
+google-cloud-datastore
+google-cloud-firestore
+peewee
+boto3

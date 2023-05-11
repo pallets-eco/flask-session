@@ -2,12 +2,22 @@ __version__ = '0.5.0'
 
 import os
 
-from .sessions import NullSessionInterface, RedisSessionInterface, \
-    MemcachedSessionInterface, FileSystemSessionInterface, \
-    MongoDBSessionInterface, SqlAlchemySessionInterface
+from .sessions import (
+    DynamoDBSessionInterface,
+    ElasticsearchSessionInterface,
+    FileSystemSessionInterface,
+    GoogleCloudDatastoreSessionInterface,
+    GoogleFireStoreSessionInterface,
+    MemcachedSessionInterface,
+    MongoDBSessionInterface,
+    NullSessionInterface,
+    PeeweeSessionInterface,
+    RedisSessionInterface,
+    SqlAlchemySessionInterface,
+)
 
 
-class Session(object):
+class Session:
     """This class is used to add Server-side Session to one or more Flask
     applications.
 
@@ -45,53 +55,144 @@ class Session(object):
     def init_app(self, app):
         """This is used to set up session for your app object.
 
+        When app.session_interface is None
+        or
+        app.config['SESSION_TYPE'] == 'custom'
+        we using custom implementation from application.
+
         :param app: the Flask app object with proper configuration.
         """
-        app.session_interface = self._get_interface(app)
+        if app.session_interface is None or (
+            "SESSION_TYPE" in app.config and app.config["SESSION_TYPE"] != "custom"
+        ):
+            app.session_interface = self._get_interface(app)
 
     def _get_interface(self, app):
         config = app.config.copy()
-        config.setdefault('SESSION_TYPE', 'null')
-        config.setdefault('SESSION_PERMANENT', True)
-        config.setdefault('SESSION_USE_SIGNER', False)
-        config.setdefault('SESSION_KEY_PREFIX', 'session:')
-        config.setdefault('SESSION_REDIS', None)
-        config.setdefault('SESSION_MEMCACHED', None)
-        config.setdefault('SESSION_FILE_DIR',
-                          os.path.join(os.getcwd(), 'flask_session'))
-        config.setdefault('SESSION_FILE_THRESHOLD', 500)
-        config.setdefault('SESSION_FILE_MODE', 384)
-        config.setdefault('SESSION_MONGODB', None)
-        config.setdefault('SESSION_MONGODB_DB', 'flask_session')
-        config.setdefault('SESSION_MONGODB_COLLECT', 'sessions')
-        config.setdefault('SESSION_SQLALCHEMY', None)
-        config.setdefault('SESSION_SQLALCHEMY_TABLE', 'sessions')
+        config.setdefault("SESSION_TYPE", "null")
+        config.setdefault("SESSION_PERMANENT", True)
+        config.setdefault("SESSION_USE_SIGNER", False)
+        config.setdefault("SESSION_AUTODELETE", False)
+        config.setdefault("SESSION_KEY_PREFIX", "session:")
+        config.setdefault("SESSION_REDIS", None)
+        config.setdefault("SESSION_MEMCACHED", None)
+        config.setdefault(
+            "SESSION_FILE_DIR", os.path.join(os.getcwd(), "flask_session")
+        )
+        config.setdefault("SESSION_FILE_THRESHOLD", 500)
+        config.setdefault("SESSION_FILE_MODE", 384)
+        config.setdefault("SESSION_MONGODB", None)
+        config.setdefault("SESSION_MONGODB_DB", "flask_session")
+        config.setdefault("SESSION_MONGODB_COLLECT", "sessions")
+        config.setdefault("SESSION_MONGODB_TZ_AWARE", False)
+        config.setdefault("SESSION_ELASTICSEARCH", None)
+        config.setdefault("SESSION_ELASTICSEARCH_HOST", "http://localhost:9200")
+        config.setdefault("SESSION_ELASTICSEARCH_INDEX", "sessions")
+        config.setdefault("SESSION_SQLALCHEMY", None)
+        config.setdefault("SESSION_SQLALCHEMY_TABLE", "sessions")
+        config.setdefault("SESSION_SQLALCHEMY_SEQUENCE", None)
+        config.setdefault("GCLOUD_APP_PROJECT_ID", "unknown")
+        config.setdefault("SESSION_FIRESTORE", None)
+        config.setdefault("SESSION_FIRESTORE_COLLECT", "flask_session")
+        config.setdefault("SESSION_PEEWEE_TABLE", "sessions")
+        config.setdefault("SESSION_DYNAMODB", None)
+        config.setdefault("SESSION_DYNAMODB_ENDPOINT", None)
+        config.setdefault("SESSION_DYNAMODB_TABLE", "sessions")
+        config.setdefault("SESSION_DYNAMODB_KEY_ID", None)
+        config.setdefault("SESSION_DYNAMODB_SECRET", None)
+        config.setdefault("SESSION_DYNAMODB_REGION", None)
 
-        if config['SESSION_TYPE'] == 'redis':
+        if config["SESSION_TYPE"] == "redis":
             session_interface = RedisSessionInterface(
-                config['SESSION_REDIS'], config['SESSION_KEY_PREFIX'],
-                config['SESSION_USE_SIGNER'], config['SESSION_PERMANENT'])
-        elif config['SESSION_TYPE'] == 'memcached':
+                config["SESSION_REDIS"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
+        elif config["SESSION_TYPE"] == "memcached":
             session_interface = MemcachedSessionInterface(
-                config['SESSION_MEMCACHED'], config['SESSION_KEY_PREFIX'],
-                config['SESSION_USE_SIGNER'], config['SESSION_PERMANENT'])
-        elif config['SESSION_TYPE'] == 'filesystem':
+                app,
+                config["SESSION_MEMCACHED"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
+        elif config["SESSION_TYPE"] == "filesystem":
             session_interface = FileSystemSessionInterface(
-                config['SESSION_FILE_DIR'], config['SESSION_FILE_THRESHOLD'],
-                config['SESSION_FILE_MODE'], config['SESSION_KEY_PREFIX'],
-                config['SESSION_USE_SIGNER'], config['SESSION_PERMANENT'])
-        elif config['SESSION_TYPE'] == 'mongodb':
+                config["SESSION_FILE_DIR"],
+                config["SESSION_FILE_THRESHOLD"],
+                config["SESSION_FILE_MODE"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
+        elif config["SESSION_TYPE"] == "mongodb":
             session_interface = MongoDBSessionInterface(
-                config['SESSION_MONGODB'], config['SESSION_MONGODB_DB'],
-                config['SESSION_MONGODB_COLLECT'],
-                config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'],
-                config['SESSION_PERMANENT'])
-        elif config['SESSION_TYPE'] == 'sqlalchemy':
+                config["SESSION_MONGODB"],
+                config["SESSION_MONGODB_DB"],
+                config["SESSION_MONGODB_COLLECT"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+                config["SESSION_MONGODB_TZ_AWARE"],
+            )
+        elif config["SESSION_TYPE"] == "sqlalchemy":
             session_interface = SqlAlchemySessionInterface(
-                app, config['SESSION_SQLALCHEMY'],
-                config['SESSION_SQLALCHEMY_TABLE'],
-                config['SESSION_KEY_PREFIX'], config['SESSION_USE_SIGNER'],
-                config['SESSION_PERMANENT'])
+                app,
+                config["SESSION_SQLALCHEMY"],
+                config["SESSION_SQLALCHEMY_TABLE"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+                config["SESSION_SQLALCHEMY_SEQUENCE"],
+                config["SESSION_AUTODELETE"],
+            )
+        elif config["SESSION_TYPE"] == "elasticsearch":
+            session_interface = ElasticsearchSessionInterface(
+                config["SESSION_ELASTICSEARCH"],
+                config["SESSION_ELASTICSEARCH_HOST"],
+                config["SESSION_ELASTICSEARCH_INDEX"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
+        elif config["SESSION_TYPE"] == "datastore":
+            session_interface = GoogleCloudDatastoreSessionInterface(
+                config["GCLOUD_APP_PROJECT_ID"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
+        elif config["SESSION_TYPE"] == "firestore":
+            session_interface = GoogleFireStoreSessionInterface(
+                config["SESSION_FIRESTORE"],
+                config["SESSION_FIRESTORE_COLLECT"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
+        elif config["SESSION_TYPE"] == "peewee":
+            session_interface = PeeweeSessionInterface(
+                config.get("SESSION_DB"),
+                config["SESSION_PEEWEE_CONFIG"],
+                config["SESSION_DB_CLASS"],
+                config["SESSION_PEEWEE_TABLE"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
+        elif config["SESSION_TYPE"] == "dynamodb":
+            session_interface = DynamoDBSessionInterface(
+                config["SESSION_DYNAMODB"],
+                config["SESSION_KEY_PREFIX"],
+                config["SESSION_DYNAMODB_ENDPOINT"],
+                config["SESSION_DYNAMODB_TABLE"],
+                config["SESSION_DYNAMODB_KEY_ID"],
+                config["SESSION_DYNAMODB_SECRET"],
+                config["SESSION_DYNAMODB_REGION"],
+                config["SESSION_USE_SIGNER"],
+                config["SESSION_PERMANENT"],
+            )
         else:
             session_interface = NullSessionInterface()
 

@@ -1,17 +1,21 @@
+import json
+import os
 import sys
 import time
 from datetime import datetime
 from uuid import uuid4
+
+import pytz
+
 try:
     import cPickle as pickle
 except ImportError:
-    import pickle
+    import pickle  # type: ignore[no-redef]
 
 from flask.sessions import SessionInterface as FlaskSessionInterface
 from flask.sessions import SessionMixin
+from itsdangerous import BadSignature, Signer, want_bytes
 from werkzeug.datastructures import CallbackDict
-from itsdangerous import Signer, BadSignature, want_bytes
-
 
 PY2 = sys.version_info[0] == 2
 if not PY2:
@@ -30,6 +34,7 @@ class ServerSideSession(CallbackDict, SessionMixin):
     def __init__(self, initial=None, sid=None, permanent=None):
         def on_update(self):
             self.modified = True
+
         CallbackDict.__init__(self, initial, on_update)
         self.sid = sid
         if permanent:
@@ -53,25 +58,44 @@ class MongoDBSession(ServerSideSession):
     pass
 
 
+class ElasticsearchSession(ServerSideSession):
+    pass
+
+
 class SqlAlchemySession(ServerSideSession):
     pass
 
 
-class SessionInterface(FlaskSessionInterface):
+class GoogleCloudDataStoreSession(ServerSideSession):
+    pass
 
+
+class GoogleFireStoreSession(ServerSideSession):
+    pass
+
+
+class DynamoDBSession(ServerSideSession):
+    pass
+
+
+class PeeweeSession(ServerSideSession):
+    def __init__(self, initial=None, sid=None, permanent=None, ip=None):
+        super().__init__(initial, sid, permanent)
+        self.ip = ip
+
+
+class SessionInterface(FlaskSessionInterface):
     def _generate_sid(self):
         return str(uuid4())
 
     def _get_signer(self, app):
         if not app.secret_key:
             return None
-        return Signer(app.secret_key, salt='flask-session',
-                      key_derivation='hmac')
+        return Signer(app.secret_key, salt="flask-session", key_derivation="hmac")
 
 
 class NullSessionInterface(SessionInterface):
-    """Used to open a :class:`flask.sessions.NullSession` instance.
-    """
+    """Used to open a :class:`flask.sessions.NullSession` instance."""
 
     def open_session(self, app, request):
         return None
@@ -95,6 +119,7 @@ class RedisSessionInterface(SessionInterface):
     def __init__(self, redis, key_prefix, use_signer=False, permanent=True):
         if redis is None:
             from redis import Redis
+
             redis = Redis()
         self.redis = redis
         self.key_prefix = key_prefix
@@ -119,24 +144,27 @@ class RedisSessionInterface(SessionInterface):
                 return self.session_class(sid=sid, permanent=self.permanent)
 
         if not PY2 and not isinstance(sid, text_type):
-            sid = sid.decode('utf-8', 'strict')
-        val = self.redis.get(self.key_prefix + sid)
-        if val is not None:
+            sid = sid.decode("utf-8", "strict")
+        value = self.redis.get(self.key_prefix + sid)
+        if value is not None:
             try:
-                data = self.serializer.loads(val)
+                data = self.serializer.loads(value)
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid, permanent=self.permanent)
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
+        if not self.should_set_cookie(app, session):
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         if not session:
             if session.modified:
                 self.redis.delete(self.key_prefix + session.sid)
-                response.delete_cookie(app.config["SESSION_COOKIE_NAME"],
-                                       domain=domain, path=path)
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
             return
 
         # Modification case.  There are upsides and downsides to
@@ -154,21 +182,33 @@ class RedisSessionInterface(SessionInterface):
         if self.has_same_site_capability:
             conditional_cookie_kwargs["samesite"] = self.get_cookie_samesite(app)
         expires = self.get_expiration_time(app, session)
-        val = self.serializer.dumps(dict(session))
-        self.redis.setex(name=self.key_prefix + session.sid, value=val,
-                         time=total_seconds(app.permanent_session_lifetime))
+
+        if session.permanent:
+            value = self.serializer.dumps(dict(session))
+            self.redis.setex(
+                name=self.key_prefix + session.sid,
+                value=value,
+                time=total_seconds(app.permanent_session_lifetime),
+            )
+
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
             session_id = session.sid
-        response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
-                            expires=expires, httponly=httponly,
-                            domain=domain, path=path, secure=secure,
-                            **conditional_cookie_kwargs)
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+            **conditional_cookie_kwargs,
+        )
 
 
 class MemcachedSessionInterface(SessionInterface):
-    """A Session interface that uses memcached as backend.
+    """A Session interface that uses pymemcached as backend.
 
     .. versionadded:: 0.2
         The `use_signer` parameter was added.
@@ -182,32 +222,31 @@ class MemcachedSessionInterface(SessionInterface):
     serializer = pickle
     session_class = MemcachedSession
 
-    def __init__(self, client, key_prefix, use_signer=False, permanent=True):
+    def __init__(self, app, client, key_prefix, use_signer=False, permanent=True):
         if client is None:
-            client = self._get_preferred_memcache_client()
+            client = self._get_preferred_memcache_client(app)
             if client is None:
-                raise RuntimeError('no memcache module found')
+                raise RuntimeError("no memcache module found")
         self.client = client
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
         self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
 
-    def _get_preferred_memcache_client(self):
-        servers = ['127.0.0.1:11211']
-        try:
-            import pylibmc
-        except ImportError:
-            pass
-        else:
-            return pylibmc.Client(servers)
+    def _get_preferred_memcache_client(self, app):
+        server = "127.0.0.1:11211"
 
         try:
-            import memcache
+            import pymemcache
         except ImportError:
             pass
         else:
-            return memcache.Client(servers)
+            return pymemcache.Client(
+                server,
+                timeout=self._get_memcache_timeout(
+                    total_seconds(app.permanent_session_lifetime)
+                ),
+            )
 
     def _get_memcache_timeout(self, timeout):
         """
@@ -242,29 +281,32 @@ class MemcachedSessionInterface(SessionInterface):
 
         full_session_key = self.key_prefix + sid
         if PY2 and isinstance(full_session_key, unicode):
-            full_session_key = full_session_key.encode('utf-8')
-        val = self.client.get(full_session_key)
-        if val is not None:
+            full_session_key = full_session_key.encode("utf-8")
+        value = self.client.get(full_session_key)
+        if value is not None:
             try:
                 if not PY2:
-                    val = want_bytes(val)
-                data = self.serializer.loads(val)
+                    value = want_bytes(value)
+                data = self.serializer.loads(value)
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid, permanent=self.permanent)
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
+        if not self.should_set_cookie(app, session):
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         full_session_key = self.key_prefix + session.sid
         if PY2 and isinstance(full_session_key, unicode):
-            full_session_key = full_session_key.encode('utf-8')
+            full_session_key = full_session_key.encode("utf-8")
         if not session:
             if session.modified:
                 self.client.delete(full_session_key)
-                response.delete_cookie(app.config["SESSION_COOKIE_NAME"],
-                                       domain=domain, path=path)
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
             return
 
         conditional_cookie_kwargs = {}
@@ -274,19 +316,28 @@ class MemcachedSessionInterface(SessionInterface):
             conditional_cookie_kwargs["samesite"] = self.get_cookie_samesite(app)
         expires = self.get_expiration_time(app, session)
         if not PY2:
-            val = self.serializer.dumps(dict(session), 0)
+            value = self.serializer.dumps(dict(session), 0)
         else:
-            val = self.serializer.dumps(dict(session))
-        self.client.set(full_session_key, val, self._get_memcache_timeout(
-                        total_seconds(app.permanent_session_lifetime)))
+            value = self.serializer.dumps(dict(session))
+
+        self.client.set(
+            full_session_key,
+            value,
+        )
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
             session_id = session.sid
-        response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
-                            expires=expires, httponly=httponly,
-                            domain=domain, path=path, secure=secure,
-                            **conditional_cookie_kwargs)
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+            **conditional_cookie_kwargs,
+        )
 
 
 class FileSystemSessionInterface(SessionInterface):
@@ -306,9 +357,11 @@ class FileSystemSessionInterface(SessionInterface):
 
     session_class = FileSystemSession
 
-    def __init__(self, cache_dir, threshold, mode, key_prefix,
-                 use_signer=False, permanent=True):
+    def __init__(
+        self, cache_dir, threshold, mode, key_prefix, use_signer=False, permanent=True
+    ):
         from cachelib.file import FileSystemCache
+
         self.cache = FileSystemCache(cache_dir, threshold=threshold, mode=mode)
         self.key_prefix = key_prefix
         self.use_signer = use_signer
@@ -337,13 +390,16 @@ class FileSystemSessionInterface(SessionInterface):
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
+        if not self.should_set_cookie(app, session):
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         if not session:
             if session.modified:
                 self.cache.delete(self.key_prefix + session.sid)
-                response.delete_cookie(app.config["SESSION_COOKIE_NAME"],
-                                       domain=domain, path=path)
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
             return
 
         conditional_cookie_kwargs = {}
@@ -353,16 +409,25 @@ class FileSystemSessionInterface(SessionInterface):
             conditional_cookie_kwargs["samesite"] = self.get_cookie_samesite(app)
         expires = self.get_expiration_time(app, session)
         data = dict(session)
-        self.cache.set(self.key_prefix + session.sid, data,
-                       total_seconds(app.permanent_session_lifetime))
+        self.cache.set(
+            self.key_prefix + session.sid,
+            data,
+            total_seconds(app.permanent_session_lifetime),
+        )
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
             session_id = session.sid
-        response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
-                            expires=expires, httponly=httponly,
-                            domain=domain, path=path, secure=secure,
-                            **conditional_cookie_kwargs)
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+            **conditional_cookie_kwargs,
+        )
 
 
 class MongoDBSessionInterface(SessionInterface):
@@ -382,17 +447,32 @@ class MongoDBSessionInterface(SessionInterface):
     serializer = pickle
     session_class = MongoDBSession
 
-    def __init__(self, client, db, collection, key_prefix, use_signer=False,
-                 permanent=True):
+    def __init__(
+        self,
+        client,
+        db,
+        collection,
+        key_prefix,
+        use_signer=False,
+        permanent=True,
+        tz_aware=False,
+    ):
+        import pymongo
+
         if client is None:
-            from pymongo import MongoClient
-            client = MongoClient()
+            if tz_aware:
+                client = pymongo.MongoClient(tz_aware=tz_aware)
+            else:
+                client = pymongo.MongoClient()
+
+        self.use_deprecated_method = int(pymongo.version.split(".")[0]) < 4
         self.client = client
         self.store = client[db][collection]
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
         self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
+        self.tz_aware = tz_aware
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
@@ -411,29 +491,46 @@ class MongoDBSessionInterface(SessionInterface):
                 return self.session_class(sid=sid, permanent=self.permanent)
 
         store_id = self.key_prefix + sid
-        document = self.store.find_one({'id': store_id})
-        if document and document.get('expiration') <= datetime.utcnow():
+        document = self.store.find_one({"id": store_id})
+
+        # Workaround for tz_aware MongoClient
+        if self.tz_aware:
+            utc_now = datetime.utcnow().replace(tzinfo=pytz.UTC)
+        else:
+            utc_now = datetime.utcnow()
+
+        if document and document.get("expiration") <= utc_now:
             # Delete expired session
-            self.store.remove({'id': store_id})
+            if self.use_deprecated_method:
+                self.store.remove({"id": store_id})
+            else:
+                self.store.delete_one({"id": store_id})
             document = None
+
         if document is not None:
             try:
-                val = document['val']
-                data = self.serializer.loads(want_bytes(val))
+                value = document["val"]
+                data = self.serializer.loads(want_bytes(value))
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid, permanent=self.permanent)
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
+        if not self.should_set_cookie(app, session):
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         store_id = self.key_prefix + session.sid
         if not session:
             if session.modified:
-                self.store.remove({'id': store_id})
-                response.delete_cookie(app.config["SESSION_COOKIE_NAME"],
-                                       domain=domain, path=path)
+                if self.use_deprecated_method:
+                    self.store.remove({"id": store_id})
+                else:
+                    self.store.delete_one({"id": store_id})
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
             return
 
         conditional_cookie_kwargs = {}
@@ -442,19 +539,33 @@ class MongoDBSessionInterface(SessionInterface):
         if self.has_same_site_capability:
             conditional_cookie_kwargs["samesite"] = self.get_cookie_samesite(app)
         expires = self.get_expiration_time(app, session)
-        val = self.serializer.dumps(dict(session))
-        self.store.update({'id': store_id},
-                          {'id': store_id,
-                           'val': val,
-                           'expiration': expires}, True)
+        value = self.serializer.dumps(dict(session))
+        if self.use_deprecated_method:
+            self.store.update(
+                {"id": store_id},
+                {"id": store_id, "val": value, "expiration": expires},
+                True,
+            )
+        else:
+            self.store.update_one(
+                {"id": store_id},
+                {"$set": {"id": store_id, "val": value, "expiration": expires}},
+                True,
+            )
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
             session_id = session.sid
-        response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
-                            expires=expires, httponly=httponly,
-                            domain=domain, path=path, secure=secure,
-                            **conditional_cookie_kwargs)
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+            **conditional_cookie_kwargs,
+        )
 
 
 class SqlAlchemySessionInterface(SessionInterface):
@@ -468,26 +579,49 @@ class SqlAlchemySessionInterface(SessionInterface):
     :param key_prefix: A prefix that is added to all store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
+    :param autodelete: If set to `True`, the expired sessions are
+                        automatically deleted at the beginning of opening a
+                        session.
     """
 
     serializer = pickle
     session_class = SqlAlchemySession
 
-    def __init__(self, app, db, table, key_prefix, use_signer=False,
-                 permanent=True):
+    def __init__(
+        self,
+        app,
+        db,
+        table,
+        key_prefix,
+        use_signer=False,
+        permanent=True,
+        sequence=None,
+        autodelete=False,
+    ):
         if db is None:
             from flask_sqlalchemy import SQLAlchemy
+
             db = SQLAlchemy(app)
         self.db = db
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
+        self.autodelete = autodelete
+        self.sequence = sequence
         self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
 
         class Session(self.db.Model):
             __tablename__ = table
 
-            id = self.db.Column(self.db.Integer, primary_key=True)
+            if sequence:
+                id = self.db.Column(  # noqa: A003, VNE003, A001
+                    self.db.Integer, self.db.Sequence(sequence), primary_key=True
+                )
+            else:
+                id = self.db.Column(  # noqa: A003, VNE003, A001
+                    self.db.Integer, primary_key=True
+                )
+
             session_id = self.db.Column(self.db.String(255), unique=True)
             data = self.db.Column(self.db.LargeBinary)
             expiry = self.db.Column(self.db.DateTime)
@@ -498,12 +632,26 @@ class SqlAlchemySessionInterface(SessionInterface):
                 self.expiry = expiry
 
             def __repr__(self):
-                return '<Session data %s>' % self.data
+                return f"<Session data {self.data}>"
 
-        # self.db.create_all()
+        from sqlalchemy import inspect
+
+        with app.app_context():
+            if not inspect(db.engine).has_table("Session"):
+                self.db.create_all()
+
         self.sql_session_model = Session
 
+    def _delete_expired_sessions(self):
+        self.sql_session_model.query.filter(
+            self.sql_session_model.expiry < datetime.utcnow()
+        ).delete()
+        self.db.session.commit()
+
     def open_session(self, app, request):
+        if self.autodelete:
+            self._delete_expired_sessions()
+
         sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
         if not sid:
             sid = self._generate_sid()
@@ -521,34 +669,41 @@ class SqlAlchemySessionInterface(SessionInterface):
 
         store_id = self.key_prefix + sid
         saved_session = self.sql_session_model.query.filter_by(
-            session_id=store_id).first()
-        if saved_session and saved_session.expiry <= datetime.utcnow():
+            session_id=store_id
+        ).first()
+        if saved_session and (
+            not saved_session.expiry or saved_session.expiry <= datetime.utcnow()
+        ):
             # Delete expired session
             self.db.session.delete(saved_session)
             self.db.session.commit()
             saved_session = None
         if saved_session:
             try:
-                val = saved_session.data
-                data = self.serializer.loads(want_bytes(val))
+                value = saved_session.data
+                data = self.serializer.loads(want_bytes(value))
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid, permanent=self.permanent)
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
+        if not self.should_set_cookie(app, session):
+            return
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         store_id = self.key_prefix + session.sid
         saved_session = self.sql_session_model.query.filter_by(
-            session_id=store_id).first()
+            session_id=store_id
+        ).first()
         if not session:
             if session.modified:
                 if saved_session:
                     self.db.session.delete(saved_session)
                     self.db.session.commit()
-                response.delete_cookie(app.config["SESSION_COOKIE_NAME"],
-                                       domain=domain, path=path)
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
             return
 
         conditional_cookie_kwargs = {}
@@ -557,20 +712,632 @@ class SqlAlchemySessionInterface(SessionInterface):
         if self.has_same_site_capability:
             conditional_cookie_kwargs["samesite"] = self.get_cookie_samesite(app)
         expires = self.get_expiration_time(app, session)
-        val = self.serializer.dumps(dict(session))
+        value = self.serializer.dumps(dict(session))
         if saved_session:
-            saved_session.data = val
+            saved_session.data = value
             saved_session.expiry = expires
             self.db.session.commit()
         else:
-            new_session = self.sql_session_model(store_id, val, expires)
+            new_session = self.sql_session_model(store_id, value, expires)
             self.db.session.add(new_session)
             self.db.session.commit()
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
             session_id = session.sid
-        response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
-                            expires=expires, httponly=httponly,
-                            domain=domain, path=path, secure=secure,
-                            **conditional_cookie_kwargs)
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+            **conditional_cookie_kwargs,
+        )
+
+
+class ElasticsearchSessionInterface(SessionInterface):
+    """A Session interface that uses Elasticsearch as backend.
+    .. versionadded:: 0.X
+    :param client: A ``elasticsearch.Elasticsearch`` instance.
+    :param host: The elasticsearch host url you want to use.
+    :param index: The elasticsearch index you want to use.
+    :param key_prefix: A prefix that is added to all MongoDB store keys.
+    :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
+    """
+
+    serializer = None
+    session_class = ElasticsearchSession
+
+    def __init__(
+        self, client, host, index, key_prefix, use_signer=False, permanent=True
+    ):
+        if client is None:
+            from elasticsearch import Elasticsearch
+
+            client = Elasticsearch(host)
+
+        self.client = client
+        self.index = index
+        try:  # noqa: SIM105
+            self.client.indices.create(index=self.index)
+        except:
+            pass
+        self.key_prefix = key_prefix
+        self.use_signer = use_signer
+        self.permanent = permanent
+
+    def open_session(self, app, request):
+        sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid, permanent=self.permanent)
+        if self.use_signer:
+            signer = self._get_signer(app)
+
+            if signer is None:
+                return None
+
+            try:
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
+            except BadSignature:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
+
+        store_id = self.key_prefix + sid
+
+        document = self.client.options(ignore_status=404).get(
+            index=self.index, id=store_id
+        )
+        if document["found"]:
+            expiration = document["_source"]["expiration"]
+
+            expiration = datetime.strptime(expiration, "%Y-%m-%dT%H:%M:%S.%f%z")
+            if expiration <= datetime.utcnow().replace(tzinfo=pytz.UTC):
+                # Delete expired session
+                self.client.delete(index=self.index, id=store_id)
+                document = None
+        if document is not None:
+            try:
+                value = document["_source"]["val"]
+                return self.session_class(value, sid=sid)
+            except:
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
+
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        store_id = self.key_prefix + session.sid
+        if not session:
+            if session.modified:
+                self.client.delete(index=self.index, id=store_id)
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
+            return
+
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        expires = self.get_expiration_time(app, session)
+        value = dict(session)
+        self.client.index(
+            index=self.index,
+            id=store_id,
+            document={"id": store_id, "val": value, "expiration": expires},
+        )
+        if self.use_signer:
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+        else:
+            session_id = session.sid
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+        )
+
+
+class GoogleCloudDatastoreSessionInterface(SessionInterface):
+    """Uses the Google cloud datastore as a session backend.
+
+    :param key_prefix: A prefix that is added to all store keys.
+    :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
+    """
+
+    serializer = pickle
+    session_class = GoogleCloudDataStoreSession
+
+    def __init__(self, gcloud_project, key_prefix, use_signer=False, permanent=True):
+        self.gcloud_project = gcloud_project
+        self.key_prefix = key_prefix
+        self.use_signer = use_signer
+        self.permanent = permanent
+
+    def get_client(self):
+        import requests
+        from google.auth import compute_engine
+        from google.cloud import datastore
+
+        if os.environ.get("DATASTORE_EMULATOR_HOST"):
+            return datastore.Client(
+                _http=requests.Session, project="virustotal-avs-control"
+            )
+        return datastore.Client(credentials=compute_engine.Credentials())
+
+    def open_session(self, app, request):
+        ds_client = self.get_client()
+        sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid, permanent=self.permanent)
+        if self.use_signer:
+            signer = self._get_signer(app)
+            if signer is None:
+                return None
+            try:
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
+            except BadSignature:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
+
+        store_id = self.key_prefix + sid
+        session_key = ds_client.key("session", store_id)
+        saved_session = ds_client.get(session_key)
+        if saved_session and saved_session["expiry"] <= pytz.utc.localize(
+            datetime.now()
+        ):
+            ds_client.delete(session_key)
+            saved_session = None
+        if saved_session:
+            try:
+                value = saved_session["data"]
+                data = self.serializer.loads(want_bytes(value))
+                return self.session_class(data, sid=sid)
+            except:
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
+
+    def save_session(self, app, session, response):
+        from google.cloud import datastore
+
+        ds_client = self.get_client()
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        store_id = self.key_prefix + session.sid
+        session_key = ds_client.key("session", store_id)
+        saved_session = ds_client.get(session_key)
+        if not session:
+            if session.modified:
+                if saved_session:
+                    ds_client.delete(session_key)
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
+            return
+
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        expires = self.get_expiration_time(app, session)
+        value = self.serializer.dumps(dict(session))
+        if saved_session:
+            if not expires:
+                ds_client.delete(session_key)
+                return
+            saved_session["data"] = value
+            saved_session["expiry"] = expires
+            ds_client.put(saved_session)
+        else:
+            new_session = datastore.Entity(
+                key=session_key, exclude_from_indexes=("data",)
+            )
+            new_session["data"] = value
+            new_session["expiry"] = expires
+            ds_client.put(new_session)
+        if self.use_signer:
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+        else:
+            session_id = session.sid
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+        )
+
+
+class GoogleFireStoreSessionInterface(SessionInterface):
+    """A Session interface that uses GCP firestore as backend"""
+
+    serializer = pickle
+    session_class = GoogleFireStoreSession
+
+    def __init__(
+        self, client, collection, key_prefix, use_signer=False, permanent=True
+    ):
+        # pylint: disable=W0611
+        from google.cloud import firestore_v1 as firestore  # noqa: F401
+
+        if client is None:
+            raise Exception("Please set Firestore Client")
+            # client = firestore.Client()
+        self.client = client
+        self.store = client.collection(collection)
+        self.key_prefix = key_prefix
+        self.use_signer = use_signer
+        self.permanent = permanent
+        self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
+
+    def _fs_delete_doc(self, doc_ref):
+        doc_ref.delete()
+
+    def open_session(self, app, request):
+        @firestore.transactional
+        def _fs_get_doc(transaction, doc_ref):
+            doc = doc_ref.get(transaction=transaction)
+            if doc.exists:
+                return doc.to_dict()
+            return None
+
+        sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid, permanent=self.permanent)
+        if self.use_signer:
+            signer = self._get_signer(app)
+            if signer is None:
+                return None
+            try:
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
+            except BadSignature:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
+
+        store_id = self.key_prefix + sid
+        document_ref = self.store.document(document_id=store_id)
+        transaction = self.client.transaction()
+        document = _fs_get_doc(transaction, document_ref)
+
+        if document and document["expiration"] <= datetime.utcnow().replace(
+            tzinfo=pytz.UTC
+        ):
+            # Delete expired session
+            self._fs_delete_doc(document_ref)
+            document = None
+        if document is not None:
+            try:
+                value = document["val"]
+                data = self.serializer.loads(want_bytes(value))
+                return self.session_class(data, sid=sid)
+            except:
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
+
+    def save_session(self, app, session, response):
+        @firestore.transactional
+        def _fs_set_doc(transaction, doc_ref, doc_data):
+            transaction.set(doc_ref, doc_data)
+
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        store_id = self.key_prefix + session.sid
+        if not session:
+            if session.modified:
+                document_ref = self.store.document(document_id=store_id)
+                self._fs_delete_doc(document_ref)
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
+            return
+
+        conditional_cookie_kwargs = {}
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        if self.has_same_site_capability:
+            conditional_cookie_kwargs["samesite"] = self.get_cookie_samesite(app)
+        expires = self.get_expiration_time(app, session)
+        value = self.serializer.dumps(dict(session))
+
+        document_ref = self.store.document(document_id=store_id)
+        transaction = self.client.transaction()
+
+        s_data = {"id": store_id, "val": value, "expiration": expires}
+        _fs_set_doc(transaction, document_ref, s_data)
+
+        if self.use_signer:
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+        else:
+            session_id = session.sid
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+            **conditional_cookie_kwargs,
+        )
+
+
+class PeeweeSessionInterface(SessionInterface):
+    """Uses the Peewee as a session backend.
+    Tested with flask-sessions==0.3.0
+
+    :param db: database object
+    :param db_config: database connection configuration.
+    :param table: The table name you want to use.
+    :param key_prefix: A prefix that is added to all store keys.
+    :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
+    """
+
+    serializer = pickle
+    session_class = PeeweeSession
+
+    def __init__(
+        self,
+        db,
+        db_config,
+        db_type,
+        table,
+        key_prefix,
+        use_signer=False,
+        permanent=True,
+    ):
+        import peewee
+
+        if db:
+            self.db = db
+        else:
+            self.db = db_type(**db_config)
+
+        self.db.commit_select = True
+        self.db.autorollback = True
+
+        self.key_prefix = key_prefix
+        self.use_signer = use_signer
+        self.permanent = permanent
+
+        class Session(peewee.Model):
+            class Meta:
+                database = self.db
+                table_name = table
+
+            session_id = peewee.CharField(max_length=256, primary_key=True)
+            data = peewee.BlobField()
+            expiry = peewee.DateTimeField()
+            ip = peewee.CharField(max_length=25, null=True)
+
+            def __repr__(self):
+                return f"<Session data {self.data}>"
+
+        Session.create_table(safe=True)
+        self.sql_session_model = Session
+
+    def _get_expire(self, app, session):
+        if self.permanent:
+            expire = self.get_expiration_time(app, session)
+        else:
+            expire = datetime.utcnow() + app.permanent_session_lifetime
+        return expire.replace(tzinfo=None)
+
+    def _get_ip(self, request):
+        if not request.headers.getlist("X-Forwarded-For"):
+            ip = request.environ.get("REMOTE_ADDR", request.remote_addr)
+        else:
+            ip = request.headers.getlist("X-Forwarded-For")[0]
+        return ip
+
+    def open_session(self, app, request):
+        sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
+        ip = self._get_ip(request)
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid, permanent=self.permanent, ip=ip)
+        if self.use_signer:
+            signer = self._get_signer(app)
+            if signer is None:
+                return None
+            try:
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
+            except BadSignature:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
+
+        store_id = self.key_prefix + sid
+
+        if self.db.is_closed():
+            self.db.connect()
+
+        saved_session = (
+            self.sql_session_model.select()
+            .where(self.sql_session_model.session_id == store_id)
+            .first()
+        )
+
+        compare_date = datetime.utcnow() if self.permanent else datetime.now()
+
+        if saved_session and saved_session.expiry <= compare_date:
+            # Delete expired session
+            saved_session.delete_instance()
+            saved_session = None
+
+        if saved_session:
+            try:
+                value = saved_session.data
+                data = self.serializer.loads(value)
+                return self.session_class(data, sid=sid, ip=ip)
+            except:
+                return self.session_class(sid=sid, permanent=self.permanent, ip=ip)
+        return self.session_class(sid=sid, permanent=self.permanent, ip=ip)
+
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        store_id = self.key_prefix + session.sid
+        saved_session = (
+            self.sql_session_model.select()
+            .where(self.sql_session_model.session_id == store_id)
+            .first()
+        )
+        if not session:
+            if session.modified:
+                if saved_session:
+                    saved_session.delete_instance()
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
+            return
+
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        expires = self._get_expire(app, session)
+        ip = session.ip
+
+        value = self.serializer.dumps(dict(session))
+        if saved_session:
+            saved_session.data = value
+            saved_session.expiry = expires
+            saved_session.ip = ip
+            saved_session.save()
+        else:
+            self.sql_session_model.create(
+                session_id=store_id, data=value, expiry=expires, ip=ip
+            )
+        if self.use_signer:
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+        else:
+            session_id = session.sid
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+        )
+
+
+class DynamoDBSessionInterface(SessionInterface):
+    """Uses the AWS DyanmoDB key-value store as a session backend.
+    :param session: A ``boto3.Session`` instance.
+    :param key_prefix: A prefix that is added to all DynamoDB store keys.
+    :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
+    """
+
+    serializer = json
+    session_class = DynamoDBSession
+
+    def __init__(
+        self,
+        session,
+        key_prefix,
+        endpoint_url,
+        table_name,
+        aws_access_key_id=None,
+        aws_secret_access_key=None,
+        region=None,
+        use_signer=False,
+        permanent=True,
+    ):
+        if session is None:
+            from boto3 import Session
+
+            session = Session(
+                aws_access_key_id=aws_access_key_id,
+                aws_secret_access_key=aws_secret_access_key,
+                region_name=region,
+            )
+        self.client = session.client("dynamodb", endpoint_url=endpoint_url)
+        self.key_prefix = key_prefix
+        self.use_signer = use_signer
+        self.permanent = permanent
+        self.table_name = table_name
+
+    def open_session(self, app, request):
+        sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
+        if not sid:
+            sid = self._generate_sid()
+            return self.session_class(sid=sid, permanent=self.permanent)
+        if self.use_signer:
+            signer = self._get_signer(app)
+            if signer is None:
+                return None
+            try:
+                sid_as_bytes = signer.unsign(sid)
+                sid = sid_as_bytes.decode()
+            except BadSignature:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
+
+        if not PY2 and not isinstance(sid, text_type):
+            sid = sid.decode("utf-8", "strict")
+
+        response = self.client.get_item(
+            TableName=self.table_name, Key={"SessionId": {"S": self.key_prefix + sid}}
+        )
+
+        value = response.get("Item", {}).get("Session", {}).get("S")
+        if value is not None:
+            try:
+                data = self.serializer.loads(value)
+                return self.session_class(data, sid=sid)
+            except:
+                return self.session_class(sid=sid, permanent=self.permanent)
+        return self.session_class(sid=sid, permanent=self.permanent)
+
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        if not session:
+            if session.modified:
+                self.client.delete_item(
+                    TableName=self.table_name,
+                    Key={"SessionId": {"S": self.key_prefix + session.sid}},
+                )
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
+            return
+
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        expires = self.get_expiration_time(app, session)
+        value = self.serializer.dumps(dict(session))
+        self.client.put_item(
+            TableName=self.table_name,
+            Item={
+                "SessionId": {"S": self.key_prefix + session.sid},
+                "Session": {"S": value},
+            },
+        )
+
+        if self.use_signer:
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+        else:
+            session_id = session.sid
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+        )
