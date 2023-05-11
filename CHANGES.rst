@@ -3,6 +3,9 @@ Version 0.5.0
 
 Unreleased
 
+-   Drop support for Python < 3.7.
+-   Switch to ``pyproject.toml`` and Flit for packaging.
+-   Move to Pallets Community Ecosystem for community-driven maintenance.
 -   Replace use of ``session_cookie_name`` for Flask 2.3 compatibility.
 
 
