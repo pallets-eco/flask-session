@@ -1,0 +1,83 @@
+[tool.poetry]
+name = "Flask-Session"
+version = "0.5.0"
+description = "Adds server-side session support to your Flask application"
+authors = ["Shipeng Feng <fsp261@gmail.com>"]
+repository="https://github.com/pallets-eco/flask-session"
+homepage="https://github.com/pallets-eco/flask-session#readme"
+license = "BSD"
+readme="README.md"
+classifiers=[
+        'Environment :: Web Environment',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: BSD License',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python :: 2',
+        'Topic :: Internet :: WWW/HTTP :: Dynamic Content',
+        'Topic :: Software Development :: Libraries :: Python Modules'
+    ]
+packages=[{ include = 'flask_session'}]
+
+[tool.poetry.urls]
+"Issue Tracker" = "https://github.com/pallets-eco/flask-session/issues"
+
+[tool.poetry.dependencies]
+python = "^3.7.2"
+Flask = "^2.2.2"
+cachelib = "^0.10.0"
+pytz = "^2022.2.1"
+
+[tool.poetry.group.dev.dependencies]
+ruff = "^0.0.265"
+black = "^23.0.0"
+isort = "^5.10.1"
+pymongo = "^4.2.0"
+Flask-SQLAlchemy = "^3.0.0"
+pymemcache = "^4.0.0"
+mypy = "^1.0.0"
+tox = "^4.0.0"
+types-redis = "^4.3.14"
+redis = "^4.3.4"
+coverage = "^7.0.0"
+elasticsearch = "^8.3.3"
+types-pytz = "^2022.1.2"
+google-cloud-datastore = "^2.8.1"
+types-requests = "^2.28.8"
+google-cloud-firestore = "^2.6.1"
+peewee = "^3.15.1"
+boto3 = "^1.24.54"
+pylint-print = "^1.0.0"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+max_line_length = 99
+quiet = true
+
+[tool.isort]
+profile = "black"
+quiet = true
+
+[tool.ruff]
+line-length = 146
+select = [
+    "A",
+    "C4",
+    "DJ",
+    "E",
+    "F",
+    "I",
+    "T20",
+    "W",
+    "S"
+]
+target-version = "py311"
+ignore = ["E722", "F821", "A003", "A001"]
+
+[tool.ruff.per-file-ignores]
+"test_session.py" = ["S105", "F841"]
+
+[tool.mypy]
+ignore_missing_imports = true

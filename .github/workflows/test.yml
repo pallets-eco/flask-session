@@ -1,0 +1,62 @@
+name: test
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    name: python ${{ matrix.python-version }} on ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: [3.7, 3.8, 3.9, '3.10', 3.11]
+      fail-fast: true
+
+    steps:
+    - name: checkout
+      uses: actions/checkout@v3
+    - name: setup python ${{ matrix.python-version }} on ${{ matrix.os }}
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ matrix.python-version }}
+    - name: Start MongoDB
+      uses: supercharge/mongodb-github-action@v1.9.0
+      with:
+        mongodb-version: '5.0'
+    - name: Start MemCache
+      uses: niden/actions-memcached@v7
+    - name: Start Redis
+      uses: supercharge/redis-github-action@1.5.0
+      with:
+        redis-version: 6
+    - name: Configure sysctl limits for elasticsearch
+      run: |
+        sudo swapoff -a
+        sudo sysctl -w vm.swappiness=1
+        sudo sysctl -w fs.file-max=262144
+        sudo sysctl -w vm.max_map_count=262144
+    - name: Start elasticsearch
+      uses: getong/elasticsearch-action@v1.2
+      with:
+        elasticsearch version: 8.3.3
+        host port: 9200
+        container port: 9200
+        host node port: 9300
+        node port: 9300
+        discovery type: single-node
+    - name: setup poetry
+      uses: abatilo/actions-poetry@v2
+      with:
+        poetry-version: 1.2.2
+
+    - name: install deps
+      run: poetry install
+    - name: test
+      run: poetry run tox -e test
+    - name: upload cov
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage.xml
+        verbose: true

@@ -1,0 +1,33 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+
+name: Release
+
+on:
+  push:
+  pull_request:
+    branches: [dev]
+
+    # This guards against unknown PR until a community member vet it and label it.
+    types: [labeled]
+
+jobs:
+  cd:
+    if: github.event_name == 'push' && (startsWith(github.ref, 'refs/tags') || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: setup python 3.10
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+
+    - name: Setup Poetry
+      uses: snok/install-poetry@v1
+
+    - name: Build and publish package
+      if: steps.semantic.outputs.new_release_published == 'true'
+      uses: JRubics/poetry-publish@v1.16
+      with:
+        pypi_token: ${{ secrets.PYPI_API_TOKEN }}
