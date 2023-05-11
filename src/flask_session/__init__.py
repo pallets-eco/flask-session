@@ -1,10 +1,10 @@
-__version__ = '0.5.0'
-
 import os
 
 from .sessions import NullSessionInterface, RedisSessionInterface, \
     MemcachedSessionInterface, FileSystemSessionInterface, \
     MongoDBSessionInterface, SqlAlchemySessionInterface
+
+__version__ = '0.5.0'
 
 
 class Session(object):
