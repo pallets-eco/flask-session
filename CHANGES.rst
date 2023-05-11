@@ -1,7 +1,7 @@
 Version 0.5.0
 -------------
 
-Unreleased
+Released 2023-05-11
 
 -   Drop support for Python < 3.7.
 -   Switch to ``pyproject.toml`` and Flit for packaging.
