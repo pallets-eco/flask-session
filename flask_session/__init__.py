@@ -1,14 +1,3 @@
-# -*- coding: utf-8 -*-
-"""
-    flask_session
-    ~~~~~~~~~~~~~
-
-    Adds server session support to your application.
-
-    :copyright: (c) 2014 by Shipeng Feng.
-    :license: BSD, see LICENSE for more details.
-"""
-
 __version__ = '0.5.0'
 
 import os
