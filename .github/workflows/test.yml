@@ -47,13 +47,8 @@ jobs:
         node port: 9300
         discovery type: single-node
 
-    - name: setup python 3.9
-      uses: actions/setup-python@v4
-      with:
-        python-version: 3.9
-
     - name: install deps
-      run: python -m pip install requirements/dev.txt
+      run: python -m pip install -r requirements/dev.txt
     - name: test
       run: python -m tox -e test
     - name: upload cov
