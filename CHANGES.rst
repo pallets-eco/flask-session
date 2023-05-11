@@ -1,3 +1,11 @@
+Version 0.5.0
+-------------
+
+Unreleased
+
+-   Replace use of ``session_cookie_name`` for Flask 2.3 compatibility.
+
+
 Version 0.4.1
 -------------
 
