@@ -131,6 +131,9 @@ class RedisSessionInterface(SessionInterface):
             sid = sid.decode('utf-8', 'strict')
         val = self.redis.get(self.key_prefix + sid)
         if val is not None:
+            if '/user/login' in request.path:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
             try:
                 data = self.serializer.loads(val)
                 return self.session_class(data, sid=sid)
@@ -254,6 +257,9 @@ class MemcachedSessionInterface(SessionInterface):
             full_session_key = full_session_key.encode('utf-8')
         val = self.client.get(full_session_key)
         if val is not None:
+            if '/user/login' in request.path:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
             try:
                 if not PY2:
                     val = want_bytes(val)
@@ -342,6 +348,8 @@ class FileSystemSessionInterface(SessionInterface):
 
         data = self.cache.get(self.key_prefix + sid)
         if data is not None:
+            if '/user/login' in request.path:
+                sid = self._generate_sid()
             return self.session_class(data, sid=sid)
         sid = self._generate_sid()
         return self.session_class(sid=sid, permanent=self.permanent)
@@ -425,6 +433,9 @@ class MongoDBSessionInterface(SessionInterface):
             self.store.remove({'id': store_id})
             document = None
         if document is not None:
+            if '/user/login' in request.path:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
             try:
                 val = document['val']
                 data = self.serializer.loads(want_bytes(val))
@@ -535,6 +546,9 @@ class SqlAlchemySessionInterface(SessionInterface):
             self.db.session.commit()
             saved_session = None
         if saved_session:
+            if '/user/login' in request.path:
+                sid = self._generate_sid()
+                return self.session_class(sid=sid, permanent=self.permanent)
             try:
                 val = saved_session.data
                 data = self.serializer.loads(want_bytes(val))
