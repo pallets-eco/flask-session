@@ -136,6 +136,7 @@ class RedisSessionInterface(SessionInterface):
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid, permanent=self.permanent)
+        sid = self._generate_sid()
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
@@ -260,6 +261,7 @@ class MemcachedSessionInterface(SessionInterface):
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid, permanent=self.permanent)
+        sid = self._generate_sid()
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
@@ -341,6 +343,7 @@ class FileSystemSessionInterface(SessionInterface):
         data = self.cache.get(self.key_prefix + sid)
         if data is not None:
             return self.session_class(data, sid=sid)
+        sid = self._generate_sid()
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
@@ -428,6 +431,7 @@ class MongoDBSessionInterface(SessionInterface):
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid, permanent=self.permanent)
+        sid = self._generate_sid()
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
@@ -537,6 +541,7 @@ class SqlAlchemySessionInterface(SessionInterface):
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid, permanent=self.permanent)
+        sid = self._generate_sid()
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
