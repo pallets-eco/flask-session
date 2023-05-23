@@ -27,12 +27,12 @@ packaging==23.1
     # via sphinx
 pygments==2.15.1
     # via sphinx
-requests==2.30.0
+requests==2.31.0
     # via sphinx
 snowballstemmer==2.2.0
     # via sphinx
 sphinx==7.0.0
-    # via -r requirements/docs.in
+    # via -r docs.in
 sphinxcontrib-applehelp==1.0.4
     # via sphinx
 sphinxcontrib-devhelp==1.0.2
