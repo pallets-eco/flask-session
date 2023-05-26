@@ -486,6 +486,7 @@ class SqlAlchemySessionInterface(SessionInterface):
 
         class Session(self.db.Model):
             __tablename__ = table
+            __table_args__ = {'keep_existing': True}
 
             id = self.db.Column(self.db.Integer, primary_key=True)
             session_id = self.db.Column(self.db.String(255), unique=True)
@@ -500,7 +501,6 @@ class SqlAlchemySessionInterface(SessionInterface):
             def __repr__(self):
                 return '<Session data %s>' % self.data
 
-        # self.db.create_all()
         self.sql_session_model = Session
 
     def open_session(self, app, request):

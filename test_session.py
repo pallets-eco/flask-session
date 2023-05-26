@@ -2,6 +2,7 @@ import unittest
 import tempfile
 
 import flask
+from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
 
 
@@ -111,11 +112,24 @@ class FlaskSessionTestCase(unittest.TestCase):
         c.post('/delete')
 
     def test_flasksqlalchemy_session(self):
-        app = flask.Flask(__name__)
-        app.debug = True
-        app.config['SESSION_TYPE'] = 'sqlalchemy'
-        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
-        Session(app)
+        db = SQLAlchemy()
+        def create_app():
+            app = flask.Flask(__name__)
+            app.debug = True
+            app.config['SESSION_TYPE'] = 'sqlalchemy'
+            app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
+            db.init_app(app)
+            app.config['SESSION_SQLALCHEMY'] = db
+            Session(app)
+            with app.app_context():
+                db.create_all()
+            return app
+        
+        # Check that initializing the session twice doesn't fail (for example it can happen when
+        # multiple tests are run and each test initializes a new app and a new session, while the
+        # db object is global and stays the same)
+        app = create_app()
+        app = create_app()
         @app.route('/set', methods=['POST'])
         def set():
             flask.session['value'] = flask.request.form['value']
