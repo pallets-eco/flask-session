@@ -22,12 +22,6 @@ requires-python = ">=3.7"
 dependencies = [
     "flask>=2.2",
     "cachelib",
-    "redis",
-    "pymongo",
-    "python3-memcached",
-    "Flask-SQLAlchemy",
-    # Testing
-    "nose",
 ]
 dynamic = ["version"]
 

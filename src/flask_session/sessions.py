@@ -13,9 +13,6 @@ from werkzeug.datastructures import CallbackDict
 from itsdangerous import Signer, BadSignature, want_bytes
 
 
-text_type = str
-
-
 def total_seconds(td):
     return td.days * 60 * 60 * 24 + td.seconds
 
@@ -114,7 +111,7 @@ class RedisSessionInterface(SessionInterface):
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
 
-        if not isinstance(sid, text_type):
+        if not isinstance(sid, str):
             sid = sid.decode('utf-8', 'strict')
         val = self.redis.get(self.key_prefix + sid)
         if val is not None:
