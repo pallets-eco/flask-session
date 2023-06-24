@@ -1,0 +1,15 @@
+name: Run unittests
+on: [push, pull_request]
+jobs:
+  unittests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: supercharge/redis-github-action@1.5.0
+      - uses: actions/setup-python@v4
+        with:
+          python-version: 'pypy3.9'
+      - name: Install Python package
+        run: pip3 install .
+      - name: Run tests
+        run: nosetests test_session.py
