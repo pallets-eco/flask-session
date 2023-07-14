@@ -414,7 +414,7 @@ class MongoDBSessionInterface(SessionInterface):
         document = self.store.find_one({'id': store_id})
         if document and document.get('expiration') <= datetime.utcnow():
             # Delete expired session
-            self.store.remove({'id': store_id})
+            self.store.delete_one({'id': store_id})
             document = None
         if document is not None:
             try:
@@ -431,7 +431,7 @@ class MongoDBSessionInterface(SessionInterface):
         store_id = self.key_prefix + session.sid
         if not session:
             if session.modified:
-                self.store.remove({'id': store_id})
+                self.store.delete_one({'id': store_id})
                 response.delete_cookie(app.config["SESSION_COOKIE_NAME"],
                                        domain=domain, path=path)
             return
@@ -443,10 +443,14 @@ class MongoDBSessionInterface(SessionInterface):
             conditional_cookie_kwargs["samesite"] = self.get_cookie_samesite(app)
         expires = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session))
-        self.store.update({'id': store_id},
-                          {'id': store_id,
-                           'val': val,
-                           'expiration': expires}, True)
+        self.store.update_one({'id': store_id},
+                                {   
+                                    "$set": {
+                                        'id': store_id,
+                                        'val': val,
+                                        'expiration': expires
+                                    }  
+                                }, upsert=True)
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
         else:
