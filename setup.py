@@ -30,7 +30,7 @@ setup(
     platforms="any",
     install_requires=[
         "Flask>=0.8",
-        "cachelib @ git+https://github.com/wangsha/cachelib.git",
+        "cachelib",
     ],
     test_suite="test_session",
     classifiers=[
