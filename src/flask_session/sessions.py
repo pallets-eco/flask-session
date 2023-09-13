@@ -178,10 +178,9 @@ class RedisSessionInterface(ServerSideSessionInterface):
             return
 
         expires = self.get_expiration_time(app, session)
-        if session.modified:
-            val = self.serializer.dumps(dict(session))
-            self.redis.setex(name=self.key_prefix + session.sid, value=val,
-                             time=total_seconds(app.permanent_session_lifetime))
+        val = self.serializer.dumps(dict(session))
+        self.redis.setex(name=self.key_prefix + session.sid, value=val,
+                         time=total_seconds(app.permanent_session_lifetime))
 
         self.set_cookie_to_response(app, session, response, expires)
 
@@ -272,13 +271,12 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
             return
 
         expires = self.get_expiration_time(app, session)
-        if session.modified:
-            if not PY2:
-                val = self.serializer.dumps(dict(session), 0)
-            else:
-                val = self.serializer.dumps(dict(session))
-            self.client.set(full_session_key, val, self._get_memcache_timeout(
-                            total_seconds(app.permanent_session_lifetime)))
+        if not PY2:
+            val = self.serializer.dumps(dict(session), 0)
+        else:
+            val = self.serializer.dumps(dict(session))
+        self.client.set(full_session_key, val, self._get_memcache_timeout(
+                        total_seconds(app.permanent_session_lifetime)))
 
         self.set_cookie_to_response(app, session, response, expires)
 
@@ -326,10 +324,9 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
             return
 
         expires = self.get_expiration_time(app, session)
-        if session.modified:
-            data = dict(session)
-            self.cache.set(self.key_prefix + session.sid, data,
-                           total_seconds(app.permanent_session_lifetime))
+        data = dict(session)
+        self.cache.set(self.key_prefix + session.sid, data,
+                       total_seconds(app.permanent_session_lifetime))
         self.set_cookie_to_response(app, session, response, expires)
 
 class MongoDBSessionInterface(ServerSideSessionInterface):
@@ -389,12 +386,11 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
             return
 
         expires = self.get_expiration_time(app, session)
-        if session.modified:
-            val = self.serializer.dumps(dict(session))
-            self.store.update({'id': store_id},
-                              {'id': store_id,
-                               'val': val,
-                               'expiration': expires}, True)
+        val = self.serializer.dumps(dict(session))
+        self.store.update({'id': store_id},
+                          {'id': store_id,
+                           'val': val,
+                           'expiration': expires}, True)
         self.set_cookie_to_response(app, session, response, expires)
 
 
