@@ -127,7 +127,7 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         return self.fetch_session_sid(sid)
 
     def fetch_session_sid(self, sid):
-        raise NotImplementedError
+        raise NotImplementedError()
 
 
 class RedisSessionInterface(ServerSideSessionInterface):

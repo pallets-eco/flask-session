@@ -1,3 +1,11 @@
+Version 0.5.1
+-------------
+
+Released 2023-00-00
+
+-   use ``should_set_cookie`` for preventing re-save each request the session again.
+
+
 Version 0.5.0
 -------------
 
