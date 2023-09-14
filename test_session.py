@@ -4,6 +4,8 @@ import tempfile
 import flask
 from flask_session import Session
 
+REDIS_VERSIONS = [6, 7]
+
 
 class FlaskSessionTestCase(unittest.TestCase):
 
@@ -25,11 +27,12 @@ class FlaskSessionTestCase(unittest.TestCase):
 
     def test_redis_session(self):
         import fakeredis
-        app = flask.Flask(__name__)
-        app.config['SESSION_TYPE'] = 'redis'
-        app.config['SESSION_REDIS'] = fakeredis.FakeStrictRedis(version=6)
-        app.debug = True
-        self._flask_session_assert(app)
+        for r_version in REDIS_VERSIONS:
+            app = flask.Flask(__name__)
+            app.config['SESSION_TYPE'] = 'redis'
+            app.config['SESSION_REDIS'] = fakeredis.FakeStrictRedis(version=r_version)
+            app.debug = True
+            self._flask_session_assert(app)
 
     def test_memcached_session(self):
         app = flask.Flask(__name__)
@@ -67,12 +70,13 @@ class FlaskSessionTestCase(unittest.TestCase):
 
     def test_session_use_signer(self):
         import fakeredis
-        app = flask.Flask(__name__)
-        app.secret_key = 'test_secret_key'
-        app.config['SESSION_TYPE'] = 'redis'
-        app.config['SESSION_REDIS'] = fakeredis.FakeStrictRedis(version=6)
-        app.config['SESSION_USE_SIGNER'] = True
-        self._flask_session_assert(app)
+        for r_version in REDIS_VERSIONS:
+            app = flask.Flask(__name__)
+            app.secret_key = 'test_secret_key'
+            app.config['SESSION_TYPE'] = 'redis'
+            app.config['SESSION_REDIS'] = fakeredis.FakeStrictRedis(version=r_version)
+            app.config['SESSION_USE_SIGNER'] = True
+            self._flask_session_assert(app)
 
     def _flask_session_assert(self, app: flask.Flask):
         Session(app)
