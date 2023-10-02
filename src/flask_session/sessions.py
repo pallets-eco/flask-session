@@ -68,6 +68,9 @@ class SessionInterface(FlaskSessionInterface):
         return Signer(app.secret_key, salt='flask-session',
                       key_derivation='hmac')
 
+    def _sign(self, app, sid):
+        return self._get_signer(app).sign(want_bytes(sid)).decode("utf-8")
+
 
 class NullSessionInterface(SessionInterface):
     """Used to open a :class:`flask.sessions.NullSession` instance.
@@ -158,7 +161,7 @@ class RedisSessionInterface(SessionInterface):
         self.redis.setex(name=self.key_prefix + session.sid, value=val,
                          time=total_seconds(app.permanent_session_lifetime))
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._sign(app, session.sid)
         else:
             session_id = session.sid
         response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
@@ -280,7 +283,7 @@ class MemcachedSessionInterface(SessionInterface):
         self.client.set(full_session_key, val, self._get_memcache_timeout(
                         total_seconds(app.permanent_session_lifetime)))
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._sign(app, session.sid)
         else:
             session_id = session.sid
         response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
@@ -356,7 +359,7 @@ class FileSystemSessionInterface(SessionInterface):
         self.cache.set(self.key_prefix + session.sid, data,
                        total_seconds(app.permanent_session_lifetime))
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._sign(app, session.sid)
         else:
             session_id = session.sid
         response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
@@ -448,7 +451,7 @@ class MongoDBSessionInterface(SessionInterface):
                            'val': val,
                            'expiration': expires}, True)
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._sign(app, session.sid)
         else:
             session_id = session.sid
         response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
@@ -567,7 +570,7 @@ class SqlAlchemySessionInterface(SessionInterface):
             self.db.session.add(new_session)
             self.db.session.commit()
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._sign(app, session.sid)
         else:
             session_id = session.sid
         response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
