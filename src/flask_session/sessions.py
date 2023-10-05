@@ -93,6 +93,12 @@ class RedisSessionInterface(SessionInterface):
     session_class = RedisSession
 
     def __init__(self, redis, key_prefix, use_signer=False, permanent=True):
+        from redis.client import Redis as RedisInstanceType
+        if not isintance(redis, RedisInstanceType):
+            raise TypeError(
+                f"Unexpected type {type(redis)} for redis Instance. "
+                "Please create a redis instance and set it to SESSION_REDIS."
+            )
         if redis is None:
             from redis import Redis
             redis = Redis()
