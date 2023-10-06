@@ -159,6 +159,7 @@ class RedisSessionInterface(SessionInterface):
                          time=total_seconds(app.permanent_session_lifetime))
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id.decode()
         else:
             session_id = session.sid
         response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
@@ -281,6 +282,7 @@ class MemcachedSessionInterface(SessionInterface):
                         total_seconds(app.permanent_session_lifetime)))
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id.decode()
         else:
             session_id = session.sid
         response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
@@ -357,6 +359,7 @@ class FileSystemSessionInterface(SessionInterface):
                        total_seconds(app.permanent_session_lifetime))
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id.decode()
         else:
             session_id = session.sid
         response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
@@ -449,6 +452,7 @@ class MongoDBSessionInterface(SessionInterface):
                            'expiration': expires}, True)
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id.decode()
         else:
             session_id = session.sid
         response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
@@ -568,6 +572,7 @@ class SqlAlchemySessionInterface(SessionInterface):
             self.db.session.commit()
         if self.use_signer:
             session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id.decode()
         else:
             session_id = session.sid
         response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
