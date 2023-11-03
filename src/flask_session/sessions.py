@@ -1,7 +1,7 @@
 import sys
 import time
 from datetime import datetime
-from uuid import uuid4
+import secrets
 try:
     import cPickle as pickle
 except ImportError:
@@ -60,7 +60,7 @@ class SqlAlchemySession(ServerSideSession):
 class SessionInterface(FlaskSessionInterface):
 
     def _generate_sid(self):
-        return str(uuid4())
+        return secrets.token_urlsafe(128//8)
 
     def _get_signer(self, app):
         if not app.secret_key:

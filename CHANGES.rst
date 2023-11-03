@@ -1,3 +1,11 @@
+Version ?
+---------
+
+Unreleased
+
+-   Use `secrets` module to generate session identifiers, with 128 bits of
+    entropy (was previously 122).
+
 Version 0.5.0
 -------------
 
