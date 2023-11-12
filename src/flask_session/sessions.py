@@ -64,9 +64,20 @@ class SessionInterface(FlaskSessionInterface):
         return str(uuid4())
 
     def _get_signer(self, app):
-        if not app.secret_key:
-            return None
+        if not hasattr(app, "secret_key") or not app.secret_key:
+            raise KeyError("SECRET_KEY must be set when SESSION_USE_SIGNER=True")
         return Signer(app.secret_key, salt="flask-session", key_derivation="hmac")
+
+    def _unsign(self, app, sid):
+        signer = self._get_signer(app)
+        sid_as_bytes = signer.unsign(sid)
+        sid = sid_as_bytes.decode()
+        return sid
+
+    def _sign(self, app, sid):
+        signer = self._get_signer(app)
+        sid_as_bytes = want_bytes(sid)
+        return signer.sign(sid_as_bytes).decode("utf-8")
 
 
 class NullSessionInterface(SessionInterface):
@@ -108,12 +119,8 @@ class RedisSessionInterface(SessionInterface):
             sid = self._generate_sid()
             return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
-            signer = self._get_signer(app)
-            if signer is None:
-                return None
             try:
-                sid_as_bytes = signer.unsign(sid)
-                sid = sid_as_bytes.decode()
+                sid = self._unsign(app, sid)
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -162,7 +169,7 @@ class RedisSessionInterface(SessionInterface):
             time=total_seconds(app.permanent_session_lifetime),
         )
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._sign(app, session.sid)
         else:
             session_id = session.sid
         response.set_cookie(
@@ -240,12 +247,8 @@ class MemcachedSessionInterface(SessionInterface):
             sid = self._generate_sid()
             return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
-            signer = self._get_signer(app)
-            if signer is None:
-                return None
             try:
-                sid_as_bytes = signer.unsign(sid)
-                sid = sid_as_bytes.decode()
+                sid = self._unsign(app, sid)
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -294,7 +297,7 @@ class MemcachedSessionInterface(SessionInterface):
             self._get_memcache_timeout(total_seconds(app.permanent_session_lifetime)),
         )
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._sign(app, session.sid)
         else:
             session_id = session.sid
         response.set_cookie(
@@ -343,12 +346,8 @@ class FileSystemSessionInterface(SessionInterface):
             sid = self._generate_sid()
             return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
-            signer = self._get_signer(app)
-            if signer is None:
-                return None
             try:
-                sid_as_bytes = signer.unsign(sid)
-                sid = sid_as_bytes.decode()
+                sid = self._unsign(app, sid)
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -382,7 +381,7 @@ class FileSystemSessionInterface(SessionInterface):
             total_seconds(app.permanent_session_lifetime),
         )
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._sign(app, session.sid)
         else:
             session_id = session.sid
         response.set_cookie(
@@ -434,12 +433,8 @@ class MongoDBSessionInterface(SessionInterface):
             sid = self._generate_sid()
             return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
-            signer = self._get_signer(app)
-            if signer is None:
-                return None
             try:
-                sid_as_bytes = signer.unsign(sid)
-                sid = sid_as_bytes.decode()
+                sid = self._unsign(app, sid)
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -482,7 +477,7 @@ class MongoDBSessionInterface(SessionInterface):
             {"id": store_id}, {"id": store_id, "val": val, "expiration": expires}, True
         )
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._sign(app, session.sid)
         else:
             session_id = session.sid
         response.set_cookie(
@@ -549,12 +544,8 @@ class SqlAlchemySessionInterface(SessionInterface):
             sid = self._generate_sid()
             return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
-            signer = self._get_signer(app)
-            if signer is None:
-                return None
             try:
-                sid_as_bytes = signer.unsign(sid)
-                sid = sid_as_bytes.decode()
+                sid = self._unsign(app, sid)
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
@@ -610,7 +601,7 @@ class SqlAlchemySessionInterface(SessionInterface):
             self.db.session.add(new_session)
             self.db.session.commit()
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._sign(app, session.sid)
         else:
             session_id = session.sid
         response.set_cookie(
