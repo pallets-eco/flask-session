@@ -503,12 +503,14 @@ class SqlAlchemySessionInterface(SessionInterface):
     :param key_prefix: A prefix that is added to all store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
+    :param schema: The db schema to use
+    :param bind_key: The db bind key to use
     """
 
     serializer = pickle
     session_class = SqlAlchemySession
 
-    def __init__(self, app, db, table, key_prefix, use_signer=False, permanent=True):
+    def __init__(self, app, db, table, key_prefix, use_signer=False, permanent=True, schema=None, bind_key=None):
         if db is None:
             from flask_sqlalchemy import SQLAlchemy
 
@@ -518,8 +520,23 @@ class SqlAlchemySessionInterface(SessionInterface):
         self.use_signer = use_signer
         self.permanent = permanent
         self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
+        self.schema = schema
+        self.bind_key = bind_key
+        if (self.bind_key is None):
+            class SessionBase:
+                pass
+        else:
+            class SessionBase:
+                __bind_key__ = self.bind_key
 
-        class Session(self.db.Model):
+        if (self.schema is None):
+            class SessionSchema(SessionBase):
+                pass
+        else:
+            class SessionSchema(SessionBase):
+                __table_args__ = {"schema": self.schema}
+
+        class Session(self.db.Model, SessionSchema):
             __tablename__ = table
 
             id = self.db.Column(self.db.Integer, primary_key=True)

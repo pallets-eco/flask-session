@@ -71,6 +71,8 @@ class Session(object):
         config.setdefault("SESSION_MONGODB_DB", "flask_session")
         config.setdefault("SESSION_MONGODB_COLLECT", "sessions")
         config.setdefault("SESSION_SQLALCHEMY", None)
+        config.setdefault("SESSION_SQLALCHEMY_BINDKEY", None)
+        config.setdefault("SESSION_SQLALCHEMY_SCHEMA", None)
         config.setdefault("SESSION_SQLALCHEMY_TABLE", "sessions")
 
         if config["SESSION_TYPE"] == "redis":
@@ -113,6 +115,8 @@ class Session(object):
                 config["SESSION_KEY_PREFIX"],
                 config["SESSION_USE_SIGNER"],
                 config["SESSION_PERMANENT"],
+                config["SESSION_SQLALCHEMY_SCHEMA"],
+                config["SESSION_SQLALCHEMY_BINDKEY"],
             )
         else:
             session_interface = NullSessionInterface()
