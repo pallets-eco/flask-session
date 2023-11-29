@@ -156,6 +156,11 @@ class RedisSessionInterface(SessionInterface):
         # the permanent flag on the session itself.
         # if not self.should_set_cookie(app, session):
         #    return
+
+        # Check if the session has been modified
+        if not session.modified:
+            return
+
         conditional_cookie_kwargs = {}
         httponly = self.get_cookie_httponly(app)
         secure = self.get_cookie_secure(app)
@@ -163,15 +168,20 @@ class RedisSessionInterface(SessionInterface):
             conditional_cookie_kwargs["samesite"] = self.get_cookie_samesite(app)
         expires = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session))
-        self.redis.setex(
-            name=self.key_prefix + session.sid,
-            value=val,
-            time=total_seconds(app.permanent_session_lifetime),
-        )
+        current_val = self.redis.get(self.key_prefix + session.sid)
+        if current_val != val:
+            # Update Redis store only if the session data has changed
+            self.redis.setex(
+                name=self.key_prefix + session.sid,
+                value=val,
+                time=total_seconds(app.permanent_session_lifetime),
+            )
+
         if self.use_signer:
             session_id = self._sign(app, session.sid)
         else:
             session_id = session.sid
+
         response.set_cookie(
             app.config["SESSION_COOKIE_NAME"],
             session_id,
@@ -182,6 +192,7 @@ class RedisSessionInterface(SessionInterface):
             secure=secure,
             **conditional_cookie_kwargs,
         )
+
 
 
 class MemcachedSessionInterface(SessionInterface):
