@@ -1,54 +1,30 @@
-# Byte-compiled / optimized / DLL files
+# Python
+*.pyc
 __pycache__/
-*.py[cod]
+venv/
+*.env
 
-# C extensions
-*.so
+# Flask
+instance/
+*.sqlite
 
-# Distribution / packaging
-.Python
-env/
-bin/
-build/
-develop-eggs/
-dist/
-eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-*.egg-info/
-.installed.cfg
-*.egg
+# IDE/Editor
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
 
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.cache
-nosetests.xml
-coverage.xml
-
-# Translations
-*.mo
-
-# Mr Developer
-.mr.developer.cfg
-.project
-.pydevproject
-
-# Rope
-.ropeproject
-
-# Django stuff:
+# Logs
 *.log
-*.pot
 
-# Sphinx documentation
-docs/_build/
+# Dependency directories
+env/
+lib/
+bin/
+.venv/
 
+# Builds
+*.pyc
+*.egg-info/
+dist/
+build/

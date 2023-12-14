@@ -1,4 +1,4 @@
-Flask-Session
+Flask-Server-Session
 =============
 
-Flask-Session is an extension for Flask that adds support for Server-side Session to your application.
+Flask-Server-Session is an extension for Flask that adds support for server-sided-sessions in your application.
