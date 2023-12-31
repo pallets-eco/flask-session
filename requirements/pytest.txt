@@ -1,0 +1,14 @@
+# Core
+flask>=2.2
+cachelib
+
+# Testing
+pytest
+pytest-cov
+
+# Requirements for interfaces
+redis
+python3-memcached
+Flask-SQLAlchemy
+pymongo
+
