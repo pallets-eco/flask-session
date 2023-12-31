@@ -55,12 +55,22 @@ class SessionInterface(FlaskSessionInterface):
 
     def _generate_sid(self):
         return str(uuid4())
-
+    
     def _get_signer(self, app):
-        if not app.secret_key:
-            return None
-        return Signer(app.secret_key, salt='flask-session',
-                      key_derivation='hmac')
+        if not hasattr(app, "secret_key") or not app.secret_key:
+            raise KeyError("SECRET_KEY must be set when SESSION_USE_SIGNER=True")
+        return Signer(app.secret_key, salt="flask-session", key_derivation="hmac")
+
+    def _unsign(self, app, sid):
+        signer = self._get_signer(app)
+        sid_as_bytes = signer.unsign(sid)
+        sid = sid_as_bytes.decode()
+        return sid
+
+    def _sign(self, app, sid):
+        signer = self._get_signer(app)
+        sid_as_bytes = want_bytes(sid)
+        return signer.sign(sid_as_bytes).decode("utf-8")
 
 
 class NullSessionInterface(SessionInterface):
@@ -108,12 +118,8 @@ class ServerSideSessionInterface(SessionInterface, ABC):
             sid = self._generate_sid()
             return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
-            signer = self._get_signer(app)
-            if signer is None:
-                return None
             try:
-                sid_as_bytes = signer.unsign(sid)
-                sid = sid_as_bytes.decode()
+                sid = self._unsign(app, sid)
             except BadSignature:
                 sid = self._generate_sid()
                 return self.session_class(sid=sid, permanent=self.permanent)
