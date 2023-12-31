@@ -4,7 +4,7 @@ from .sessions import NullSessionInterface, RedisSessionInterface, \
     MemcachedSessionInterface, FileSystemSessionInterface, \
     MongoDBSessionInterface, SqlAlchemySessionInterface
 
-__version__ = '0.5.0'
+__version__ = '0.5.1'
 
 
 class Session(object):
