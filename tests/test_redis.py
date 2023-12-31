@@ -22,7 +22,7 @@ class TestRedisSession:
             'SESSION_TYPE': 'redis'
         })
 
-        # Should be using Redis class
+        # Should be using Redis
         with app.test_request_context():
             isinstance(flask.session, flask_session.sessions.RedisSession)
 

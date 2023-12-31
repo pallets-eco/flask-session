@@ -8,6 +8,7 @@ __pycache__/
 /.pytest_cache/
 /.coverage
 /.coverage.*
+*.coveragerc
 /htmlcov/
 /.mypy_cache/
 /.tox/

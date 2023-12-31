@@ -8,7 +8,7 @@ class TestMongoDB:
             'SESSION_TYPE': 'mongodb'
         })
 
-        # Should be using Redis class
+        # Should be using MongoDB
         with app.test_request_context():
             isinstance(flask.session, flask_session.sessions.MongoDBSession)
 

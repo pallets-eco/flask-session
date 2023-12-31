@@ -14,6 +14,6 @@ class TestFileSystem:
         })
         app_utils.test_session_set(app)
 
-        # Should be using Redis class
+        # Should be using FileSystem class
         with app.test_request_context():
             isinstance(flask.session, flask_session.sessions.FileSystemSession)

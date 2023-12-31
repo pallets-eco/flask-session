@@ -17,6 +17,7 @@ def app_utils():
             def app_set():
                 flask.session['value'] = flask.request.form['value']
                 return 'value set'
+            
             @app.route('/delete', methods=['POST'])
             def app_del():
                 del flask.session['value']

@@ -9,6 +9,7 @@ class TestSQLAlchemy:
             'SQLALCHEMY_DATABASE_URI': 'sqlite:///'
         })
 
+        # Should be using SqlAlchemy
         with app.test_request_context():
             isinstance(flask.session, flask_session.sessions.SqlAlchemySession)
             app.session_interface.db.create_all()
