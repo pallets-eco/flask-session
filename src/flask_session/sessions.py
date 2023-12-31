@@ -146,7 +146,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
         super().__init__(redis, key_prefix, use_signer, permanent)
 
     def fetch_session_sid(self, sid):
-        if not PY2 and not isinstance(sid, text_type):
+        if not isinstance(sid, str):
             sid = sid.decode('utf-8', 'strict')
         val = self.redis.get(self.key_prefix + sid)
         if val is not None:
