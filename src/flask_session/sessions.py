@@ -20,6 +20,9 @@ def total_seconds(td):
 
 class ServerSideSession(CallbackDict, SessionMixin):
     """Baseclass for server-side based sessions."""
+    
+    def __bool__(self) -> bool:
+        return bool(dict(self)) and self.keys() != {"_permanent"}
 
     def __init__(self, initial=None, sid=None, permanent=None):
         def on_update(self):
