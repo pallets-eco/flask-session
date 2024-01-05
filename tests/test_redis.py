@@ -48,7 +48,7 @@ class TestRedisSession:
             'SESSION_USE_SIGNER': True,
         })
         # Without a secret key set, there should be an exception raised
-        with pytest.raises(AssertionError):
+        with pytest.raises(KeyError):
             app_utils.test_session_set(app)
 
         # With a secret key set, no exception should be thrown
