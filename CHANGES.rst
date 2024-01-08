@@ -9,6 +9,7 @@ Released 2023-00-00
     entropy (was previously 122).
 -   Introduce SESSION_KEY_LENGTH to control the length of the session key in bytes, default is 32.
 -   Fix expiry is None bug in SQLAlchemy.
+-   Drop support for Redis < 2.6.12.
 
 Version 0.5.0
 -------------

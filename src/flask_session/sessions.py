@@ -182,8 +182,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
 
         expires = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session))
-        self.redis.setex(name=self.key_prefix + session.sid, value=val,
-                         time=total_seconds(app.permanent_session_lifetime))
+        self.redis.set(name=self.key_prefix + session.sid, value=val, ex=total_seconds(app.permanent_session_lifetime))
 
         self.set_cookie_to_response(app, session, response, expires)
 
