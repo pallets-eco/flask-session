@@ -34,6 +34,20 @@ def app_utils():
             client = app.test_client()
             assert client.post('/set', data={'value': '42'}).data == b'value set'
             assert client.get('/get').data ==  b'42'
+
+        def test_session_delete(self, app):
+            client = app.test_client()
+            assert client.post('/set', data={'value': '42'}).data == b'value set'
+            assert client.get('/get').data ==  b'42'
             client.post('/delete')
+            assert not client.get('/get').data ==  b'42'
+        
+        def test_session_sign(self, app):
+            client = app.test_client()
+            response = client.post('/set', data={'value': '42'})
+            assert response.data == b'value set'
+            # Check there are two parts to the cookie, the session ID and the signature
+            cookies = response.headers.getlist('Set-Cookie')
+            assert '.' in cookies[0].split(';')[0]
 
     return Utils()
