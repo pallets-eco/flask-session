@@ -1,10 +1,14 @@
-Version 0.5.1
+Version 0.6.0
 -------------
 
 Released 2023-00-00
 
--   use ``should_set_cookie`` for preventing re-save each request the session again.
-
+-   Use ``should_set_cookie`` for preventing each request from saving the session again.
+-   Permanent session otherwise empty will not be saved.
+-   Use `secrets` module to generate session identifiers, with 256 bits of
+    entropy (was previously 122).
+-   Introduce SESSION_KEY_LENGTH to control the length of the session key in bytes, default is 32.
+-   Fix expiry is None bug in SQLAlchemy.
 
 Version 0.5.0
 -------------

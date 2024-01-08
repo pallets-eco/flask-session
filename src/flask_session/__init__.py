@@ -55,6 +55,7 @@ class Session(object):
         config.setdefault('SESSION_PERMANENT', True)
         config.setdefault('SESSION_USE_SIGNER', False)
         config.setdefault('SESSION_KEY_PREFIX', 'session:')
+        config.setdefault('SESSION_ID_LENGTH', 32)
         config.setdefault('SESSION_REDIS', None)
         config.setdefault('SESSION_MEMCACHED', None)
         config.setdefault('SESSION_FILE_DIR',

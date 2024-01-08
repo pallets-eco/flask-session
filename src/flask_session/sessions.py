@@ -2,7 +2,7 @@ import sys
 import time
 from abc import ABC
 from datetime import datetime
-from uuid import uuid4
+import secrets
 try:
     import cPickle as pickle
 except ImportError:
@@ -56,22 +56,22 @@ class SqlAlchemySession(ServerSideSession):
 
 class SessionInterface(FlaskSessionInterface):
 
-    def _generate_sid(self):
-        return str(uuid4())
+    def _generate_sid(self, session_id_length):
+        return secrets.token_urlsafe(session_id_length)
     
-    def _get_signer(self, app):
+    def __get_signer(self, app):
         if not hasattr(app, "secret_key") or not app.secret_key:
             raise KeyError("SECRET_KEY must be set when SESSION_USE_SIGNER=True")
         return Signer(app.secret_key, salt="flask-session", key_derivation="hmac")
 
     def _unsign(self, app, sid):
-        signer = self._get_signer(app)
+        signer = self.__get_signer(app)
         sid_as_bytes = signer.unsign(sid)
         sid = sid_as_bytes.decode()
         return sid
 
     def _sign(self, app, sid):
-        signer = self._get_signer(app)
+        signer = self.__get_signer(app)
         sid_as_bytes = want_bytes(sid)
         return signer.sign(sid_as_bytes).decode("utf-8")
 
@@ -88,17 +88,18 @@ class ServerSideSessionInterface(SessionInterface, ABC):
     """Used to open a :class:`flask.sessions.ServerSideSessionInterface` instance.
     """
 
-    def __init__(self, db, key_prefix, use_signer=False, permanent=True):
+    def __init__(self, db, key_prefix, use_signer=False, permanent=True, sid_length=32):
         self.db = db
         self.key_prefix = key_prefix
         self.use_signer = use_signer
         self.permanent = permanent
+        self.sid_length = sid_length
         self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
 
     def set_cookie_to_response(self, app, session, response, expires):
 
         if self.use_signer:
-            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+            session_id = self._sign(app, session.sid)
         else:
             session_id = session.sid
 
@@ -118,13 +119,13 @@ class ServerSideSessionInterface(SessionInterface, ABC):
     def open_session(self, app, request):
         sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
         if not sid:
-            sid = self._generate_sid()
+            sid = self._generate_sid(self.sid_length)
             return self.session_class(sid=sid, permanent=self.permanent)
         if self.use_signer:
             try:
                 sid = self._unsign(app, sid)
             except BadSignature:
-                sid = self._generate_sid()
+                sid = self._generate_sid(self.sid_length)
                 return self.session_class(sid=sid, permanent=self.permanent)
         return self.fetch_session_sid(sid)
 
