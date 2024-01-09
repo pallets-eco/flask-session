@@ -340,51 +340,105 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
     serializer = pickle
     session_class = MongoDBSession
 
-    def __init__(self, client, db, collection, key_prefix, use_signer=False,
-                 permanent=True):
+    def __init__(
+        self,
+        client,
+        db,
+        collection,
+        key_prefix,
+        use_signer=False,
+        permanent=True,
+        tz_aware=False,
+    ):
+        import pymongo
+
         if client is None:
-            from pymongo import MongoClient
-            client = MongoClient()
+            if tz_aware:
+                client = pymongo.MongoClient(tz_aware=tz_aware)
+            else:
+                client = pymongo.MongoClient()
         self.client = client
         self.store = client[db][collection]
+        self.tz_aware = tz_aware
+        self.use_deprecated_method = int(pymongo.version.split(".")[0]) < 4
         super().__init__(self.store, key_prefix, use_signer, permanent)
 
     def fetch_session_sid(self, sid):
+        # Get the session document from the database
+        prefixed_session_id = self.key_prefix + sid
+        document = self.store.find_one({"id": prefixed_session_id})
 
-        store_id = self.key_prefix + sid
-        document = self.store.find_one({'id': store_id})
-        if document and document.get('expiration') <= datetime.utcnow():
-            # Delete expired session
-            self.store.remove({'id': store_id})
-            document = None
+        # Workaround for tz_aware MongoClient
+        if self.tz_aware:
+            utc_now = datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+        else:
+            utc_now = datetime.utcnow()
+
+        # If the expiration time is less than or equal to the current time (expired), delete the document
+        if document:
+            expiration = document.get("expiration")
+            if expiration is not None and expiration <= utc_now:
+                if self.use_deprecated_method:
+                    self.store.remove({"id": prefixed_session_id})
+                else:
+                    self.store.delete_one({"id": prefixed_session_id})
+                document = None
+
+        # If the session document still exists after checking for expiration, load the session data from the document
         if document is not None:
             try:
-                val = document['val']
+                val = document["val"]
                 data = self.serializer.loads(want_bytes(val))
                 return self.session_class(data, sid=sid)
             except:
                 return self.session_class(sid=sid, permanent=self.permanent)
+
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
         if not self.should_set_cookie(app, session):
             return
+
+        # Get the domain and path for the cookie from the app
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
-        store_id = self.key_prefix + session.sid
+
+        # Generate a storage session key from the session id
+        prefixed_session_id = self.key_prefix + session.sid
+
+        # If the session is empty, do not save it to the database or set a cookie
         if not session:
+            # If the session was deleted (empty and modified), delete the session document from the database and tell the client to delete the cookie
             if session.modified:
-                self.store.remove({'id': store_id})
-                response.delete_cookie(app.config["SESSION_COOKIE_NAME"],
-                                       domain=domain, path=path)
+                if self.use_deprecated_method:
+                    self.store.remove({"id": prefixed_session_id})
+                else:
+                    self.store.delete_one({"id": prefixed_session_id})
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
             return
 
         expires = self.get_expiration_time(app, session)
-        val = self.serializer.dumps(dict(session))
-        self.store.update({'id': store_id},
-                          {'id': store_id,
-                           'val': val,
-                           'expiration': expires}, True)
+        value = self.serializer.dumps(dict(session))
+        if self.use_deprecated_method:
+            self.store.update(
+                {"id": prefixed_session_id},
+                {"id": prefixed_session_id, "val": value, "expiration": expires},
+                True,
+            )
+        else:
+            self.store.update_one(
+                {"id": prefixed_session_id},
+                {
+                    "$set": {
+                        "id": prefixed_session_id,
+                        "val": value,
+                        "expiration": expires,
+                    }
+                },
+                True,
+            )
         self.set_cookie_to_response(app, session, response, expires)
 
 
