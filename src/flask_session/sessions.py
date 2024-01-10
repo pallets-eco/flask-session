@@ -1,8 +1,8 @@
-import sys
 import time
 from abc import ABC
 from datetime import datetime
 import secrets
+
 try:
     import cPickle as pickle
 except ImportError:
@@ -20,13 +20,14 @@ def total_seconds(td):
 
 class ServerSideSession(CallbackDict, SessionMixin):
     """Baseclass for server-side based sessions."""
-    
+
     def __bool__(self) -> bool:
         return bool(dict(self)) and self.keys() != {"_permanent"}
 
     def __init__(self, initial=None, sid=None, permanent=None):
         def on_update(self):
             self.modified = True
+
         CallbackDict.__init__(self, initial, on_update)
         self.sid = sid
         if permanent:
@@ -55,10 +56,9 @@ class SqlAlchemySession(ServerSideSession):
 
 
 class SessionInterface(FlaskSessionInterface):
-
     def _generate_sid(self, session_id_length):
         return secrets.token_urlsafe(session_id_length)
-    
+
     def __get_signer(self, app):
         if not hasattr(app, "secret_key") or not app.secret_key:
             raise KeyError("SECRET_KEY must be set when SESSION_USE_SIGNER=True")
@@ -77,16 +77,14 @@ class SessionInterface(FlaskSessionInterface):
 
 
 class NullSessionInterface(SessionInterface):
-    """Used to open a :class:`flask.sessions.NullSession` instance.
-    """
+    """Used to open a :class:`flask.sessions.NullSession` instance."""
 
     def open_session(self, app, request):
         return None
 
 
 class ServerSideSessionInterface(SessionInterface, ABC):
-    """Used to open a :class:`flask.sessions.ServerSideSessionInterface` instance.
-    """
+    """Used to open a :class:`flask.sessions.ServerSideSessionInterface` instance."""
 
     def __init__(self, db, key_prefix, use_signer=False, permanent=True, sid_length=32):
         self.db = db
@@ -97,7 +95,6 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
 
     def set_cookie_to_response(self, app, session, response, expires):
-
         if self.use_signer:
             session_id = self._sign(app, session.sid)
         else:
@@ -111,10 +108,16 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         if self.has_same_site_capability:
             samesite = self.get_cookie_samesite(app)
 
-        response.set_cookie(app.config["SESSION_COOKIE_NAME"], session_id,
-                            expires=expires, httponly=httponly,
-                            domain=domain, path=path, secure=secure,
-                            samesite=samesite)
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+            samesite=samesite,
+        )
 
     def open_session(self, app, request):
         sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
@@ -149,9 +152,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
     serializer = pickle
     session_class = RedisSession
 
-    def __init__(
-        self, redis, key_prefix, use_signer, permanent, sid_length
-    ):
+    def __init__(self, redis, key_prefix, use_signer, permanent, sid_length):
         if redis is None:
             from redis import Redis
 
@@ -161,7 +162,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
 
     def fetch_session_sid(self, sid):
         if not isinstance(sid, str):
-            sid = sid.decode('utf-8', 'strict')
+            sid = sid.decode("utf-8", "strict")
         val = self.redis.get(self.key_prefix + sid)
         if val is not None:
             try:
@@ -180,13 +181,18 @@ class RedisSessionInterface(ServerSideSessionInterface):
         if not session:
             if session.modified:
                 self.redis.delete(self.key_prefix + session.sid)
-                response.delete_cookie(app.config["SESSION_COOKIE_NAME"],
-                                       domain=domain, path=path)
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
             return
 
         expires = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session))
-        self.redis.set(name=self.key_prefix + session.sid, value=val, ex=total_seconds(app.permanent_session_lifetime))
+        self.redis.set(
+            name=self.key_prefix + session.sid,
+            value=val,
+            ex=total_seconds(app.permanent_session_lifetime),
+        )
 
         self.set_cookie_to_response(app, session, response, expires)
 
@@ -207,18 +213,16 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
     serializer = pickle
     session_class = MemcachedSession
 
-    def __init__(
-        self, client, key_prefix, use_signer, permanent, sid_length
-    ):
+    def __init__(self, client, key_prefix, use_signer, permanent, sid_length):
         if client is None:
             client = self._get_preferred_memcache_client()
             if client is None:
-                raise RuntimeError('no memcache module found')
+                raise RuntimeError("no memcache module found")
         self.client = client
         super().__init__(client, key_prefix, use_signer, permanent, sid_length)
 
     def _get_preferred_memcache_client(self):
-        servers = ['127.0.0.1:11211']
+        servers = ["127.0.0.1:11211"]
         try:
             import pylibmc
         except ImportError:
@@ -249,7 +253,6 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
         return timeout
 
     def fetch_session_sid(self, sid):
-
         full_session_key = self.key_prefix + sid
         val = self.client.get(full_session_key)
         if val is not None:
@@ -270,14 +273,18 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
         if not session:
             if session.modified:
                 self.client.delete(full_session_key)
-                response.delete_cookie(app.config["SESSION_COOKIE_NAME"],
-                                       domain=domain, path=path)
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
             return
 
         expires = self.get_expiration_time(app, session)
         val = self.serializer.dumps(dict(session), 0)
-        self.client.set(full_session_key, val, self._get_memcache_timeout(
-                        total_seconds(app.permanent_session_lifetime)))
+        self.client.set(
+            full_session_key,
+            val,
+            self._get_memcache_timeout(total_seconds(app.permanent_session_lifetime)),
+        )
 
         self.set_cookie_to_response(app, session, response, expires)
 
@@ -336,9 +343,13 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
 
         expires = self.get_expiration_time(app, session)
         data = dict(session)
-        self.cache.set(self.key_prefix + session.sid, data,
-                       total_seconds(app.permanent_session_lifetime))
+        self.cache.set(
+            self.key_prefix + session.sid,
+            data,
+            total_seconds(app.permanent_session_lifetime),
+        )
         self.set_cookie_to_response(app, session, response, expires)
+
 
 class MongoDBSessionInterface(ServerSideSessionInterface):
     """A Session interface that uses mongodb as backend.

@@ -2,23 +2,32 @@ from flask import Flask, session
 from flask_session import Session
 
 
-SESSION_TYPE = 'redis'
-
-
 app = Flask(__name__)
 app.config.from_object(__name__)
+app.config.update(
+    {
+        "SESSION_TYPE": "sqlalchemy",
+        "SQLALCHEMY_DATABASE_URI": "sqlite:////tmp/test.db",
+        "SQLALCHEMY_USE_SIGNER": True,
+    }
+)
 Session(app)
 
 
-@app.route('/set/')
+@app.route("/set/")
 def set():
-    session['key'] = 'value'
-    return 'ok'
+    session["key"] = "value"
+    return "ok"
 
 
-@app.route('/get/')
+@app.route("/get/")
 def get():
-    return session.get('key', 'not set')
+    import time
+
+    start_time = time.time()
+    result = session.get("key", "not set")
+    print("get", (time.time() - start_time) * 1000)
+    return result
 
 
 if __name__ == "__main__":

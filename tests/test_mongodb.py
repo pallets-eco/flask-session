@@ -1,12 +1,10 @@
 import flask
 import flask_session
 
-class TestMongoDB:
 
+class TestMongoDB:
     def test_basic(self, app_utils):
-        app = app_utils.create_app({
-            'SESSION_TYPE': 'mongodb'
-        })
+        app = app_utils.create_app({"SESSION_TYPE": "mongodb"})
 
         # Should be using MongoDB
         with app.test_request_context():

@@ -2,6 +2,9 @@
 flask>=2.2
 cachelib
 
+# Linting
+ruff
+
 # Testing
 pytest
 pytest-cov
