@@ -1,10 +1,10 @@
 import sys
 
-sys.path.append("src")
-import flask_session
-
 import flask
+import flask_session
 import pytest
+
+sys.path.append("src")
 
 
 @pytest.fixture(scope="function")
@@ -53,7 +53,7 @@ def app_utils():
             assert client.post("/set", data={"value": "42"}).data == b"value set"
             assert client.get("/get").data == b"42"
             client.post("/delete")
-            assert not client.get("/get").data == b"42"
+            assert client.get("/get").data != b"42"
 
         def test_session_sign(self, app):
             client = app.test_client()

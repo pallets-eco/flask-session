@@ -1,7 +1,7 @@
+import secrets
 import time
 from abc import ABC
 from datetime import datetime
-import secrets
 
 try:
     import cPickle as pickle
@@ -10,8 +10,8 @@ except ImportError:
 
 from flask.sessions import SessionInterface as FlaskSessionInterface
 from flask.sessions import SessionMixin
+from itsdangerous import BadSignature, Signer, want_bytes
 from werkzeug.datastructures import CallbackDict
-from itsdangerous import Signer, BadSignature, want_bytes
 
 
 def total_seconds(td):
@@ -95,11 +95,7 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
 
     def set_cookie_to_response(self, app, session, response, expires):
-        if self.use_signer:
-            session_id = self._sign(app, session.sid)
-        else:
-            session_id = session.sid
-
+        session_id = self._sign(app, session.sid) if self.use_signer else session.sid
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
         httponly = self.get_cookie_httponly(app)
@@ -168,7 +164,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
             try:
                 data = self.serializer.loads(val)
                 return self.session_class(data, sid=sid)
-            except:
+            except pickle.UnpicklingError:
                 return self.session_class(sid=sid, permanent=self.permanent)
         return self.session_class(sid=sid, permanent=self.permanent)
 
@@ -260,7 +256,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
                 val = want_bytes(val)
                 data = self.serializer.loads(val)
                 return self.session_class(data, sid=sid)
-            except:
+            except pickle.UnpicklingError:
                 return self.session_class(sid=sid, permanent=self.permanent)
         return self.session_class(sid=sid, permanent=self.permanent)
 
@@ -422,7 +418,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
                 val = document["val"]
                 data = self.serializer.loads(want_bytes(val))
                 return self.session_class(data, sid=sid)
-            except:
+            except pickle.UnpicklingError:
                 return self.session_class(sid=sid, permanent=self.permanent)
 
         return self.session_class(sid=sid, permanent=self.permanent)
@@ -575,7 +571,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
                 val = saved_session.data
                 data = self.serializer.loads(want_bytes(val))
                 return self.session_class(data, sid=sid)
-            except:
+            except pickle.UnpicklingError:
                 return self.session_class(sid=sid, permanent=self.permanent)
         return self.session_class(sid=sid, permanent=self.permanent)
 

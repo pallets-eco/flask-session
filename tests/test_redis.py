@@ -1,6 +1,6 @@
 import flask
-from redis import Redis
 import flask_session
+from redis import Redis
 
 
 class TestRedisSession:
@@ -11,10 +11,7 @@ class TestRedisSession:
 
     def _has_redis_prefix(self, prefix):
         r = Redis()
-        for key in r.keys():
-            if key.startswith(prefix):
-                return True
-        return False
+        return any(key.startswith(prefix) for key in r.keys()) #noqa SIM118
 
     def test_redis_default(self, app_utils):
         app = app_utils.create_app({"SESSION_TYPE": "redis"})

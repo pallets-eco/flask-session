@@ -1,7 +1,6 @@
 from flask import Flask, session
 from flask_session import Session
 
-
 app = Flask(__name__)
 app.config.from_object(__name__)
 app.config.update(

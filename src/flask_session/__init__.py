@@ -1,18 +1,18 @@
 import os
 
 from .sessions import (
+    FileSystemSessionInterface,
+    MemcachedSessionInterface,
+    MongoDBSessionInterface,
     NullSessionInterface,
     RedisSessionInterface,
-    MemcachedSessionInterface,
-    FileSystemSessionInterface,
-    MongoDBSessionInterface,
     SqlAlchemySessionInterface,
 )
 
 __version__ = "0.5.1"
 
 
-class Session(object):
+class Session:
     """This class is used to add Server-side Session to one or more Flask
     applications.
 

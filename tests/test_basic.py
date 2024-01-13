@@ -1,7 +1,6 @@
 import flask
-import pytest
-
 import flask_session
+import pytest
 
 
 def test_tot_seconds_func():

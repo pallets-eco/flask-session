@@ -1,6 +1,7 @@
+import tempfile
+
 import flask
 import flask_session
-import tempfile
 
 
 class TestFileSystem:
