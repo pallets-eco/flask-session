@@ -1,7 +1,6 @@
 import secrets
 import time
 from abc import ABC
-from datetime import datetime
 
 try:
     import cPickle as pickle
@@ -126,9 +125,9 @@ class ServerSideSessionInterface(SessionInterface, ABC):
             except BadSignature:
                 sid = self._generate_sid(self.sid_length)
                 return self.session_class(sid=sid, permanent=self.permanent)
-        return self.fetch_session_sid(sid)
+        return self.fetch_session(sid)
 
-    def fetch_session_sid(self, sid):
+    def fetch_session(self, sid):
         raise NotImplementedError()
 
 
@@ -156,25 +155,33 @@ class RedisSessionInterface(ServerSideSessionInterface):
         self.redis = redis
         super().__init__(redis, key_prefix, use_signer, permanent, sid_length)
 
-    def fetch_session_sid(self, sid):
-        if not isinstance(sid, str):
-            sid = sid.decode("utf-8", "strict")
-        val = self.redis.get(self.key_prefix + sid)
-        if val is not None:
+    def fetch_session(self, sid):
+        # Get the saved session (value) from the database
+        prefixed_session_id = self.key_prefix + sid
+        value = self.redis.get(prefixed_session_id)
+
+        # If the saved session still exists and hasn't auto-expired, load the session data from the document
+        if value is not None:
             try:
-                data = self.serializer.loads(val)
-                return self.session_class(data, sid=sid)
+                session_data = self.serializer.loads(value)
+                return self.session_class(session_data, sid=sid)
             except pickle.UnpicklingError:
                 return self.session_class(sid=sid, permanent=self.permanent)
+
+        # If the saved session  does not exist, create a new session
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
         if not self.should_set_cookie(app, session):
             return
 
+        # Get the domain and path for the cookie from the app config
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
+
+        # If the session is empty, do not save it to the database or set a cookie
         if not session:
+            # If the session was deleted (empty and modified), delete the saved session  from the database and tell the client to delete the cookie
             if session.modified:
                 self.redis.delete(self.key_prefix + session.sid)
                 response.delete_cookie(
@@ -182,14 +189,20 @@ class RedisSessionInterface(ServerSideSessionInterface):
                 )
             return
 
+        # Get the new expiration time for the session
         expires = self.get_expiration_time(app, session)
-        val = self.serializer.dumps(dict(session))
+
+        # Serialize the session data
+        serialized_session_data = self.serializer.dumps(dict(session))
+
+        # Update existing or create new session in the database
         self.redis.set(
             name=self.key_prefix + session.sid,
-            value=val,
+            value=serialized_session_data,
             ex=total_seconds(app.permanent_session_lifetime),
         )
 
+        # Set the browser cookie
         self.set_cookie_to_response(app, session, response, expires)
 
 
@@ -239,49 +252,61 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
         way. Call this function to obtain a safe value for your timeout.
         """
         if timeout > 2592000:  # 60*60*24*30, 30 days
-            # See http://code.google.com/p/memcached/wiki/FAQ
-            # "You can set expire times up to 30 days in the future. After that
-            # memcached interprets it as a date, and will expire the item after
-            # said date. This is a simple (but obscure) mechanic."
-            #
-            # This means that we have to switch to absolute timestamps.
+            # Switch to absolute timestamps.
             timeout += int(time.time())
         return timeout
 
-    def fetch_session_sid(self, sid):
-        full_session_key = self.key_prefix + sid
-        val = self.client.get(full_session_key)
-        if val is not None:
+    def fetch_session(self, sid):
+        # Get the saved session (item) from the database
+        prefixed_session_id = self.key_prefix + sid
+        item = self.client.get(prefixed_session_id)
+
+        # If the saved session still exists and hasn't auto-expired, load the session data from the document
+        if item is not None:
             try:
-                val = want_bytes(val)
-                data = self.serializer.loads(val)
-                return self.session_class(data, sid=sid)
+                session_data = self.serializer.loads(want_bytes(item))
+                return self.session_class(session_data, sid=sid)
             except pickle.UnpicklingError:
                 return self.session_class(sid=sid, permanent=self.permanent)
+
+        # If the saved session  does not exist, create a new session
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
         if not self.should_set_cookie(app, session):
             return
+
+        # Get the domain and path for the cookie from the app config
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
-        full_session_key = self.key_prefix + session.sid
+
+        # Generate a prefixed session id from the session id as a storage key
+        prefixed_session_id = self.key_prefix + session.sid
+
+        # If the session is empty, do not save it to the database or set a cookie
         if not session:
+            # If the session was deleted (empty and modified), delete the saved session  from the database and tell the client to delete the cookie
             if session.modified:
-                self.client.delete(full_session_key)
+                self.client.delete(prefixed_session_id)
                 response.delete_cookie(
                     app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
                 )
             return
 
+        # Get the new expiration time for the session
         expires = self.get_expiration_time(app, session)
-        val = self.serializer.dumps(dict(session), 0)
+
+        # Serialize the session data
+        serialized_session_data = self.serializer.dumps(dict(session))
+
+        # Update existing or create new session in the database
         self.client.set(
-            full_session_key,
-            val,
+            prefixed_session_id,
+            serialized_session_data,
             self._get_memcache_timeout(total_seconds(app.permanent_session_lifetime)),
         )
 
+        # Set the browser cookie
         self.set_cookie_to_response(app, session, response, expires)
 
 
@@ -318,32 +343,53 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
         self.cache = FileSystemCache(cache_dir, threshold=threshold, mode=mode)
         super().__init__(self.cache, key_prefix, use_signer, permanent, sid_length)
 
-    def fetch_session_sid(self, sid):
-        data = self.cache.get(self.key_prefix + sid)
-        if data is not None:
-            return self.session_class(data, sid=sid)
+    def fetch_session(self, sid):
+        # Get the saved session (item) from the database
+        prefixed_session_id = self.key_prefix + sid
+        item = self.cache.get(prefixed_session_id)
+
+        # If the saved session exists and has not auto-expired, load the session data from the item
+        if item is not None:
+            return self.session_class(item, sid=sid)
+
+        # If the saved session  does not exist, create a new session
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
         if not self.should_set_cookie(app, session):
             return
+
+        # Get the domain and path for the cookie from the app config
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
+
+        # Generate a prefixed session id from the session id as a storage key
+        prefixed_session_id = self.key_prefix + session.sid
+
+        # If the session is empty, do not save it to the database or set a cookie
         if not session:
+            # If the session was deleted (empty and modified), delete the saved session  from the database and tell the client to delete the cookie
             if session.modified:
-                self.cache.delete(self.key_prefix + session.sid)
+                self.cache.delete(prefixed_session_id)
                 response.delete_cookie(
                     app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
                 )
             return
 
+        # Get the new expiration time for the session
         expires = self.get_expiration_time(app, session)
-        data = dict(session)
+
+        # Serialize the session data (or just cast into dictionary in this case)
+        session_data = dict(session)
+
+        # Update existing or create new session in the database
         self.cache.set(
-            self.key_prefix + session.sid,
-            data,
+            prefixed_session_id,
+            session_data,
             total_seconds(app.permanent_session_lifetime),
         )
+
+        # Set the browser cookie
         self.set_cookie_to_response(app, session, response, expires)
 
 
@@ -391,43 +437,44 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         self.use_deprecated_method = int(pymongo.version.split(".")[0]) < 4
         super().__init__(self.store, key_prefix, use_signer, permanent, sid_length)
 
-    def fetch_session_sid(self, sid):
-        # Get the session document from the database
+    def fetch_session(self, sid):
+        # Get the saved session (document) from the database
         prefixed_session_id = self.key_prefix + sid
         document = self.store.find_one({"id": prefixed_session_id})
 
         # Workaround for tz_aware MongoClient
+        from datetime import timezone
         if self.tz_aware:
-            utc_now = datetime.utcnow().replace(tzinfo=datetime.timezone.utc)
+            utc_now = datetime.utcnow().replace(tzinfo=timezone.utc)
         else:
             utc_now = datetime.utcnow()
 
         # If the expiration time is less than or equal to the current time (expired), delete the document
-        if document:
+        if document is not None:
             expiration = document.get("expiration")
-            if expiration is not None and expiration <= utc_now:
+            if expiration is None or expiration <= utc_now:
                 if self.use_deprecated_method:
                     self.store.remove({"id": prefixed_session_id})
                 else:
                     self.store.delete_one({"id": prefixed_session_id})
                 document = None
 
-        # If the session document still exists after checking for expiration, load the session data from the document
+        # If the saved session still exists after checking for expiration, load the session data from the document
         if document is not None:
             try:
-                val = document["val"]
-                data = self.serializer.loads(want_bytes(val))
-                return self.session_class(data, sid=sid)
+                session_data = self.serializer.loads(want_bytes(document["val"]))
+                return self.session_class(session_data, sid=sid)
             except pickle.UnpicklingError:
                 return self.session_class(sid=sid, permanent=self.permanent)
 
+        # If the saved session does not exist, create a new session
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
         if not self.should_set_cookie(app, session):
             return
 
-        # Get the domain and path for the cookie from the app
+        # Get the domain and path for the cookie from the app config
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
 
@@ -436,7 +483,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
 
         # If the session is empty, do not save it to the database or set a cookie
         if not session:
-            # If the session was deleted (empty and modified), delete the session document from the database and tell the client to delete the cookie
+            # If the session was deleted (empty and modified), delete the saved session  from the database and tell the client to delete the cookie
             if session.modified:
                 if self.use_deprecated_method:
                     self.store.remove({"id": prefixed_session_id})
@@ -447,12 +494,21 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
                 )
             return
 
+        # Get the new expiration time for the session
         expires = self.get_expiration_time(app, session)
-        value = self.serializer.dumps(dict(session))
+
+        # Serialize the session data
+        serialized_session_data = self.serializer.dumps(dict(session))
+
+        # Update existing or create new session in the database
         if self.use_deprecated_method:
             self.store.update(
                 {"id": prefixed_session_id},
-                {"id": prefixed_session_id, "val": value, "expiration": expires},
+                {
+                    "id": prefixed_session_id,
+                    "val": serialized_session_data,
+                    "expiration": expires,
+                },
                 True,
             )
         else:
@@ -461,12 +517,14 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
                 {
                     "$set": {
                         "id": prefixed_session_id,
-                        "val": value,
+                        "val": serialized_session_data,
                         "expiration": expires,
                     }
                 },
                 True,
             )
+
+        # Set the browser cookie
         self.set_cookie_to_response(app, session, response, expires)
 
 
@@ -550,27 +608,24 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
         self.sql_session_model = Session
 
-    def fetch_session_sid(self, sid):
-        # Get the session document from the database
+    def fetch_session(self, sid):
+        # Get the saved session (record) from the database
         store_id = self.key_prefix + sid
-        saved_session = self.sql_session_model.query.filter_by(
-            session_id=store_id
-        ).first()
+        record = self.sql_session_model.query.filter_by(session_id=store_id).first()
 
         # If the expiration time is less than or equal to the current time (expired), delete the document
-        if saved_session and (
-            not saved_session.expiry or saved_session.expiry <= datetime.utcnow()
-        ):
-            self.db.session.delete(saved_session)
-            self.db.session.commit()
-            saved_session = None
+        if record is not None:
+            expiration = record.get("expiration")
+            if expiration is None or expiration <= datetime.utcnow():
+                self.db.session.delete(record)
+                self.db.session.commit()
+                record = None
 
-        # If the session document still exists after checking for expiration, load the session data from the document
-        if saved_session:
+        # If the saved session still exists after checking for expiration, load the session data from the document
+        if record:
             try:
-                val = saved_session.data
-                data = self.serializer.loads(want_bytes(val))
-                return self.session_class(data, sid=sid)
+                session_data = self.serializer.loads(want_bytes(record.data))
+                return self.session_class(session_data, sid=sid)
             except pickle.UnpicklingError:
                 return self.session_class(sid=sid, permanent=self.permanent)
         return self.session_class(sid=sid, permanent=self.permanent)
@@ -588,7 +643,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
         # If the session is empty, do not save it to the database or set a cookie
         if not session:
-            # If the session was deleted (empty and modified), delete the session document from the database and tell the client to delete the cookie
+            # If the session was deleted (empty and modified), delete the saved session  from the database and tell the client to delete the cookie
             if session.modified:
                 self.sql_session_model.query.filter_by(
                     session_id=prefixed_session_id
@@ -599,23 +654,27 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
                 )
             return
 
-        # Serialize session data and get expiration time
-        val = self.serializer.dumps(dict(session))
+        # Serialize session data
+        serialized_session_data = self.serializer.dumps(dict(session))
+
+        # Get the new expiration time for the session
         expires = self.get_expiration_time(app, session)
 
-        # Update or create the session in the database
-        saved_session = self.sql_session_model.query.filter_by(
+        # Update existing or create new session in the database
+        record = self.sql_session_model.query.filter_by(
             session_id=prefixed_session_id
         ).first()
-        if saved_session:
-            saved_session.data = val
-            saved_session.expiry = expires
+        if record:
+            record.data = serialized_session_data
+            record.expiry = expires
         else:
-            saved_session = self.sql_session_model(
-                session_id=prefixed_session_id, data=val, expiry=expires
+            record = self.sql_session_model(
+                session_id=prefixed_session_id,
+                data=serialized_session_data,
+                expiry=expires,
             )
-            self.db.session.add(saved_session)
-
-        # Commit changes and set the cookie
+            self.db.session.add(record)
         self.db.session.commit()
+
+        # Set the browser cookie
         self.set_cookie_to_response(app, session, response, expires)
