@@ -56,12 +56,18 @@ class Session:
 
     def _get_interface(self, app):
         config = app.config.copy()
+
+        # Flask-session specific settings
         config.setdefault("SESSION_TYPE", "null")
         config.setdefault("SESSION_PERMANENT", True)
         config.setdefault("SESSION_USE_SIGNER", False)
         config.setdefault("SESSION_KEY_PREFIX", "session:")
         config.setdefault("SESSION_ID_LENGTH", 32)
+
+        # Redis settings
         config.setdefault("SESSION_REDIS", None)
+
+        # Memcached settings
         config.setdefault("SESSION_MEMCACHED", None)
 
         # Filesystem settings
