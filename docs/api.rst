@@ -10,7 +10,7 @@ API
 
    .. attribute:: sid
 
-       Session id, internally we use :func:`uuid.uuid4` to generate one
+       Session id, internally we use :func:`secrets.token_urlsafe` to generate one
        session id. You can access it with ``session.sid``.
 
 .. autoclass:: NullSessionInterface

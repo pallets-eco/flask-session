@@ -7,24 +7,14 @@ your application.
 .. _Flask: http://flask.palletsprojects.com/
 
 
-Installation
-------------
-
-Install from PyPI using an installer such as pip:
-
-.. code-block:: text
-
-    $ pip install Flask-Session
-
-
 Table of Contents
 -----------------
 
 .. toctree::
     :maxdepth: 2
 
+    installation
     quickstart
-    interfaces
     config
     api
     license

@@ -8,6 +8,7 @@ except ImportError:
     import pickle
 
 from datetime import datetime, timezone
+
 from flask.sessions import SessionInterface as FlaskSessionInterface
 from flask.sessions import SessionMixin
 from itsdangerous import BadSignature, Signer, want_bytes
@@ -77,7 +78,12 @@ class SessionInterface(FlaskSessionInterface):
 
 
 class NullSessionInterface(SessionInterface):
-    """Used to open a :class:`flask.sessions.NullSession` instance."""
+    """Used to open a :class:`flask.sessions.NullSession` instance.
+
+    If you do not configure a different ``SESSION_TYPE``, this will be used to
+    generate nicer error messages.  Will allow read-only access to the empty
+    session but fail on setting.
+    """
 
     def open_session(self, app, request):
         return None
@@ -133,16 +139,19 @@ class ServerSideSessionInterface(SessionInterface, ABC):
 
 
 class RedisSessionInterface(ServerSideSessionInterface):
-    """Uses the Redis key-value store as a session backend.
-
-    .. versionadded:: 0.2
-        The `use_signer` parameter was added.
+    """Uses the Redis key-value store as a session backend. (`redis-py` required)
 
     :param redis: A ``redis.Redis`` instance.
     :param key_prefix: A prefix that is added to all Redis store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
+
+    .. versionadded:: 0.6
+        The `sid_length` parameter was added.
+
+    .. versionadded:: 0.2
+        The `use_signer` parameter was added.
     """
 
     serializer = pickle
@@ -208,16 +217,20 @@ class RedisSessionInterface(ServerSideSessionInterface):
 
 
 class MemcachedSessionInterface(ServerSideSessionInterface):
-    """A Session interface that uses memcached as backend.
-
-    .. versionadded:: 0.2
-        The `use_signer` parameter was added.
+    """A Session interface that uses memcached as backend. (`pylibmc` or `python-memcached` or `pymemcache` required)
 
     :param client: A ``memcache.Client`` instance.
     :param key_prefix: A prefix that is added to all Memcached store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
+
+    .. versionadded:: 0.6
+        The `sid_length` parameter was added.
+
+    .. versionadded:: 0.2
+        The `use_signer` parameter was added.
+
     """
 
     serializer = pickle
@@ -239,7 +252,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
         for module_name, server in clients:
             try:
                 module = __import__(module_name)
-                ClientClass = getattr(module, "Client")
+                ClientClass = module.Client
                 return ClientClass(server)
             except ImportError:
                 continue
@@ -313,9 +326,6 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
 class FileSystemSessionInterface(ServerSideSessionInterface):
     """Uses the :class:`cachelib.file.FileSystemCache` as a session backend.
 
-    .. versionadded:: 0.2
-        The `use_signer` parameter was added.
-
     :param cache_dir: the directory where session files are stored.
     :param threshold: the maximum number of items the session stores before it
                       starts deleting some.
@@ -324,6 +334,12 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
+
+    .. versionadded:: 0.6
+        The `sid_length` parameter was added.
+
+    .. versionadded:: 0.2
+        The `use_signer` parameter was added.
     """
 
     session_class = FileSystemSession
@@ -394,10 +410,7 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
 
 
 class MongoDBSessionInterface(ServerSideSessionInterface):
-    """A Session interface that uses mongodb as backend.
-
-    .. versionadded:: 0.2
-        The `use_signer` parameter was added.
+    """A Session interface that uses mongodb as backend. (`pymongo` required)
 
     :param client: A ``pymongo.MongoClient`` instance.
     :param db: The database you want to use.
@@ -406,6 +419,12 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
+
+    .. versionadded:: 0.6
+        The `sid_length` parameter was added.
+
+    .. versionadded:: 0.2
+        The `use_signer` parameter was added.
     """
 
     serializer = pickle
@@ -525,8 +544,6 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
 class SqlAlchemySessionInterface(ServerSideSessionInterface):
     """Uses the Flask-SQLAlchemy from a flask app as a session backend.
 
-    .. versionadded:: 0.2
-
     :param app: A Flask app instance.
     :param db: A Flask-SQLAlchemy instance.
     :param table: The table name you want to use.
@@ -537,6 +554,12 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
     :param sequence: The sequence to use for the primary key if needed.
     :param schema: The db schema to use
     :param bind_key: The db bind key to use
+
+    .. versionadded:: 0.6
+        The `sid_length`, `sequence`, `schema` and `bind_key` parameters were added.
+
+    .. versionadded:: 0.2
+        The `use_signer` parameter was added.
     """
 
     serializer = pickle
