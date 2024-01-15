@@ -1,10 +1,9 @@
 import sys
 
-import flask
-import flask_session
-import pytest
-
 sys.path.append("src")
+import flask  # noqa E402
+import flask_session  # noqa E402
+import pytest  # noqa E402
 
 
 @pytest.fixture(scope="function")
