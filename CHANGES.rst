@@ -7,6 +7,7 @@ Released 2023-00-00
 -   Permanent session otherwise empty will not be saved.
 -   Use `secrets` module to generate session identifiers, with 256 bits of
     entropy (was previously 122).
+-   Explicitly name support for python-memcached, pylibmc and pymemcache.
 -   Introduce SESSION_KEY_LENGTH to control the length of the session key in bytes, default is 32.
 -   Fix expiry is None bug in SQLAlchemy.
 -   Drop support for Redis < 2.6.12.

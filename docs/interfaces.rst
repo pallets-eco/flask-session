@@ -25,7 +25,7 @@ Relevant configuration values:
 :class:`MemcachedSessionInterface`
 ----------------------------------
 
-Uses the Memcached as a session backend. (`pylibmc`_ or `memcache`_ required)
+Uses the Memcached as a session backend. (`pylibmc`_ or `python-memcached`_ or `pymemcache` required)
 
 - SESSION_MEMCACHED
 

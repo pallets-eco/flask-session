@@ -226,26 +226,25 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
     def __init__(self, client, key_prefix, use_signer, permanent, sid_length):
         if client is None:
             client = self._get_preferred_memcache_client()
-            if client is None:
-                raise RuntimeError("no memcache module found")
         self.client = client
         super().__init__(client, key_prefix, use_signer, permanent, sid_length)
 
     def _get_preferred_memcache_client(self):
-        servers = ["127.0.0.1:11211"]
-        try:
-            import pylibmc
-        except ImportError:
-            pass
-        else:
-            return pylibmc.Client(servers)
+        clients = [
+            ("pylibmc", ["127.0.0.1:11211"]),
+            ("memcache", ["127.0.0.1:11211"]),
+            ("pymemcache.client.base", "127.0.0.1:11211"),
+        ]
 
-        try:
-            import memcache
-        except ImportError:
-            pass
-        else:
-            return memcache.Client(servers)
+        for module_name, server in clients:
+            try:
+                module = __import__(module_name)
+                ClientClass = getattr(module, "Client")
+                return ClientClass(server)
+            except ImportError:
+                continue
+
+        raise ImportError("No memcache module found")
 
     def _get_memcache_timeout(self, timeout):
         """
