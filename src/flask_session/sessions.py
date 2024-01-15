@@ -7,6 +7,7 @@ try:
 except ImportError:
     import pickle
 
+from datetime import datetime, timezone
 from flask.sessions import SessionInterface as FlaskSessionInterface
 from flask.sessions import SessionMixin
 from itsdangerous import BadSignature, Signer, want_bytes
@@ -416,7 +417,6 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         client,
         db,
         collection,
-        tz_aware,
         key_prefix,
         use_signer,
         permanent,
@@ -424,16 +424,11 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
     ):
         import pymongo
 
-        # Ensure that the client exists, support for tz_aware MongoClient
         if client is None:
-            if tz_aware:
-                client = pymongo.MongoClient(tz_aware=tz_aware)
-            else:
-                client = pymongo.MongoClient()
+            client = pymongo.MongoClient()
 
         self.client = client
         self.store = client[db][collection]
-        self.tz_aware = tz_aware
         self.use_deprecated_method = int(pymongo.version.split(".")[0]) < 4
         super().__init__(self.store, key_prefix, use_signer, permanent, sid_length)
 
@@ -442,17 +437,17 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         prefixed_session_id = self.key_prefix + sid
         document = self.store.find_one({"id": prefixed_session_id})
 
-        # Workaround for tz_aware MongoClient
-        from datetime import timezone
-        if self.tz_aware:
-            utc_now = datetime.utcnow().replace(tzinfo=timezone.utc)
-        else:
-            utc_now = datetime.utcnow()
-
         # If the expiration time is less than or equal to the current time (expired), delete the document
         if document is not None:
-            expiration = document.get("expiration")
-            if expiration is None or expiration <= utc_now:
+            expiration_datetime = document.get("expiration")
+            # tz_aware mongodb fix
+            expiration_datetime_tz_aware = expiration_datetime.replace(
+                tzinfo=timezone.utc
+            )
+            now_datetime_tz_aware = datetime.utcnow().replace(tzinfo=timezone.utc)
+            if expiration_datetime is None or (
+                expiration_datetime_tz_aware <= now_datetime_tz_aware
+            ):
                 if self.use_deprecated_method:
                     self.store.remove({"id": prefixed_session_id})
                 else:
