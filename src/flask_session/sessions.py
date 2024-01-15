@@ -191,7 +191,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
             return
 
         # Get the new expiration time for the session
-        expires = self.get_expiration_time(app, session)
+        expiration_datetime = self.get_expiration_time(app, session)
 
         # Serialize the session data
         serialized_session_data = self.serializer.dumps(dict(session))
@@ -204,7 +204,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
         )
 
         # Set the browser cookie
-        self.set_cookie_to_response(app, session, response, expires)
+        self.set_cookie_to_response(app, session, response, expiration_datetime)
 
 
 class MemcachedSessionInterface(ServerSideSessionInterface):
@@ -295,7 +295,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
             return
 
         # Get the new expiration time for the session
-        expires = self.get_expiration_time(app, session)
+        expiration_datetime = self.get_expiration_time(app, session)
 
         # Serialize the session data
         serialized_session_data = self.serializer.dumps(dict(session))
@@ -308,7 +308,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
         )
 
         # Set the browser cookie
-        self.set_cookie_to_response(app, session, response, expires)
+        self.set_cookie_to_response(app, session, response, expiration_datetime)
 
 
 class FileSystemSessionInterface(ServerSideSessionInterface):
@@ -378,7 +378,7 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
             return
 
         # Get the new expiration time for the session
-        expires = self.get_expiration_time(app, session)
+        expiration_datetime = self.get_expiration_time(app, session)
 
         # Serialize the session data (or just cast into dictionary in this case)
         session_data = dict(session)
@@ -391,7 +391,7 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
         )
 
         # Set the browser cookie
-        self.set_cookie_to_response(app, session, response, expires)
+        self.set_cookie_to_response(app, session, response, expiration_datetime)
 
 
 class MongoDBSessionInterface(ServerSideSessionInterface):
@@ -490,7 +490,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
             return
 
         # Get the new expiration time for the session
-        expires = self.get_expiration_time(app, session)
+        expiration_datetime = self.get_expiration_time(app, session)
 
         # Serialize the session data
         serialized_session_data = self.serializer.dumps(dict(session))
@@ -502,7 +502,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
                 {
                     "id": prefixed_session_id,
                     "val": serialized_session_data,
-                    "expiration": expires,
+                    "expiration": expiration_datetime,
                 },
                 True,
             )
@@ -513,14 +513,14 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
                     "$set": {
                         "id": prefixed_session_id,
                         "val": serialized_session_data,
-                        "expiration": expires,
+                        "expiration": expiration_datetime,
                     }
                 },
                 True,
             )
 
         # Set the browser cookie
-        self.set_cookie_to_response(app, session, response, expires)
+        self.set_cookie_to_response(app, session, response, expiration_datetime)
 
 
 class SqlAlchemySessionInterface(ServerSideSessionInterface):
@@ -610,8 +610,8 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
         # If the expiration time is less than or equal to the current time (expired), delete the document
         if record is not None:
-            expiration = record.get("expiration")
-            if expiration is None or expiration <= datetime.utcnow():
+            expiration_datetime = record.expiry
+            if expiration_datetime is None or expiration_datetime <= datetime.utcnow():
                 self.db.session.delete(record)
                 self.db.session.commit()
                 record = None
@@ -653,7 +653,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         serialized_session_data = self.serializer.dumps(dict(session))
 
         # Get the new expiration time for the session
-        expires = self.get_expiration_time(app, session)
+        expiration_datetime = self.get_expiration_time(app, session)
 
         # Update existing or create new session in the database
         record = self.sql_session_model.query.filter_by(
@@ -661,15 +661,15 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         ).first()
         if record:
             record.data = serialized_session_data
-            record.expiry = expires
+            record.expiry = expiration_datetime
         else:
             record = self.sql_session_model(
                 session_id=prefixed_session_id,
                 data=serialized_session_data,
-                expiry=expires,
+                expiry=expiration_datetime,
             )
             self.db.session.add(record)
         self.db.session.commit()
 
         # Set the browser cookie
-        self.set_cookie_to_response(app, session, response, expires)
+        self.set_cookie_to_response(app, session, response, expiration_datetime)
