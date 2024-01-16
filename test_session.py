@@ -1,12 +1,17 @@
-import unittest
+import os
 import tempfile
+import unittest
 
 import flask
+import pylibmc
+from pymongo import MongoClient
+from redis import Redis
+
 from flask_session import Session
 
 
 class FlaskSessionTestCase(unittest.TestCase):
-    
+
     def test_null_session(self):
         app = flask.Flask(__name__)
         Session(app)
@@ -25,6 +30,7 @@ class FlaskSessionTestCase(unittest.TestCase):
     def test_redis_session(self):
         app = flask.Flask(__name__)
         app.config['SESSION_TYPE'] = 'redis'
+        app.config['SESSION_REDIS'] = Redis(port=os.getenv('REDIS_PORT', '6379'))
         Session(app)
         @app.route('/set', methods=['POST'])
         def set():
@@ -42,11 +48,13 @@ class FlaskSessionTestCase(unittest.TestCase):
         self.assertEqual(c.post('/set', data={'value': '42'}).data, b'value set')
         self.assertEqual(c.get('/get').data, b'42')
         c.post('/delete')
-    
-    
+
     def test_memcached_session(self):
         app = flask.Flask(__name__)
         app.config['SESSION_TYPE'] = 'memcached'
+        app.config['SESSION_MEMCACHED'] = pylibmc.Client(
+            ['127.0.0.1:' + os.getenv('MEMCACHED_PORT', '11211')]
+        )
         Session(app)
         @app.route('/set', methods=['POST'])
         def set():
@@ -64,8 +72,7 @@ class FlaskSessionTestCase(unittest.TestCase):
         self.assertEqual(c.post('/set', data={'value': '42'}).data, b'value set')
         self.assertEqual(c.get('/get').data, b'42')
         c.post('/delete')
-    
-    
+
     def test_filesystem_session(self):
         app = flask.Flask(__name__)
         app.config['SESSION_TYPE'] = 'filesystem'
@@ -87,11 +94,14 @@ class FlaskSessionTestCase(unittest.TestCase):
         self.assertEqual(c.post('/set', data={'value': '42'}).data, b'value set')
         self.assertEqual(c.get('/get').data, b'42')
         c.post('/delete')
-    
+
     def test_mongodb_session(self):
         app = flask.Flask(__name__)
         app.testing = True
         app.config['SESSION_TYPE'] = 'mongodb'
+        app.config['SESSION_MONGODB'] = MongoClient(
+            port=int(os.getenv('MONGODB_PORT', '27017'))
+        )
         Session(app)
         @app.route('/set', methods=['POST'])
         def set():
@@ -141,7 +151,7 @@ class FlaskSessionTestCase(unittest.TestCase):
         app.config['SESSION_TYPE'] = 'sqlalchemy'
         app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
         app.config['SESSION_USE_SIGNER'] = True
-        session = Session(app)
+        Session(app)
         @app.route('/set', methods=['POST'])
         def set():
             flask.session['value'] = flask.request.form['value']
@@ -164,6 +174,7 @@ class FlaskSessionTestCase(unittest.TestCase):
         app = flask.Flask(__name__)
         app.secret_key = 'test_secret_key'
         app.config['SESSION_TYPE'] = 'redis'
+        app.config['SESSION_REDIS'] = Redis(port=os.getenv('REDIS_PORT', '6379'))
         app.config['SESSION_USE_SIGNER'] = True
         Session(app)
         @app.route('/set', methods=['POST'])
