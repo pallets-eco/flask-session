@@ -109,7 +109,7 @@ Flask-Session Configuration Values
    Default: ``32``
 
 .. versionadded:: 0.6
-``SESSION_ID_LENGTH``
+    ``SESSION_ID_LENGTH``
 
 Backend-specific Configuration Values
 ---------------------------------------
@@ -212,4 +212,4 @@ SqlAlchemy
    Default: ``None``
 
 .. versionadded:: 0.6
-``SESSION_SQLALCHEMY_BIND_KEY``, ``SESSION_SQLALCHEMY_SCHEMA``, ``SESSION_SQLALCHEMY_SEQUENCE``
+    ``SESSION_SQLALCHEMY_BIND_KEY``, ``SESSION_SQLALCHEMY_SCHEMA``, ``SESSION_SQLALCHEMY_SEQUENCE``
