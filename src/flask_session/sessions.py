@@ -7,7 +7,7 @@ try:
 except ImportError:
     import pickle
 
-from datetime import datetime, timezone
+from datetime import datetime
 
 from flask.sessions import SessionInterface as FlaskSessionInterface
 from flask.sessions import SessionMixin
@@ -477,6 +477,10 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         self.client = client
         self.store = client[db][collection]
         self.use_deprecated_method = int(pymongo.version.split(".")[0]) < 4
+
+        # Create a TTL index on the expiration time, so that mongo can automatically delete expired sessions
+        self.store.create_index("expiration", expireAfterSeconds=0)
+
         super().__init__(self.store, key_prefix, use_signer, permanent, sid_length)
 
     def fetch_session(self, sid):
@@ -484,24 +488,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         prefixed_session_id = self.key_prefix + sid
         document = self.store.find_one({"id": prefixed_session_id})
 
-        # If the expiration time is less than or equal to the current time (expired), delete the document
-        if document is not None:
-            expiration_datetime = document.get("expiration")
-            # tz_aware mongodb fix
-            expiration_datetime_tz_aware = expiration_datetime.replace(
-                tzinfo=timezone.utc
-            )
-            now_datetime_tz_aware = datetime.utcnow().replace(tzinfo=timezone.utc)
-            if expiration_datetime is None or (
-                expiration_datetime_tz_aware <= now_datetime_tz_aware
-            ):
-                if self.use_deprecated_method:
-                    self.store.remove({"id": prefixed_session_id})
-                else:
-                    self.store.delete_one({"id": prefixed_session_id})
-                document = None
-
-        # If the saved session still exists after checking for expiration, load the session data from the document
+        # If the saved session exists and has not auto-expired, load the session data from the document
         if document is not None:
             try:
                 session_data = self.serializer.loads(want_bytes(document["val"]))
