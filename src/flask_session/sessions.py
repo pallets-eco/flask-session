@@ -14,6 +14,8 @@ from flask.sessions import SessionMixin
 from itsdangerous import BadSignature, Signer, want_bytes
 from werkzeug.datastructures import CallbackDict
 
+from .defaults import Defaults
+
 
 def total_seconds(td):
     return td.days * 60 * 60 * 24 + td.seconds
@@ -92,7 +94,14 @@ class NullSessionInterface(SessionInterface):
 class ServerSideSessionInterface(SessionInterface, ABC):
     """Used to open a :class:`flask.sessions.ServerSideSessionInterface` instance."""
 
-    def __init__(self, db, key_prefix, use_signer=False, permanent=True, sid_length=32):
+    def __init__(
+        self,
+        db,
+        key_prefix=Defaults.SESSION_KEY_PREFIX,
+        use_signer=Defaults.SESSION_USE_SIGNER,
+        permanent=Defaults.SESSION_PERMANENT,
+        sid_length=Defaults.SESSION_SID_LENGTH,
+    ):
         self.db = db
         self.key_prefix = key_prefix
         self.use_signer = use_signer
@@ -157,7 +166,14 @@ class RedisSessionInterface(ServerSideSessionInterface):
     serializer = pickle
     session_class = RedisSession
 
-    def __init__(self, redis, key_prefix, use_signer, permanent, sid_length):
+    def __init__(
+        self,
+        key_prefix,
+        use_signer,
+        permanent,
+        sid_length,
+        redis=Defaults.SESSION_REDIS,
+    ):
         if redis is None:
             from redis import Redis
 
@@ -236,7 +252,14 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
     serializer = pickle
     session_class = MemcachedSession
 
-    def __init__(self, client, key_prefix, use_signer, permanent, sid_length):
+    def __init__(
+        self,
+        key_prefix,
+        use_signer,
+        permanent,
+        sid_length,
+        client=Defaults.SESSION_MEMCACHED,
+    ):
         if client is None:
             client = self._get_preferred_memcache_client()
         self.client = client
@@ -346,13 +369,13 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
 
     def __init__(
         self,
-        cache_dir,
-        threshold,
-        mode,
         key_prefix,
         use_signer,
         permanent,
         sid_length,
+        cache_dir=Defaults.SESSION_FILE_DIR,
+        threshold=Defaults.SESSION_FILE_THRESHOLD,
+        mode=Defaults.SESSION_FILE_MODE,
     ):
         from cachelib.file import FileSystemCache
 
@@ -432,13 +455,13 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
 
     def __init__(
         self,
-        client,
-        db,
-        collection,
         key_prefix,
         use_signer,
         permanent,
         sid_length,
+        client=Defaults.SESSION_MONGODB,
+        db=Defaults.SESSION_MONGODB_DB,
+        collection=Defaults.SESSION_MONGODB_COLLECT,
     ):
         import pymongo
 
@@ -567,16 +590,16 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
     def __init__(
         self,
-        app,
-        db,
-        table,
-        sequence,
-        schema,
-        bind_key,
         key_prefix,
         use_signer,
         permanent,
         sid_length,
+        app,
+        db=Defaults.SESSION_SQLALCHEMY,
+        table=Defaults.SESSION_SQLALCHEMY_TABLE,
+        sequence=Defaults.SESSION_SQLALCHEMY_SEQUENCE,
+        schema=Defaults.SESSION_SQLALCHEMY_SCHEMA,
+        bind_key=Defaults.SESSION_SQLALCHEMY_BIND_KEY,
     ):
         if db is None:
             from flask_sqlalchemy import SQLAlchemy

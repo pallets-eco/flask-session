@@ -1,5 +1,4 @@
-import os
-
+from .defaults import Defaults
 from .sessions import (
     FileSystemSessionInterface,
     MemcachedSessionInterface,
@@ -55,78 +54,100 @@ class Session:
         app.session_interface = self._get_interface(app)
 
     def _get_interface(self, app):
-        config = app.config.copy()
+        config = app.config
 
         # Flask-session specific settings
-        config.setdefault("SESSION_TYPE", "null")
-        config.setdefault("SESSION_PERMANENT", True)
-        config.setdefault("SESSION_USE_SIGNER", False)
-        config.setdefault("SESSION_KEY_PREFIX", "session:")
-        config.setdefault("SESSION_ID_LENGTH", 32)
+        SESSION_TYPE = config.get("SESSION_TYPE", Defaults.SESSION_TYPE)
+        SESSION_PERMANENT = config.get("SESSION_PERMANENT", Defaults.SESSION_PERMANENT)
+        SESSION_USE_SIGNER = config.get(
+            "SESSION_USE_SIGNER", Defaults.SESSION_USE_SIGNER
+        )
+        SESSION_KEY_PREFIX = config.get(
+            "SESSION_KEY_PREFIX", Defaults.SESSION_KEY_PREFIX
+        )
+        SESSION_SID_LENGTH = config.get(
+            "SESSION_ID_LENGTH", Defaults.SESSION_SID_LENGTH
+        )
 
         # Redis settings
-        config.setdefault("SESSION_REDIS", None)
+        SESSION_REDIS = config.get("SESSION_REDIS", Defaults.SESSION_REDIS)
 
         # Memcached settings
-        config.setdefault("SESSION_MEMCACHED", None)
+        SESSION_MEMCACHED = config.get("SESSION_MEMCACHED", Defaults.SESSION_MEMCACHED)
 
         # Filesystem settings
-        config.setdefault(
-            "SESSION_FILE_DIR", os.path.join(os.getcwd(), "flask_session")
+        SESSION_FILE_DIR = config.get("SESSION_FILE_DIR", Defaults.SESSION_FILE_DIR)
+        SESSION_FILE_THRESHOLD = config.get(
+            "SESSION_FILE_THRESHOLD", Defaults.SESSION_FILE_THRESHOLD
         )
-        config.setdefault("SESSION_FILE_THRESHOLD", 500)
-        config.setdefault("SESSION_FILE_MODE", 384)
+        SESSION_FILE_MODE = config.get("SESSION_FILE_MODE", Defaults.SESSION_FILE_MODE)
 
         # MongoDB settings
-        config.setdefault("SESSION_MONGODB", None)
-        config.setdefault("SESSION_MONGODB_DB", "flask_session")
-        config.setdefault("SESSION_MONGODB_COLLECT", "sessions")
+        SESSION_MONGODB = config.get("SESSION_MONGODB", Defaults.SESSION_MONGODB)
+        SESSION_MONGODB_DB = config.get(
+            "SESSION_MONGODB_DB", Defaults.SESSION_MONGODB_DB
+        )
+        SESSION_MONGODB_COLLECT = config.get(
+            "SESSION_MONGODB_COLLECT", Defaults.SESSION_MONGODB_COLLECT
+        )
 
         # SQLAlchemy settings
-        config.setdefault("SESSION_SQLALCHEMY", None)
-        config.setdefault("SESSION_SQLALCHEMY_TABLE", "sessions")
-        config.setdefault("SESSION_SQLALCHEMY_SEQUENCE", None)
-        config.setdefault("SESSION_SQLALCHEMY_SCHEMA", None)
-        config.setdefault("SESSION_SQLALCHEMY_BIND_KEY", None)
+        SESSION_SQLALCHEMY = config.get(
+            "SESSION_SQLALCHEMY", Defaults.SESSION_SQLALCHEMY
+        )
+        SESSION_SQLALCHEMY_TABLE = config.get(
+            "SESSION_SQLALCHEMY_TABLE", Defaults.SESSION_SQLALCHEMY_TABLE
+        )
+        SESSION_SQLALCHEMY_SEQUENCE = config.get(
+            "SESSION_SQLALCHEMY_SEQUENCE", Defaults.SESSION_SQLALCHEMY_SEQUENCE
+        )
+        SESSION_SQLALCHEMY_SCHEMA = config.get(
+            "SESSION_SQLALCHEMY_SCHEMA", Defaults.SESSION_SQLALCHEMY_SCHEMA
+        )
+        SESSION_SQLALCHEMY_BIND_KEY = config.get(
+            "SESSION_SQLALCHEMY_BIND_KEY", Defaults.SESSION_SQLALCHEMY_BIND_KEY
+        )
 
         common_params = {
-            "key_prefix": config["SESSION_KEY_PREFIX"],
-            "use_signer": config["SESSION_USE_SIGNER"],
-            "permanent": config["SESSION_PERMANENT"],
-            "sid_length": config["SESSION_ID_LENGTH"],
+            "key_prefix": SESSION_KEY_PREFIX,
+            "use_signer": SESSION_USE_SIGNER,
+            "permanent": SESSION_PERMANENT,
+            "sid_length": SESSION_SID_LENGTH,
         }
 
-        if config["SESSION_TYPE"] == "redis":
+        if SESSION_TYPE == "redis":
             session_interface = RedisSessionInterface(
-                config["SESSION_REDIS"], **common_params
+                **common_params,
+                redis=SESSION_REDIS,
             )
-        elif config["SESSION_TYPE"] == "memcached":
+        elif SESSION_TYPE == "memcached":
             session_interface = MemcachedSessionInterface(
-                config["SESSION_MEMCACHED"], **common_params
+                **common_params,
+                client=SESSION_MEMCACHED,
             )
-        elif config["SESSION_TYPE"] == "filesystem":
+        elif SESSION_TYPE == "filesystem":
             session_interface = FileSystemSessionInterface(
-                config["SESSION_FILE_DIR"],
-                config["SESSION_FILE_THRESHOLD"],
-                config["SESSION_FILE_MODE"],
                 **common_params,
+                cache_dir=SESSION_FILE_DIR,
+                threshold=SESSION_FILE_THRESHOLD,
+                mode=SESSION_FILE_MODE,
             )
-        elif config["SESSION_TYPE"] == "mongodb":
+        elif SESSION_TYPE == "mongodb":
             session_interface = MongoDBSessionInterface(
-                config["SESSION_MONGODB"],
-                config["SESSION_MONGODB_DB"],
-                config["SESSION_MONGODB_COLLECT"],
                 **common_params,
+                client=SESSION_MONGODB,
+                db=SESSION_MONGODB_DB,
+                collection=SESSION_MONGODB_COLLECT,
             )
-        elif config["SESSION_TYPE"] == "sqlalchemy":
+        elif SESSION_TYPE == "sqlalchemy":
             session_interface = SqlAlchemySessionInterface(
-                app,
-                config["SESSION_SQLALCHEMY"],
-                config["SESSION_SQLALCHEMY_TABLE"],
-                config["SESSION_SQLALCHEMY_SEQUENCE"],
-                config["SESSION_SQLALCHEMY_SCHEMA"],
-                config["SESSION_SQLALCHEMY_BIND_KEY"],
                 **common_params,
+                app=app,
+                db=SESSION_SQLALCHEMY,
+                table=SESSION_SQLALCHEMY_TABLE,
+                sequence=SESSION_SQLALCHEMY_SEQUENCE,
+                schema=SESSION_SQLALCHEMY_SCHEMA,
+                bind_key=SESSION_SQLALCHEMY_BIND_KEY,
             )
         else:
             session_interface = NullSessionInterface()
