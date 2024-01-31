@@ -17,8 +17,8 @@ from werkzeug.datastructures import CallbackDict
 from .defaults import Defaults
 
 
-def total_seconds(td):
-    return td.days * 60 * 60 * 24 + td.seconds
+def total_seconds(timedelta):
+    return int(timedelta.total_seconds())
 
 
 class ServerSideSession(CallbackDict, SessionMixin):
