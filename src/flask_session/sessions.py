@@ -79,18 +79,6 @@ class SessionInterface(FlaskSessionInterface):
         return signer.sign(sid_as_bytes).decode("utf-8")
 
 
-class NullSessionInterface(SessionInterface):
-    """Used to open a :class:`flask.sessions.NullSession` instance.
-
-    If you do not configure a different ``SESSION_TYPE``, this will be used to
-    generate nicer error messages.  Will allow read-only access to the empty
-    session but fail on setting.
-    """
-
-    def open_session(self, app, request):
-        return None
-
-
 class ServerSideSessionInterface(SessionInterface, ABC):
     """Used to open a :class:`flask.sessions.ServerSideSessionInterface` instance."""
 

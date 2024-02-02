@@ -3,7 +3,6 @@ from .sessions import (
     FileSystemSessionInterface,
     MemcachedSessionInterface,
     MongoDBSessionInterface,
-    NullSessionInterface,
     RedisSessionInterface,
     SqlAlchemySessionInterface,
 )
@@ -150,6 +149,6 @@ class Session:
                 bind_key=SESSION_SQLALCHEMY_BIND_KEY,
             )
         else:
-            session_interface = NullSessionInterface()
+            raise RuntimeError(f"Unrecognized value for SESSION_TYPE: {SESSION_TYPE}")
 
         return session_interface
