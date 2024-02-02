@@ -195,6 +195,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
                 return self.session_class(sid=sid, permanent=self.permanent)
 
         # If the saved session  does not exist, create a new session
+        sid = self._generate_sid(self.sid_length)
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
@@ -310,6 +311,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
                 return self.session_class(sid=sid, permanent=self.permanent)
 
         # If the saved session  does not exist, create a new session
+        sid = self._generate_sid(self.sid_length)
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
@@ -397,6 +399,7 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
             return self.session_class(item, sid=sid)
 
         # If the saved session  does not exist, create a new session
+        sid = self._generate_sid(self.sid_length)
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
@@ -497,6 +500,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
                 return self.session_class(sid=sid, permanent=self.permanent)
 
         # If the saved session does not exist, create a new session
+        sid = self._generate_sid(self.sid_length)
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
@@ -662,6 +666,9 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
                 return self.session_class(session_data, sid=sid)
             except pickle.UnpicklingError:
                 return self.session_class(sid=sid, permanent=self.permanent)
+
+        # If the saved session  does not exist, create a new session
+        sid = self._generate_sid(self.sid_length)
         return self.session_class(sid=sid, permanent=self.permanent)
 
     def save_session(self, app, session, response):
