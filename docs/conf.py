@@ -22,4 +22,7 @@ html_theme_options = {
     "github_button": True,
     "github_user": "pallets-eco",
     "github_repo": "flask-session",
+    "github_type": "star",
+    "github_banner": True,
+    "show_related": True,
 }

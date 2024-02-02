@@ -1,12 +1,14 @@
 /.idea/
 /.vscode/
 /.venv/
+/venv/
 __pycache__/
 /dist/
 *.egg-info/
 /.pytest_cache/
 /.coverage
 /.coverage.*
+*.coveragerc
 /htmlcov/
 /.mypy_cache/
 /.tox/

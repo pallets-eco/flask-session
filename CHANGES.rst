@@ -1,3 +1,22 @@
+Version 0.6.0-RC1
+------------------
+
+Unreleased
+
+-   Use ``should_set_cookie`` for preventing each request from saving the session again.
+-   Permanent session otherwise empty will not be saved.
+-   Use `secrets` module to generate session identifiers, with 256 bits of
+    entropy (was previously 122).
+-   Explicitly name support for python-memcached, pylibmc and pymemcache.
+-   Introduce SESSION_KEY_LENGTH to control the length of the session key in bytes, default is 32.
+-   Fix pymongo 4.0 compatibility.
+-   Fix expiry is None bug in SQLAlchemy.
+-   Fix bug when existing SQLAlchemy db instance.
+-   Support SQLAlchemy SESSION_SQLALCHEMY_SEQUENCE, SESSION_SQLALCHEMY_SCHEMA and SESSION_SQLALCHEMY_BINDKEY
+-   Drop support for Redis < 2.6.12.
+-   Fix empty sessions being saved.
+-   Support Flask 3.0 and Werkzeug 3.0
+
 Version 0.5.0
 -------------
 
