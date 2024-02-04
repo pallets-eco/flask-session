@@ -32,9 +32,9 @@ class ServerSideSession(CallbackDict, SessionMixin):
 
     def __init__(
         self,
-        initial: dict[str, Any] | None = None,
-        sid: str | None = None,
-        permanent: bool | None = None,
+        initial: Optional[dict[str, Any]] = None,
+        sid: Optional[str] = None,
+        permanent: Optional[bool] = None,
     ):
         def on_update(self) -> None:
             self.modified = True
@@ -177,7 +177,7 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         sid = self._generate_sid(self.sid_length)
         return self.session_class(sid=sid, permanent=self.permanent)
 
-    def _retrieve_session_data(self, store_id: str) -> dict | None:
+    def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         raise NotImplementedError()
 
     def _delete_session(self, store_id: str) -> None:
@@ -224,7 +224,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
         self.redis = redis
         super().__init__(app, key_prefix, use_signer, permanent, sid_length)
 
-    def _retrieve_session_data(self, store_id: str) -> dict | None:
+    def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (value) from the database
         serialized_session_data = self.redis.get(store_id)
         if serialized_session_data:
@@ -315,7 +315,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
             timeout += int(time.time())
         return timeout
 
-    def _retrieve_session_data(self, store_id: str) -> dict | None:
+    def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (item) from the database
         serialized_session_data = self.client.get(store_id)
         if serialized_session_data:
@@ -382,7 +382,7 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
         self.cache = FileSystemCache(cache_dir, threshold=threshold, mode=mode)
         super().__init__(app, key_prefix, use_signer, permanent, sid_length)
 
-    def _retrieve_session_data(self, store_id: str) -> dict | None:
+    def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (item) from the database
         return self.cache.get(store_id)
 
@@ -451,7 +451,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
 
         super().__init__(app, key_prefix, use_signer, permanent, sid_length)
 
-    def _retrieve_session_data(self, store_id: str) -> dict | None:
+    def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (document) from the database
         document = self.store.find_one({"id": store_id})
         if document:
@@ -586,7 +586,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
         self.sql_session_model = Session
 
-    def _retrieve_session_data(self, store_id: str) -> dict | None:
+    def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (record) from the database
         record = self.sql_session_model.query.filter_by(session_id=store_id).first()
 
