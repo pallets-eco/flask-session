@@ -108,6 +108,7 @@ class Session:
         )
 
         common_params = {
+            "app": app,
             "key_prefix": SESSION_KEY_PREFIX,
             "use_signer": SESSION_USE_SIGNER,
             "permanent": SESSION_PERMANENT,
@@ -141,7 +142,6 @@ class Session:
         elif SESSION_TYPE == "sqlalchemy":
             session_interface = SqlAlchemySessionInterface(
                 **common_params,
-                app=app,
                 db=SESSION_SQLALCHEMY,
                 table=SESSION_SQLALCHEMY_TABLE,
                 sequence=SESSION_SQLALCHEMY_SEQUENCE,

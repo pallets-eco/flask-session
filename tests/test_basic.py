@@ -12,13 +12,14 @@ def test_tot_seconds_func():
 
 def test_null_session():
     """Invalid session should fail to get/set the flask session"""
-    app = flask.Flask(__name__)
-    app.secret_key = "alsdkfjaldkjsf"
-    flask_session.Session(app)
+    with pytest.raises(RuntimeError):
+        app = flask.Flask(__name__)
+        app.secret_key = "alsdkfjaldkjsf"
+        flask_session.Session(app)
 
-    with app.test_request_context():
-        assert not flask.session.get("missing_key")
-        with pytest.raises(RuntimeError):
-            flask.session["foo"] = 42
-        with pytest.raises(KeyError):
-            print(flask.session["foo"])
+        # with app.test_request_context():
+        #     assert not flask.session.get("missing_key")
+        #     with pytest.raises(RuntimeError):
+        #         flask.session["foo"] = 42
+        #     with pytest.raises(RuntimeError):
+        #     print(flask.session["foo"])
