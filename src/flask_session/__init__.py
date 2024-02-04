@@ -106,6 +106,12 @@ class Session:
         SESSION_SQLALCHEMY_BIND_KEY = config.get(
             "SESSION_SQLALCHEMY_BIND_KEY", Defaults.SESSION_SQLALCHEMY_BIND_KEY
         )
+        SESSION_CLEANUP_N_REQUESTS = config.get(
+            "SESSION_CLEANUP_N_REQUESTS", Defaults.SESSION_CLEANUP_N_REQUESTS
+        )
+        SESSION_CLEANUP_N_SECONDS = config.get(
+            "SESSION_CLEANUP_N_SECONDS", Defaults.SESSION_CLEANUP_N_SECONDS
+        )
 
         common_params = {
             "app": app,
@@ -147,6 +153,8 @@ class Session:
                 sequence=SESSION_SQLALCHEMY_SEQUENCE,
                 schema=SESSION_SQLALCHEMY_SCHEMA,
                 bind_key=SESSION_SQLALCHEMY_BIND_KEY,
+                cleanup_n_requests=SESSION_CLEANUP_N_REQUESTS,
+                cleanup_n_seconds=SESSION_CLEANUP_N_SECONDS,
             )
         else:
             raise RuntimeError(f"Unrecognized value for SESSION_TYPE: {SESSION_TYPE}")

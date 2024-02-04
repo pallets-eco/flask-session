@@ -7,8 +7,10 @@ try:
 except ImportError:
     import pickle
 
+import random
 from datetime import datetime
 from datetime import timedelta as TimeDelta
+from threading import Thread
 from typing import Any, Optional
 
 from flask import Flask, Request, Response
@@ -515,6 +517,11 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
     :param sequence: The sequence to use for the primary key if needed.
     :param schema: The db schema to use
     :param bind_key: The db bind key to use
+    :param cleanup_n_requests: Delete expired sessions approximately every N requests.
+    :param cleanup_n_seconds: Delete expired sessions approximately every N seconds.
+
+    .. versionadded:: 0.7
+        The `cleanup_n_requests` and `cleanup_n_seconds` parameters were added.
 
     .. versionadded:: 0.6
         The `sid_length`, `sequence`, `schema` and `bind_key` parameters were added.
@@ -538,16 +545,19 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         sequence: Optional[str] = Defaults.SESSION_SQLALCHEMY_SEQUENCE,
         schema: Optional[str] = Defaults.SESSION_SQLALCHEMY_SCHEMA,
         bind_key: Optional[str] = Defaults.SESSION_SQLALCHEMY_BIND_KEY,
+        cleanup_n_requests: Optional[int] = Defaults.SESSION_CLEANUP_N_REQUESTS,
+        cleanup_n_seconds: Optional[int] = Defaults.SESSION_CLEANUP_N_SECONDS,
     ):
         if db is None:
             from flask_sqlalchemy import SQLAlchemy
 
             db = SQLAlchemy(app)
-
         self.db = db
         self.sequence = sequence
         self.schema = schema
         self.bind_key = bind_key
+        self.cleanup_n_requests = cleanup_n_requests
+        self.cleanup_n_seconds = cleanup_n_seconds
         super().__init__(app, key_prefix, use_signer, permanent, sid_length)
 
         # Create the Session database model
@@ -586,7 +596,51 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
         self.sql_session_model = Session
 
+        # Start the cleanup thread
+        if self.cleanup_n_seconds:
+            self._start_cleanup_thread(cleanup_n_seconds)
+
+    def _clean_up(self) -> None:
+        # Delete expired sessions approximately every N requests
+        if self.cleanup_n_seconds or (
+            self.cleanup_n_requests and random.randint(0, self.cleanup_n_requests) == 0
+        ):
+            self.app.logger.info("Deleting expired sessions")
+            try:
+                self.db.session.query(self.sql_session_model).filter(
+                    self.sql_session_model.expiry <= datetime.utcnow()
+                ).delete(synchronize_session=False)
+                self.db.session.commit()
+            except Exception as e:
+                self.app.logger.exception(
+                    e, "Failed to delete expired sessions. Skipping..."
+                )
+
+    def _start_cleanup_thread(self, cleanup_n_seconds: int) -> None:
+        def cleanup():
+            with self.app.app_context():
+                while True:
+                    try:
+                        self.app.logger.info("Deleting expired sessions")
+                        self.db.session.query(self.sql_session_model).filter(
+                            self.sql_session_model.expiry <= datetime.utcnow()
+                        ).delete(synchronize_session=False)
+                        self.db.session.commit()
+                    except Exception as e:
+                        self.app.logger.exception(
+                            e, "Failed to delete expired sessions. Skipping..."
+                        )
+                    # Wait for a specified interval (e.g., 3600 seconds = 1 hour) before the next cleanup
+                    time.sleep(cleanup_n_seconds)
+
+        # Create and start the cleanup thread
+        thread = Thread(target=cleanup, daemon=True)
+        thread.start()
+
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
+        if self.cleanup_n_requests:
+            self._clean_up()
+
         # Get the saved session (record) from the database
         record = self.sql_session_model.query.filter_by(session_id=store_id).first()
 
