@@ -143,6 +143,7 @@ class ServerSideSessionInterface(SessionInterface, ABC):
                 response.delete_cookie(
                     app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
                 )
+                response.vary.add("Cookie")
             return
 
         # Update existing or create new session in the database
@@ -161,6 +162,7 @@ class ServerSideSessionInterface(SessionInterface, ABC):
             if self.has_same_site_capability
             else None,
         )
+        response.vary.add("Cookie")
 
     def open_session(self, app: Flask, request: Request) -> ServerSideSession:
         # Get the session ID from the cookie
