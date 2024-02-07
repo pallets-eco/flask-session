@@ -9,6 +9,10 @@ class Defaults:
     SESSION_PERMANENT = True
     SESSION_SID_LENGTH = 3
 
+    # Clean up settings for non TTL backends (SQL, PostgreSQL, etc.)
+    SESSION_CLEANUP_N_REQUESTS = None
+    SESSION_CLEANUP_N_SECONDS = None
+
     # Redis settings
     SESSION_REDIS = None
 
@@ -31,5 +35,3 @@ class Defaults:
     SESSION_SQLALCHEMY_SEQUENCE = None
     SESSION_SQLALCHEMY_SCHEMA = None
     SESSION_SQLALCHEMY_BIND_KEY = None
-    SESSION_CLEANUP_N_REQUESTS = None
-    SESSION_CLEANUP_N_SECONDS = None

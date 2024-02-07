@@ -102,6 +102,8 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,
         sid_length: int = Defaults.SESSION_SID_LENGTH,
+        cleanup_n_requests: Optional[int] = Defaults.SESSION_CLEANUP_N_REQUESTS,
+        cleanup_n_seconds: Optional[int] = Defaults.SESSION_CLEANUP_N_SECONDS,
     ):
         self.app = app
         self.key_prefix = key_prefix
@@ -109,6 +111,16 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         self.permanent = permanent
         self.sid_length = sid_length
         self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
+        self.cleanup_n_requests = cleanup_n_requests
+        self.cleanup_n_seconds = cleanup_n_seconds
+
+        # Cleanup settings for non-TTL databases only
+        if self.ttl:
+            self._register_cleanup_app_command()
+            if self.cleanup_n_seconds:
+                self._start_cleanup_thread(self.cleanup_n_seconds)
+            if self.cleanup_n_requests:
+                self.app.before_request(self._cleanup_per_requests)
 
     def save_session(
         self, app: Flask, session: ServerSideSession, response: Response
@@ -179,6 +191,42 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         sid = self._generate_sid(self.sid_length)
         return self.session_class(sid=sid, permanent=self.permanent)
 
+    # CLEANUP METHODS FOR NON TTL DATABASES
+
+    def _register_cleanup_app_command(self):
+        """
+        Register a custom Flask CLI command for cleaning up expired sessions.
+
+        Run the command with `flask session_cleanup`. Run with a cron job
+        or scheduler such as Heroku Scheduler to automatically clean up expired sessions.
+        """
+
+        @self.app.cli.command("session_cleanup")
+        def session_cleanup():
+            with self.app.app_context():
+                self._delete_expired_sessions()
+
+    def _cleanup_n_requests(self) -> None:
+        """Delete expired sessions approximately every N requests."""
+        if self.cleanup_n_seconds or (
+            self.cleanup_n_requests and random.randint(0, self.cleanup_n_requests) == 0
+        ):
+            self._delete_expired_sessions()
+
+    def _start_cleanup_thread(self, cleanup_n_seconds: int) -> None:
+        """Start a background thread to delete expired sessions approximately every N seconds."""
+
+        def cleanup():
+            with self.app.app_context():
+                while True:
+                    self._delete_expired_sessions()
+                    time.sleep(cleanup_n_seconds)
+
+        thread = Thread(target=cleanup, daemon=True)
+        thread.start()
+
+    # METHODS TO BE IMPLEMENTED BY SUBCLASSES
+
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         raise NotImplementedError()
 
@@ -189,6 +237,10 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
         raise NotImplementedError()
+
+    def _delete_expired_sessions(self) -> None:
+        """Delete expired sessions from the backend storage. Only required for non-TTL databases."""
+        pass
 
 
 class RedisSessionInterface(ServerSideSessionInterface):
@@ -209,6 +261,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
 
     serializer = pickle
     session_class = RedisSession
+    ttl = True
 
     def __init__(
         self,
@@ -275,6 +328,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
 
     serializer = pickle
     session_class = MemcachedSession
+    ttl = True
 
     def __init__(
         self,
@@ -367,6 +421,8 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
     """
 
     session_class = FileSystemSession
+    serializer = None
+    ttl = True
 
     def __init__(
         self,
@@ -427,6 +483,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
 
     serializer = pickle
     session_class = MongoDBSession
+    ttl = True
 
     def __init__(
         self,
@@ -532,6 +589,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
     serializer = pickle
     session_class = SqlAlchemySession
+    non_ttl = True
 
     def __init__(
         self,
@@ -548,6 +606,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         cleanup_n_requests: Optional[int] = Defaults.SESSION_CLEANUP_N_REQUESTS,
         cleanup_n_seconds: Optional[int] = Defaults.SESSION_CLEANUP_N_SECONDS,
     ):
+        self.app = app
         if db is None:
             from flask_sqlalchemy import SQLAlchemy
 
@@ -556,8 +615,6 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         self.sequence = sequence
         self.schema = schema
         self.bind_key = bind_key
-        self.cleanup_n_requests = cleanup_n_requests
-        self.cleanup_n_seconds = cleanup_n_seconds
         super().__init__(app, key_prefix, use_signer, permanent, sid_length)
 
         # Create the Session database model
@@ -596,51 +653,19 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
         self.sql_session_model = Session
 
-        # Start the cleanup thread
-        if self.cleanup_n_seconds:
-            self._start_cleanup_thread(cleanup_n_seconds)
-
-    def _clean_up(self) -> None:
-        # Delete expired sessions approximately every N requests
-        if self.cleanup_n_seconds or (
-            self.cleanup_n_requests and random.randint(0, self.cleanup_n_requests) == 0
-        ):
-            self.app.logger.info("Deleting expired sessions")
-            try:
-                self.db.session.query(self.sql_session_model).filter(
-                    self.sql_session_model.expiry <= datetime.utcnow()
-                ).delete(synchronize_session=False)
-                self.db.session.commit()
-            except Exception as e:
-                self.app.logger.exception(
-                    e, "Failed to delete expired sessions. Skipping..."
-                )
-
-    def _start_cleanup_thread(self, cleanup_n_seconds: int) -> None:
-        def cleanup():
-            with self.app.app_context():
-                while True:
-                    try:
-                        self.app.logger.info("Deleting expired sessions")
-                        self.db.session.query(self.sql_session_model).filter(
-                            self.sql_session_model.expiry <= datetime.utcnow()
-                        ).delete(synchronize_session=False)
-                        self.db.session.commit()
-                    except Exception as e:
-                        self.app.logger.exception(
-                            e, "Failed to delete expired sessions. Skipping..."
-                        )
-                    # Wait for a specified interval (e.g., 3600 seconds = 1 hour) before the next cleanup
-                    time.sleep(cleanup_n_seconds)
-
-        # Create and start the cleanup thread
-        thread = Thread(target=cleanup, daemon=True)
-        thread.start()
+    def _delete_expired_sessions(self) -> None:
+        try:
+            self.db.session.query(self.sql_session_model).filter(
+                self.sql_session_model.expiry <= datetime.utcnow()
+            ).delete(synchronize_session=False)
+            self.db.session.commit()
+            self.app.logger.info("Deleted expired sessions")
+        except Exception as e:
+            self.app.logger.exception(
+                e, "Failed to delete expired sessions. Skipping..."
+            )
 
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
-        if self.cleanup_n_requests:
-            self._clean_up()
-
         # Get the saved session (record) from the database
         record = self.sql_session_model.query.filter_by(session_id=store_id).first()
 
