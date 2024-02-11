@@ -108,8 +108,21 @@ Flask-Session Configuration Values
    
    Default: ``32``
 
+.. py:data:: SESSION_CLEANUP_N_REQUESTS
+   
+   Only for non Time-to-live backends, such as SQL.
+
+   The average number of requests after which Flask-Session will perform session cleanup.
+
+   For best performance, it is recommended to instead use the app command ``flask session_cleanup`` with a cron task or database scheduler to perform session cleanup.
+   
+   Default: ``None``
+
 .. versionadded:: 0.6
-    ``SESSION_ID_LENGTH``
+   ``SESSION_ID_LENGTH``
+
+.. versionadded:: 0.7
+   ``SESSION_CLEANUP_N_REQUESTS``
 
 Backend-specific Configuration Values
 ---------------------------------------

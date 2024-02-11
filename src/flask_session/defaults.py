@@ -11,7 +11,6 @@ class Defaults:
 
     # Clean up settings for non TTL backends (SQL, PostgreSQL, etc.)
     SESSION_CLEANUP_N_REQUESTS = None
-    SESSION_CLEANUP_N_SECONDS = None
 
     # Redis settings
     SESSION_REDIS = None
