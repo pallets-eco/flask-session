@@ -19,6 +19,7 @@ from itsdangerous import BadSignature, Signer, want_bytes
 from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.datastructures import CallbackDict
 
+from ._utils import retry_query
 from .defaults import Defaults
 
 
@@ -219,17 +220,21 @@ class ServerSideSessionInterface(SessionInterface, ABC):
 
     # METHODS TO BE IMPLEMENTED BY SUBCLASSES
 
+    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         raise NotImplementedError()
 
+    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         raise NotImplementedError()
 
+    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
         raise NotImplementedError()
 
+    @retry_query()
     def _delete_expired_sessions(self) -> None:
         """Delete expired sessions from the backend storage. Only required for non-TTL databases."""
         pass
@@ -271,6 +276,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
         self.redis = redis
         super().__init__(app, key_prefix, use_signer, permanent, sid_length)
 
+    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (value) from the database
         serialized_session_data = self.redis.get(store_id)
@@ -282,9 +288,11 @@ class RedisSessionInterface(ServerSideSessionInterface):
                 self.app.logger.error("Failed to unpickle session data", exc_info=True)
         return None
 
+    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         self.redis.delete(store_id)
 
+    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -315,7 +323,6 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
 
     .. versionadded:: 0.2
         The `use_signer` parameter was added.
-
     """
 
     serializer = pickle
@@ -363,6 +370,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
             timeout += int(time.time())
         return timeout
 
+    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (item) from the database
         serialized_session_data = self.client.get(store_id)
@@ -374,9 +382,11 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
                 self.app.logger.error("Failed to unpickle session data", exc_info=True)
         return None
 
+    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         self.client.delete(store_id)
 
+    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -432,13 +442,16 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
         self.cache = FileSystemCache(cache_dir, threshold=threshold, mode=mode)
         super().__init__(app, key_prefix, use_signer, permanent, sid_length)
 
+    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (item) from the database
         return self.cache.get(store_id)
 
+    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         self.cache.delete(store_id)
 
+    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -502,6 +515,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
 
         super().__init__(app, key_prefix, use_signer, permanent, sid_length)
 
+    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (document) from the database
         document = self.store.find_one({"id": store_id})
@@ -514,12 +528,14 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
                 self.app.logger.error("Failed to unpickle session data", exc_info=True)
         return None
 
+    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         if self.use_deprecated_method:
             self.store.remove({"id": store_id})
         else:
             self.store.delete_one({"id": store_id})
 
+    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -645,19 +661,18 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
         self.sql_session_model = Session
 
+    @retry_query()
     def _delete_expired_sessions(self) -> None:
         try:
             self.db.session.query(self.sql_session_model).filter(
                 self.sql_session_model.expiry <= datetime.utcnow()
             ).delete(synchronize_session=False)
             self.db.session.commit()
-        except SQLAlchemyError as e:
-            self.app.logger.exception(
-                e, "Failed to delete expired sessions. Retrying...", exc_info=True
-            )
+        except SQLAlchemyError:
             self.db.session.rollback()
             raise
 
+    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (record) from the database
         record = self.sql_session_model.query.filter_by(session_id=store_id).first()
@@ -667,10 +682,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
             try:
                 self.db.session.delete(record)
                 self.db.session.commit()
-            except SQLAlchemyError as e:
-                self.app.logger.exception(
-                    e, "Failed to retrieve sessions. Retrying...", exc_info=True
-                )
+            except SQLAlchemyError:
                 self.db.session.rollback()
                 raise
             record = None
@@ -681,22 +693,21 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
                 session_data = self.serializer.loads(serialized_session_data)
                 return session_data
             except pickle.UnpicklingError as e:
-                self.app.logger.error(
+                self.app.logger.exception(
                     e, "Failed to unpickle session data", exc_info=True
                 )
         return None
 
+    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         try:
             self.sql_session_model.query.filter_by(session_id=store_id).delete()
             self.db.session.commit()
-        except SQLAlchemyError as e:
-            self.app.logger.exception(
-                e, "Failed to delete session. Retrying...", exc_info=True
-            )
+        except SQLAlchemyError:
             self.db.session.rollback()
             raise
 
+    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -719,9 +730,6 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
                 )
                 self.db.session.add(record)
             self.db.session.commit()
-        except SQLAlchemyError as e:
-            self.app.logger.exception(
-                e, "Failed to upsert session. Retrying...", exc_info=True
-            )
+        except SQLAlchemyError:
             self.db.session.rollback()
             raise
