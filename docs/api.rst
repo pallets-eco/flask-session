@@ -13,7 +13,6 @@ API
        Session id, internally we use :func:`secrets.token_urlsafe` to generate one
        session id. You can access it with ``session.sid``.
 
-.. autoclass:: NullSessionInterface
 .. autoclass:: RedisSessionInterface
 .. autoclass:: MemcachedSessionInterface
 .. autoclass:: FileSystemSessionInterface
