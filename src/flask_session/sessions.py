@@ -16,7 +16,6 @@ from flask import Flask, Request, Response
 from flask.sessions import SessionInterface as FlaskSessionInterface
 from flask.sessions import SessionMixin
 from itsdangerous import BadSignature, Signer, want_bytes
-from sqlalchemy.exc import SQLAlchemyError
 from werkzeug.datastructures import CallbackDict
 
 from ._utils import retry_query
@@ -668,7 +667,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
                 self.sql_session_model.expiry <= datetime.utcnow()
             ).delete(synchronize_session=False)
             self.db.session.commit()
-        except SQLAlchemyError:
+        except Exception:
             self.db.session.rollback()
             raise
 
@@ -682,7 +681,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
             try:
                 self.db.session.delete(record)
                 self.db.session.commit()
-            except SQLAlchemyError:
+            except Exception:
                 self.db.session.rollback()
                 raise
             record = None
@@ -703,7 +702,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         try:
             self.sql_session_model.query.filter_by(session_id=store_id).delete()
             self.db.session.commit()
-        except SQLAlchemyError:
+        except Exception:
             self.db.session.rollback()
             raise
 
@@ -730,6 +729,6 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
                 )
                 self.db.session.add(record)
             self.db.session.commit()
-        except SQLAlchemyError:
+        except Exception:
             self.db.session.rollback()
             raise
