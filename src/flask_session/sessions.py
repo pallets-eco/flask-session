@@ -6,7 +6,6 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
-
 import random
 from datetime import datetime
 from datetime import timedelta as TimeDelta
