@@ -1,7 +1,21 @@
-Version 0.6.0-RC1
+Version 0.7.0
 ------------------
 
-Unreleased
+-   Prevent sid reuse on storage miss.
+-   Add time-to-live expiration for MongoDB.
+-   Abstraction to improve consistency between backends.
+-   Enforce PERMANENT_SESSION_LIFETIME as expiration consistently for all backends.
+-   Add logo and additional Documentation.
+-   Add ``flask session_cleanup`` command and alternatively, SESSION_CLEANUP_N_REQUESTS for SQLAlchemy
+-   Use Vary cookie header
+-   Type hints
+-   Remove null session in favour of specific exception messages.
+
+
+Version 0.6.0
+------------------
+
+Released 2024-01-16
 
 -   Use ``should_set_cookie`` for preventing each request from saving the session again.
 -   Permanent session otherwise empty will not be saved.
@@ -16,6 +30,7 @@ Unreleased
 -   Drop support for Redis < 2.6.12.
 -   Fix empty sessions being saved.
 -   Support Flask 3.0 and Werkzeug 3.0
+
 
 Version 0.5.0
 -------------

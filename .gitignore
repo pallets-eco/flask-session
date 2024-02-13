@@ -13,3 +13,7 @@ __pycache__/
 /.mypy_cache/
 /.tox/
 /docs/_build/
+
+docs/.DS_Store
+
+.DS_Store

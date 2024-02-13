@@ -4,9 +4,11 @@ Flask-Session
 Flask-Session is an extension for Flask that adds support for server-side sessions to
 your application.
 
+In contrast to standard sessions, server-side sessions store session data in server-side storage rather than in a cookie on the client’s browser. The cookie now only contains the session identifier that links the client to their corresponding data on the server.
+
    
 .. image:: https://github.com/pallets-eco/flask-session/actions/workflows/test.yaml/badge.svg?branch=development
-    :target: https://github.com/pallets-eco/flask-session/actions/workflows/test.yaml?query=workflow%3ACI+branch%3Adeveloment
+    :target: https://github.com/pallets-eco/flask-session/actions/workflows/test.yaml?query=workflow%3ACI+branch%3Amain
     :alt: Tests
 
 .. image:: https://readthedocs.org/projects/flask-session/badge/?version=stable&style=flat
@@ -32,3 +34,47 @@ your application.
 .. image:: https://codecov.io/gh/pallets-eco/flask-session/branch/master/graph/badge.svg?token=yenl5fzxxr
     :target: https://codecov.io/gh/pallets-eco/flask-session
     :alt: codecov
+
+.. image:: https://img.shields.io/discord/531221516914917387?logo=discord
+    :target: https://discord.gg/pallets
+    :alt: Discord
+
+Installing
+------------
+Install and update using pip:
+
+.. code-block:: bash
+    $ pip install flask-session
+
+A Simple Example
+--------------------
+
+.. code-block:: python
+
+    from flask import Flask, session
+    from flask_session import Session
+
+    app = Flask(__name__)
+    # Check Configuration section for more details
+    SESSION_TYPE = 'redis'
+    app.config.from_object(__name__)
+    Session(app)
+
+    @app.route('/set/')
+    def set():
+        session['key'] = 'value'
+        return 'ok'
+
+    @app.route('/get/')
+    def get():
+        return session.get('key', 'not set')
+
+Documentation
+-------------
+Learn more at the official `Flask-Session Documentation <https://flask-session.readthedocs.io/en/latest/>`_.
+
+Donate
+--------
+The Pallets organization develops and supports Flask-Session and other popular packages. In order to grow the community of contributors and users, and allow the maintainers to devote more time to the projects, please donate today.
+
+
