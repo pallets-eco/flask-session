@@ -7,7 +7,7 @@ class Defaults:
     SESSION_KEY_PREFIX = "session:"
     SESSION_USE_SIGNER = False
     SESSION_PERMANENT = True
-    SESSION_SID_LENGTH = 3
+    SESSION_SID_LENGTH = 32
 
     # Clean up settings for non TTL backends (SQL, PostgreSQL, etc.)
     SESSION_CLEANUP_N_REQUESTS = None
