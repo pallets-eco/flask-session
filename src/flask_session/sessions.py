@@ -1,5 +1,6 @@
 import secrets
 import time
+import warnings
 from abc import ABC
 
 try:
@@ -69,6 +70,7 @@ class SqlAlchemySession(ServerSideSession):
 
 class SessionInterface(FlaskSessionInterface):
     def _generate_sid(self, session_id_length: int) -> str:
+        print(session_id_length)
         return secrets.token_urlsafe(session_id_length)
 
     def __get_signer(self, app: Flask) -> Signer:
@@ -110,6 +112,13 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         self.app = app
         self.key_prefix = key_prefix
         self.use_signer = use_signer
+        if use_signer:
+            warnings.warn(
+                "The 'use_signer' option is deprecated and will be removed in the next minor release. "
+                "Please update your configuration accordingly or open an issue.",
+                DeprecationWarning,
+                stacklevel=1,
+            )
         self.permanent = permanent
         self.sid_length = sid_length
         self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
@@ -158,9 +167,9 @@ class ServerSideSessionInterface(SessionInterface, ABC):
             domain=self.get_cookie_domain(app),
             path=self.get_cookie_path(app),
             secure=self.get_cookie_secure(app),
-            samesite=self.get_cookie_samesite(app)
-            if self.has_same_site_capability
-            else None,
+            samesite=(
+                self.get_cookie_samesite(app) if self.has_same_site_capability else None
+            ),
         )
         response.vary.add("Cookie")
 
@@ -172,7 +181,6 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         if not sid:
             sid = self._generate_sid(self.sid_length)
             return self.session_class(sid=sid, permanent=self.permanent)
-
         # If the session ID is signed, unsign it
         if self.use_signer:
             try:
