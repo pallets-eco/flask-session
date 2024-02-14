@@ -3,7 +3,7 @@ Scheduled session cleanup
 
 This is not required for the ``Redis``, ``Memecached``, ``Filesystem``, ``Mongodb`` storage engines, as they support time-to-live for keys.
 
-.. warning ::
+.. caution ::
 
     In the case of the storage engines that do not support time-to-live (SQLAlchemy), expired sessions are not automatically deleted from the database. You must use one of the following scheduled cleanup methods.
 

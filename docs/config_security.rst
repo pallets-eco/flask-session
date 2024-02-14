@@ -2,7 +2,11 @@
 Security configuration
 ----------------------
 
-Please refer to documentation for `Flask`_, `OWASP`_, and other security resources such as `MDN`_ for more information.
+.. caution::
+
+  Flask is a micro-framework and does not provide all security features out of the box. It is important to configure security settings for your application.
+  
+Please refer to documentation for `Flask`_, `OWASP`_, and other resources such as `MDN`_ for the latest information on best practice.
 
 .. _Flask: https://flask.palletsprojects.com/en/2.3.x/security/#set-cookie-options
 .. _MDN: https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies

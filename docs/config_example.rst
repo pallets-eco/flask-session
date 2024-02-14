@@ -21,4 +21,4 @@ If you do not set ``SESSION_REDIS``, Flask-Session will assume you are developin
 
 .. note::
 
-    By default, sessions in Flask-Session are permanent.
+    By default, sessions in Flask-Session are permanent with an expiration of 31 days.

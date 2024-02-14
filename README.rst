@@ -4,8 +4,6 @@ Flask-Session
 Flask-Session is an extension for Flask that adds support for server-side sessions to
 your application.
 
-In contrast to standard sessions, server-side sessions store session data in server-side storage rather than in a cookie on the client’s browser. The cookie now only contains the session identifier that links the client to their corresponding data on the server.
-
    
 .. image:: https://github.com/pallets-eco/flask-session/actions/workflows/test.yaml/badge.svg?branch=development
     :target: https://github.com/pallets-eco/flask-session/actions/workflows/test.yaml?query=workflow%3ACI+branch%3Amain
@@ -44,6 +42,7 @@ Installing
 Install and update using pip:
 
 .. code-block:: bash
+
     $ pip install flask-session
 
 A Simple Example
