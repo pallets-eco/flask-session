@@ -1,6 +1,7 @@
 import flask
-import flask_session
 from redis import Redis
+
+import flask_session
 
 
 class TestRedisSession:

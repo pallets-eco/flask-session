@@ -6,7 +6,7 @@ try:
     import cPickle as pickle
 except ImportError:
     import pickle
-
+import random
 from datetime import datetime
 from datetime import timedelta as TimeDelta
 from typing import Any, Optional
@@ -17,6 +17,7 @@ from flask.sessions import SessionMixin
 from itsdangerous import BadSignature, Signer, want_bytes
 from werkzeug.datastructures import CallbackDict
 
+from ._utils import retry_query
 from .defaults import Defaults
 
 
@@ -93,6 +94,10 @@ class SessionInterface(FlaskSessionInterface):
 class ServerSideSessionInterface(SessionInterface, ABC):
     """Used to open a :class:`flask.sessions.ServerSideSessionInterface` instance."""
 
+    session_class = ServerSideSession
+    serializer = None
+    ttl = True
+
     def __init__(
         self,
         app: Flask,
@@ -100,6 +105,7 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,
         sid_length: int = Defaults.SESSION_SID_LENGTH,
+        cleanup_n_requests: Optional[int] = Defaults.SESSION_CLEANUP_N_REQUESTS,
     ):
         self.app = app
         self.key_prefix = key_prefix
@@ -107,6 +113,14 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         self.permanent = permanent
         self.sid_length = sid_length
         self.has_same_site_capability = hasattr(self, "get_cookie_samesite")
+        self.cleanup_n_requests = cleanup_n_requests
+
+        # Cleanup settings for non-TTL databases only
+        if getattr(self, "ttl", None) is False:
+            if self.cleanup_n_requests:
+                self.app.before_request(self._cleanup_n_requests)
+            else:
+                self._register_cleanup_app_command()
 
     def save_session(
         self, app: Flask, session: ServerSideSession, response: Response
@@ -177,16 +191,51 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         sid = self._generate_sid(self.sid_length)
         return self.session_class(sid=sid, permanent=self.permanent)
 
+    # CLEANUP METHODS FOR NON TTL DATABASES
+
+    def _register_cleanup_app_command(self):
+        """
+        Register a custom Flask CLI command for cleaning up expired sessions.
+
+        Run the command with `flask session_cleanup`. Run with a cron job
+        or scheduler such as Heroku Scheduler to automatically clean up expired sessions.
+        """
+
+        @self.app.cli.command("session_cleanup")
+        def session_cleanup():
+            with self.app.app_context():
+                self._delete_expired_sessions()
+
+    def _cleanup_n_requests(self) -> None:
+        """
+        Delete expired sessions on average every N requests.
+
+        This is less desirable than using the scheduled app command cleanup as it may
+        slow down some requests but may be useful for rapid development.
+        """
+        if self.cleanup_n_requests and random.randint(0, self.cleanup_n_requests) == 0:
+            self._delete_expired_sessions()
+
+    # METHODS TO BE IMPLEMENTED BY SUBCLASSES
+
+    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         raise NotImplementedError()
 
+    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         raise NotImplementedError()
 
+    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
         raise NotImplementedError()
+
+    @retry_query()
+    def _delete_expired_sessions(self) -> None:
+        """Delete expired sessions from the backend storage. Only required for non-TTL databases."""
+        pass
 
 
 class RedisSessionInterface(ServerSideSessionInterface):
@@ -207,6 +256,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
 
     serializer = pickle
     session_class = RedisSession
+    ttl = True
 
     def __init__(
         self,
@@ -224,6 +274,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
         self.redis = redis
         super().__init__(app, key_prefix, use_signer, permanent, sid_length)
 
+    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (value) from the database
         serialized_session_data = self.redis.get(store_id)
@@ -235,9 +286,11 @@ class RedisSessionInterface(ServerSideSessionInterface):
                 self.app.logger.error("Failed to unpickle session data", exc_info=True)
         return None
 
+    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         self.redis.delete(store_id)
 
+    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -268,11 +321,11 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
 
     .. versionadded:: 0.2
         The `use_signer` parameter was added.
-
     """
 
     serializer = pickle
     session_class = MemcachedSession
+    ttl = True
 
     def __init__(
         self,
@@ -315,6 +368,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
             timeout += int(time.time())
         return timeout
 
+    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (item) from the database
         serialized_session_data = self.client.get(store_id)
@@ -326,9 +380,11 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
                 self.app.logger.error("Failed to unpickle session data", exc_info=True)
         return None
 
+    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         self.client.delete(store_id)
 
+    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -365,6 +421,8 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
     """
 
     session_class = FileSystemSession
+    serializer = None
+    ttl = True
 
     def __init__(
         self,
@@ -382,13 +440,16 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
         self.cache = FileSystemCache(cache_dir, threshold=threshold, mode=mode)
         super().__init__(app, key_prefix, use_signer, permanent, sid_length)
 
+    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (item) from the database
         return self.cache.get(store_id)
 
+    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         self.cache.delete(store_id)
 
+    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -425,6 +486,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
 
     serializer = pickle
     session_class = MongoDBSession
+    ttl = True
 
     def __init__(
         self,
@@ -451,6 +513,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
 
         super().__init__(app, key_prefix, use_signer, permanent, sid_length)
 
+    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (document) from the database
         document = self.store.find_one({"id": store_id})
@@ -463,12 +526,14 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
                 self.app.logger.error("Failed to unpickle session data", exc_info=True)
         return None
 
+    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         if self.use_deprecated_method:
             self.store.remove({"id": store_id})
         else:
             self.store.delete_one({"id": store_id})
 
+    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -515,6 +580,10 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
     :param sequence: The sequence to use for the primary key if needed.
     :param schema: The db schema to use
     :param bind_key: The db bind key to use
+    :param cleanup_n_requests: Delete expired sessions on average every N requests.
+
+    .. versionadded:: 0.7
+        The `cleanup_n_requests` parameter was added.
 
     .. versionadded:: 0.6
         The `sid_length`, `sequence`, `schema` and `bind_key` parameters were added.
@@ -525,6 +594,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
     serializer = pickle
     session_class = SqlAlchemySession
+    ttl = False
 
     def __init__(
         self,
@@ -538,17 +608,20 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         sequence: Optional[str] = Defaults.SESSION_SQLALCHEMY_SEQUENCE,
         schema: Optional[str] = Defaults.SESSION_SQLALCHEMY_SCHEMA,
         bind_key: Optional[str] = Defaults.SESSION_SQLALCHEMY_BIND_KEY,
+        cleanup_n_requests: Optional[int] = Defaults.SESSION_CLEANUP_N_REQUESTS,
     ):
+        self.app = app
         if db is None:
             from flask_sqlalchemy import SQLAlchemy
 
             db = SQLAlchemy(app)
-
         self.db = db
         self.sequence = sequence
         self.schema = schema
         self.bind_key = bind_key
-        super().__init__(app, key_prefix, use_signer, permanent, sid_length)
+        super().__init__(
+            app, key_prefix, use_signer, permanent, sid_length, cleanup_n_requests
+        )
 
         # Create the Session database model
         class Session(self.db.Model):
@@ -586,14 +659,30 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
         self.sql_session_model = Session
 
+    @retry_query()
+    def _delete_expired_sessions(self) -> None:
+        try:
+            self.db.session.query(self.sql_session_model).filter(
+                self.sql_session_model.expiry <= datetime.utcnow()
+            ).delete(synchronize_session=False)
+            self.db.session.commit()
+        except Exception:
+            self.db.session.rollback()
+            raise
+
+    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (record) from the database
         record = self.sql_session_model.query.filter_by(session_id=store_id).first()
 
         # "Delete the session record if it is expired as SQL has no TTL ability
         if record and (record.expiry is None or record.expiry <= datetime.utcnow()):
-            self.db.session.delete(record)
-            self.db.session.commit()
+            try:
+                self.db.session.delete(record)
+                self.db.session.commit()
+            except Exception:
+                self.db.session.rollback()
+                raise
             record = None
 
         if record:
@@ -601,14 +690,22 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
             try:
                 session_data = self.serializer.loads(serialized_session_data)
                 return session_data
-            except pickle.UnpicklingError:
-                self.app.logger.error("Failed to unpickle session data", exc_info=True)
+            except pickle.UnpicklingError as e:
+                self.app.logger.exception(
+                    e, "Failed to unpickle session data", exc_info=True
+                )
         return None
 
+    @retry_query()
     def _delete_session(self, store_id: str) -> None:
-        self.sql_session_model.query.filter_by(session_id=store_id).delete()
-        self.db.session.commit()
+        try:
+            self.sql_session_model.query.filter_by(session_id=store_id).delete()
+            self.db.session.commit()
+        except Exception:
+            self.db.session.rollback()
+            raise
 
+    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -618,15 +715,19 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         serialized_session_data = self.serializer.dumps(dict(session))
 
         # Update existing or create new session in the database
-        record = self.sql_session_model.query.filter_by(session_id=store_id).first()
-        if record:
-            record.data = serialized_session_data
-            record.expiry = storage_expiration_datetime
-        else:
-            record = self.sql_session_model(
-                session_id=store_id,
-                data=serialized_session_data,
-                expiry=storage_expiration_datetime,
-            )
-            self.db.session.add(record)
-        self.db.session.commit()
+        try:
+            record = self.sql_session_model.query.filter_by(session_id=store_id).first()
+            if record:
+                record.data = serialized_session_data
+                record.expiry = storage_expiration_datetime
+            else:
+                record = self.sql_session_model(
+                    session_id=store_id,
+                    data=serialized_session_data,
+                    expiry=storage_expiration_datetime,
+                )
+                self.db.session.add(record)
+            self.db.session.commit()
+        except Exception:
+            self.db.session.rollback()
+            raise

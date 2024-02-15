@@ -1,4 +1,5 @@
 import flask
+
 import flask_session
 
 
@@ -21,7 +22,8 @@ class TestSQLAlchemy:
             {
                 "SESSION_TYPE": "sqlalchemy",
                 "SQLALCHEMY_DATABASE_URI": "sqlite:///",
-                "SQLALCHEMY_USE_SIGNER": True,
+                "SESSION_USE_SIGNER": True,
+                "SECRET_KEY": "testing",
             }
         )
 
