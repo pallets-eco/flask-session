@@ -99,5 +99,16 @@ SqlAlchemy
    
    Default: ``None``
 
+.. py:data:: SESSION_CLEANUP_N_REQUESTS
+
+   Only applicable to non-TTL backends.
+   
+   The average number of requests after which Flask-Session will perform a session cleanup. This involves removing all session data that is older than ``PERMANENT_SESSION_LIFETIME``. Using the app command ``flask session_cleanup`` instead is preferable.
+   
+   Default: ``None``
+
+.. versionadded:: 0.7.0
+    ``SESSION_CLEANUP_N_REQUESTS``
+
 .. versionadded:: 0.6
     ``SESSION_SQLALCHEMY_BIND_KEY``, ``SESSION_SQLALCHEMY_SCHEMA``, ``SESSION_SQLALCHEMY_SEQUENCE``
