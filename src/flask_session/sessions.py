@@ -2,12 +2,8 @@ import secrets
 import time
 import warnings
 from abc import ABC
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
 import random
+import msgspec
 from datetime import datetime
 from datetime import timedelta as TimeDelta
 from typing import Any, Optional
@@ -89,6 +85,12 @@ class SessionInterface(FlaskSessionInterface):
         sid_as_bytes = want_bytes(sid)
         return signer.sign(sid_as_bytes).decode("utf-8")
 
+    def _serialize(self, session: ServerSideSession) -> bytes:
+        return self.encoder.encode(dict(session))
+
+    def _deserialize(self, serialized_data):
+        return self.decoder.decode(serialized_data)
+
     def _get_store_id(self, sid: str) -> str:
         return self.key_prefix + sid
 
@@ -107,6 +109,7 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,
         sid_length: int = Defaults.SESSION_SID_LENGTH,
+        serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
         cleanup_n_requests: Optional[int] = Defaults.SESSION_CLEANUP_N_REQUESTS,
     ):
         self.app = app
@@ -130,6 +133,18 @@ class ServerSideSessionInterface(SessionInterface, ABC):
                 self.app.before_request(self._cleanup_n_requests)
             else:
                 self._register_cleanup_app_command()
+
+        # Set the serialization format
+        if serialization_format == "msgpack":
+            self.decoder = msgspec.msgpack.Decoder()
+            self.encoder = msgspec.msgpack.Encoder()
+        elif serialization_format == "json":
+            self.decoder = msgspec.json.Decoder()
+            self.encoder = msgspec.json.Encoder()
+        else:
+            raise ValueError(
+                "Unrecognized value for SESSION_SERIALIZATION_FORMAT: {SESSION_SERIALIZATION_FORMAT}"
+            )
 
     def save_session(
         self, app: Flask, session: ServerSideSession, response: Response
@@ -264,7 +279,6 @@ class RedisSessionInterface(ServerSideSessionInterface):
         The `use_signer` parameter was added.
     """
 
-    serializer = pickle
     session_class = RedisSession
     ttl = True
 
@@ -275,6 +289,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
         use_signer: bool,
         permanent: bool,
         sid_length: int,
+        serialization_format: str,
         redis: Any = Defaults.SESSION_REDIS,
     ):
         if redis is None:
@@ -282,7 +297,9 @@ class RedisSessionInterface(ServerSideSessionInterface):
 
             redis = Redis()
         self.redis = redis
-        super().__init__(app, key_prefix, use_signer, permanent, sid_length)
+        super().__init__(
+            app, key_prefix, use_signer, permanent, sid_length, serialization_format
+        )
 
     @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
@@ -290,10 +307,12 @@ class RedisSessionInterface(ServerSideSessionInterface):
         serialized_session_data = self.redis.get(store_id)
         if serialized_session_data:
             try:
-                session_data = self.serializer.loads(serialized_session_data)
+                session_data = self._deserialize(serialized_session_data)
                 return session_data
-            except pickle.UnpicklingError:
-                self.app.logger.error("Failed to unpickle session data", exc_info=True)
+            except msgspec.DecodeError:
+                self.app.logger.error(
+                    "Failed to deserialize session data", exc_info=True
+                )
         return None
 
     @retry_query()
@@ -307,7 +326,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
         storage_time_to_live = total_seconds(session_lifetime)
 
         # Serialize the session data
-        serialized_session_data = self.serializer.dumps(dict(session))
+        serialized_session_data = self._serialize(dict(session))
 
         # Update existing or create new session in the database
         self.redis.set(
@@ -333,7 +352,6 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
         The `use_signer` parameter was added.
     """
 
-    serializer = pickle
     session_class = MemcachedSession
     ttl = True
 
@@ -344,12 +362,15 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
         use_signer: bool,
         permanent: bool,
         sid_length: int,
+        serialization_format: str,
         client: Any = Defaults.SESSION_MEMCACHED,
     ):
         if client is None:
             client = self._get_preferred_memcache_client()
         self.client = client
-        super().__init__(app, key_prefix, use_signer, permanent, sid_length)
+        super().__init__(
+            app, key_prefix, use_signer, permanent, sid_length, serialization_format
+        )
 
     def _get_preferred_memcache_client(self):
         clients = [
@@ -384,10 +405,12 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
         serialized_session_data = self.client.get(store_id)
         if serialized_session_data:
             try:
-                session_data = self.serializer.loads(serialized_session_data)
+                session_data = self._deserialize(serialized_session_data)
                 return session_data
-            except pickle.UnpicklingError:
-                self.app.logger.error("Failed to unpickle session data", exc_info=True)
+            except msgspec.DecodeError:
+                self.app.logger.error(
+                    "Failed to deserialize session data", exc_info=True
+                )
         return None
 
     @retry_query()
@@ -401,7 +424,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
         storage_time_to_live = total_seconds(session_lifetime)
 
         # Serialize the session data
-        serialized_session_data = self.serializer.dumps(dict(session))
+        serialized_session_data = self._serialize(dict(session))
 
         # Update existing or create new session in the database
         self.client.set(
@@ -431,7 +454,6 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
     """
 
     session_class = FileSystemSession
-    serializer = None
     ttl = True
 
     def __init__(
@@ -441,6 +463,7 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
         use_signer: bool,
         permanent: bool,
         sid_length: int,
+        serialization_format: str,
         cache_dir: str = Defaults.SESSION_FILE_DIR,
         threshold: int = Defaults.SESSION_FILE_THRESHOLD,
         mode: int = Defaults.SESSION_FILE_MODE,
@@ -448,7 +471,9 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
         from cachelib.file import FileSystemCache
 
         self.cache = FileSystemCache(cache_dir, threshold=threshold, mode=mode)
-        super().__init__(app, key_prefix, use_signer, permanent, sid_length)
+        super().__init__(
+            app, key_prefix, use_signer, permanent, sid_length, serialization_format
+        )
 
     @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
@@ -494,7 +519,6 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         The `use_signer` parameter was added.
     """
 
-    serializer = pickle
     session_class = MongoDBSession
     ttl = True
 
@@ -505,6 +529,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         use_signer: bool,
         permanent: bool,
         sid_length: int,
+        serialization_format: str,
         client: Any = Defaults.SESSION_MONGODB,
         db: str = Defaults.SESSION_MONGODB_DB,
         collection: str = Defaults.SESSION_MONGODB_COLLECT,
@@ -521,7 +546,9 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         # Create a TTL index on the expiration time, so that mongo can automatically delete expired sessions
         self.store.create_index("expiration", expireAfterSeconds=0)
 
-        super().__init__(app, key_prefix, use_signer, permanent, sid_length)
+        super().__init__(
+            app, key_prefix, use_signer, permanent, sid_length, serialization_format
+        )
 
     @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
@@ -530,10 +557,12 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         if document:
             serialized_session_data = want_bytes(document["val"])
             try:
-                session_data = self.serializer.loads(serialized_session_data)
+                session_data = self._deserialize(serialized_session_data)
                 return session_data
-            except pickle.UnpicklingError:
-                self.app.logger.error("Failed to unpickle session data", exc_info=True)
+            except msgspec.DecodeError:
+                self.app.logger.error(
+                    "Failed to deserialize session data", exc_info=True
+                )
         return None
 
     @retry_query()
@@ -550,7 +579,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         storage_expiration_datetime = datetime.utcnow() + session_lifetime
 
         # Serialize the session data
-        serialized_session_data = self.serializer.dumps(dict(session))
+        serialized_session_data = self._serialize(dict(session))
 
         # Update existing or create new session in the database
         if self.use_deprecated_method:
@@ -602,7 +631,6 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         The `use_signer` parameter was added.
     """
 
-    serializer = pickle
     session_class = SqlAlchemySession
     ttl = False
 
@@ -613,6 +641,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         use_signer: bool,
         permanent: bool,
         sid_length: int,
+        serialization_format: str,
         db: Any = Defaults.SESSION_SQLALCHEMY,
         table: str = Defaults.SESSION_SQLALCHEMY_TABLE,
         sequence: Optional[str] = Defaults.SESSION_SQLALCHEMY_SEQUENCE,
@@ -630,7 +659,13 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         self.schema = schema
         self.bind_key = bind_key
         super().__init__(
-            app, key_prefix, use_signer, permanent, sid_length, cleanup_n_requests
+            app,
+            key_prefix,
+            use_signer,
+            permanent,
+            sid_length,
+            serialization_format,
+            cleanup_n_requests,
         )
 
         # Create the Session database model
@@ -698,11 +733,11 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         if record:
             serialized_session_data = want_bytes(record.data)
             try:
-                session_data = self.serializer.loads(serialized_session_data)
+                session_data = self._deserialize(serialized_session_data)
                 return session_data
-            except pickle.UnpicklingError as e:
+            except msgspec.DecodeError as e:
                 self.app.logger.exception(
-                    e, "Failed to unpickle session data", exc_info=True
+                    e, "Failed to deserialize session data", exc_info=True
                 )
         return None
 
@@ -722,7 +757,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         storage_expiration_datetime = datetime.utcnow() + session_lifetime
 
         # Serialize session data
-        serialized_session_data = self.serializer.dumps(dict(session))
+        serialized_session_data = self._serialize(dict(session))
 
         # Update existing or create new session in the database
         try:

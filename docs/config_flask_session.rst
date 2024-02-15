@@ -41,5 +41,14 @@ These are specific to Flask-Session.
    
    Default: ``32``
 
+.. py:data:: SESSION_SERIALIZATION_FORMAT
+   
+   The serialization format to use. Can be 'msgpack' or 'json'. Set to 'msgpack' for a more efficient serialization format. Set to 'json' for a human-readable format.
+   
+   Default: ``'msgpack'``
+
+.. versionadded:: 0.7.0
+    ``SESSION_SERIALIZATION_FORMAT``
+
 .. versionadded:: 0.6
     ``SESSION_ID_LENGTH``

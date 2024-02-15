@@ -8,7 +8,11 @@ Install from PyPI using an installer such as pip:
 
     $ pip install Flask-Session
 
-Flask-Session has no dependencies other than those included with Flask. However, unless you are using the FileSystemCache, you need to choose and a backend and install an appropriate client library.
+Flask-Session's only required dependency is msgspec for serialization, which has no sub-dependencies. 
+
+.. note::
+
+  You need to choose and a backend and install an appropriate client library, unless you are using the FileSystemCache.
 
 For example, if you want to use Redis as your backend, you will need to install the redis-py client library:
 

@@ -1,15 +1,17 @@
 Version 0.7.0
 ------------------
 
+-   Use msgpack for serialization, along with ``SESSION_SERIALIZATION_FORMAT``.
 -   Prevent sid reuse on storage miss.
 -   Add time-to-live expiration for MongoDB.
 -   Abstraction to improve consistency between backends.
 -   Enforce PERMANENT_SESSION_LIFETIME as expiration consistently for all backends.
--   Add logo and additional Documentation.
--   Add ``flask session_cleanup`` command and alternatively, SESSION_CLEANUP_N_REQUESTS for SQLAlchemy
+-   Add logo and additional documentation.
+-   Add ``flask session_cleanup`` command and alternatively, ``SESSION_CLEANUP_N_REQUESTS`` for SQLAlchemy
 -   Use Vary cookie header
 -   Type hints
 -   Remove null session in favour of specific exception messages.
+-   Deprecate ``SESSION_USE_SIGNER``.
 
 
 Version 0.6.0

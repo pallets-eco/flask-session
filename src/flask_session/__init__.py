@@ -67,6 +67,9 @@ class Session:
         SESSION_SID_LENGTH = config.get(
             "SESSION_ID_LENGTH", Defaults.SESSION_SID_LENGTH
         )
+        SESSION_SERIALIZATION_FORMAT = config.get(
+            "SESSION_SERIALIZATION_FORMAT", Defaults.SESSION_SERIALIZATION_FORMAT
+        )
 
         # Redis settings
         SESSION_REDIS = config.get("SESSION_REDIS", Defaults.SESSION_REDIS)
@@ -116,6 +119,7 @@ class Session:
             "use_signer": SESSION_USE_SIGNER,
             "permanent": SESSION_PERMANENT,
             "sid_length": SESSION_SID_LENGTH,
+            "serialization_format": SESSION_SERIALIZATION_FORMAT,
         }
 
         if SESSION_TYPE == "redis":
@@ -153,6 +157,6 @@ class Session:
                 cleanup_n_requests=SESSION_CLEANUP_N_REQUESTS,
             )
         else:
-            raise RuntimeError(f"Unrecognized value for SESSION_TYPE: {SESSION_TYPE}")
+            raise ValueError(f"Unrecognized value for SESSION_TYPE: {SESSION_TYPE}")
 
         return session_interface
