@@ -2,12 +2,19 @@ import secrets
 import time
 import warnings
 from abc import ABC
+from contextlib import suppress
+
+try:
+    import cPickle as pickle
+except ImportError:
+    import pickle
+
 import random
-import msgspec
 from datetime import datetime
 from datetime import timedelta as TimeDelta
 from typing import Any, Optional
 
+import msgspec
 from flask import Flask, Request, Response
 from flask.sessions import SessionInterface as FlaskSessionInterface
 from flask.sessions import SessionMixin
@@ -89,7 +96,14 @@ class SessionInterface(FlaskSessionInterface):
         return self.encoder.encode(dict(session))
 
     def _deserialize(self, serialized_data):
-        return self.decoder.decode(serialized_data)
+        with suppress(msgspec.DecodeError):
+            return self.decoder.decode(serialized_data)
+        with suppress(msgspec.DecodeError):
+            return self.alternate_decoder.decode(serialized_data)
+        with suppress(msgspec.DecodeError):
+            return pickle.loads(serialized_data)
+        # If all decoders fail, raise the original exception
+        raise pickle.UnpicklingError("Failed to deserialize session data")
 
     def _get_store_id(self, sid: str) -> str:
         return self.key_prefix + sid
@@ -138,12 +152,15 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         if serialization_format == "msgpack":
             self.decoder = msgspec.msgpack.Decoder()
             self.encoder = msgspec.msgpack.Encoder()
+            self.alternate_decoder = msgspec.json.Decoder()
         elif serialization_format == "json":
             self.decoder = msgspec.json.Decoder()
             self.encoder = msgspec.json.Encoder()
+            self.alternate_decoder = msgspec.msgpack.Decoder()
         else:
+            value = app.config.get("SESSION_SERIALIZATION_FORMAT")
             raise ValueError(
-                "Unrecognized value for SESSION_SERIALIZATION_FORMAT: {SESSION_SERIALIZATION_FORMAT}"
+                f"Unrecognized value for SESSION_SERIALIZATION_FORMAT: {value}"
             )
 
     def save_session(
