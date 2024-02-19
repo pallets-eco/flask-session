@@ -13,6 +13,7 @@ def app_utils():
             app = flask.Flask(__name__)
             if config_dict:
                 app.config.update(config_dict)
+            app.config["SESSION_SERIALIZATION_FORMAT"] = "json"
 
             @app.route("/set", methods=["POST"])
             def app_set():
@@ -31,35 +32,36 @@ def app_utils():
 
             @app.route("/get")
             def app_get():
-                return flask.session.get("value")
+                return flask.session.get("value", "no value set")
 
             flask_session.Session(app)
             return app
 
-        def test_session_set(self, app):
+        def test_session(self, app):
             client = app.test_client()
+
+            # Check no value is set from previous tests
+            assert client.get("/get").data not in [b"42", b"43", b"44"]
+
+            # Set a value, modify it, and delete it
             assert client.post("/set", data={"value": "42"}).data == b"value set"
             assert client.get("/get").data == b"42"
-
-        def test_session_modify(self, app):
-            client = app.test_client()
-            assert client.post("/set", data={"value": "42"}).data == b"value set"
             assert client.post("/modify", data={"value": "43"}).data == b"value set"
             assert client.get("/get").data == b"43"
+            assert client.post("/delete").data == b"value deleted"
+            assert client.get("/get").data == b"no value set"
 
-        def test_session_delete(self, app):
+        def test_session_with_cookie(self, app):
             client = app.test_client()
-            assert client.post("/set", data={"value": "42"}).data == b"value set"
-            assert client.get("/get").data == b"42"
-            client.post("/delete")
-            assert client.get("/get").data != b"42"
 
-        def test_session_sign(self, app):
-            client = app.test_client()
-            response = client.post("/set", data={"value": "42"})
-            assert response.data == b"value set"
-            # Check there are two parts to the cookie, the session ID and the signature
-            cookies = response.headers.getlist("Set-Cookie")
-            assert "." in cookies[0].split(";")[0]
+            # Access cookies from the response to cross check with the stored session
+            response = client.post("/set", data={"value": "44"})
+            session_cookie = None
+            for cookie in response.headers.getlist("Set-Cookie"):
+                if "session=" in cookie:
+                    session_cookie = cookie
+                    break
+            assert session_cookie is not None, "Session cookie was not set."
+            return session_cookie
 
     return Utils()

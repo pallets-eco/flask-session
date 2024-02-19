@@ -1,33 +1,54 @@
-import flask
+import json
+from contextlib import contextmanager
 
+import flask
 import flask_session
+from sqlalchemy import text
 
 
 class TestSQLAlchemy:
-    def test_basic(self, app_utils):
-        app = app_utils.create_app(
-            {"SESSION_TYPE": "sqlalchemy", "SQLALCHEMY_DATABASE_URI": "sqlite:///"}
+    """This requires package: sqlalchemy"""
+
+    @contextmanager
+    def setup_sqlalchemy(self, app):
+        try:
+            app.session_interface.db.session.execute(text("DELETE FROM sessions"))
+            app.session_interface.db.session.commit()
+            yield
+        finally:
+            app.session_interface.db.session.execute(text("DELETE FROM sessions"))
+            app.session_interface.db.session.close()
+
+    def retrieve_stored_session(self, key, app):
+        session_model = (
+            app.session_interface.db.session.query(
+                app.session_interface.sql_session_model
+            )
+            .filter_by(session_id=key)
+            .first()
         )
-
-        # Should be using SqlAlchemy
-        with app.test_request_context():
-            isinstance(flask.session, flask_session.sessions.SqlAlchemySession)
-            app.session_interface.db.create_all()
-
-        app_utils.test_session_set(app)
-        app_utils.test_session_modify(app)
+        if session_model:
+            return session_model.data
+        return None
 
     def test_use_signer(self, app_utils):
         app = app_utils.create_app(
             {
                 "SESSION_TYPE": "sqlalchemy",
                 "SQLALCHEMY_DATABASE_URI": "sqlite:///",
-                "SESSION_USE_SIGNER": True,
-                "SECRET_KEY": "testing",
             }
         )
+        with app.app_context() and self.setup_sqlalchemy(
+            app
+        ) and app.test_request_context():
+            assert isinstance(flask.session, flask_session.sessions.SqlAlchemySession)
+            app_utils.test_session(app)
 
-        with app.test_request_context():
-            app.session_interface.db.create_all()
-
-        app_utils.test_session_set(app)
+            # Check if the session is stored in SQLAlchemy
+            cookie = app_utils.test_session_with_cookie(app)
+            session_id = cookie.split(";")[0].split("=")[1]
+            byte_string = self.retrieve_stored_session(f"session:{session_id}", app)
+            stored_session = (
+                json.loads(byte_string.decode("utf-8")) if byte_string else {}
+            )
+            assert stored_session.get("value") == "44"

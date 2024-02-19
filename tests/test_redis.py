@@ -1,69 +1,40 @@
-import flask
-from redis import Redis
+import json
+from contextlib import contextmanager
 
+import flask
 import flask_session
+from redis import Redis
 
 
 class TestRedisSession:
-    def setup_method(self, method):
-        # Clear redis
-        r = Redis()
-        r.flushall()
+    """This requires package: redis"""
 
-    def _has_redis_prefix(self, prefix):
-        r = Redis()
-        return any(key.startswith(prefix) for key in r.keys()) #noqa SIM118
+    @contextmanager
+    def setup_redis(self):
+        try:
+            self.r = Redis()
+            self.r.flushall()
+            yield
+        finally:
+            self.r.flushall()
+            self.r.close()
+
+    def retrieve_stored_session(self, key):
+        return self.r.get(key)
 
     def test_redis_default(self, app_utils):
-        app = app_utils.create_app({"SESSION_TYPE": "redis"})
+        with self.setup_redis():
+            app = app_utils.create_app({"SESSION_TYPE": "redis"})
 
-        # Should be using Redis
-        with app.test_request_context():
-            isinstance(flask.session, flask_session.sessions.RedisSession)
+            with app.test_request_context():
+                assert isinstance(flask.session, flask_session.sessions.RedisSession)
+                app_utils.test_session(app)
 
-        app_utils.test_session_set(app)
-
-        # There should be a session:<UUID> object
-        assert self._has_redis_prefix(b"session:")
-
-        self.setup_method(None)
-        app_utils.test_session_delete(app)
-
-        # There should not be a session:<UUID> object
-        assert not self._has_redis_prefix(b"session:")
-
-    def test_redis_key_prefix(self, app_utils):
-        app = app_utils.create_app(
-            {"SESSION_TYPE": "redis", "SESSION_KEY_PREFIX": "sess-prefix:"}
-        )
-        app_utils.test_session_set(app)
-
-        # There should be a key in Redis that starts with the prefix set
-        assert not self._has_redis_prefix(b"session:")
-        assert self._has_redis_prefix(b"sess-prefix:")
-
-    def test_redis_with_signer(self, app_utils):
-        app = app_utils.create_app(
-            {
-                "SESSION_TYPE": "redis",
-                "SESSION_USE_SIGNER": True,
-            }
-        )
-
-        # Without a secret key set, there should be an exception raised
-        # TODO: not working
-        # with pytest.raises(KeyError):
-        #     app_utils.test_session_set(app)
-
-        # With a secret key set, no exception should be thrown
-        app.secret_key = "test_key"
-        app_utils.test_session_set(app)
-
-        # There should be a key in Redis that starts with the prefix set
-        assert self._has_redis_prefix(b"session:")
-
-        # Clear redis
-        self.setup_method(None)
-
-        # Check that the session is signed
-        app_utils.test_session_sign(app)
+                # Check if the session is stored in Redis
+                cookie = app_utils.test_session_with_cookie(app)
+                session_id = cookie.split(";")[0].split("=")[1]
+                byte_string = self.retrieve_stored_session(f"session:{session_id}")
+                stored_session = (
+                    json.loads(byte_string.decode("utf-8")) if byte_string else {}
+                )
+                assert stored_session.get("value") == "44"

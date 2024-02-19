@@ -73,7 +73,6 @@ class SqlAlchemySession(ServerSideSession):
 
 class SessionInterface(FlaskSessionInterface):
     def _generate_sid(self, session_id_length: int) -> str:
-        print(session_id_length)
         return secrets.token_urlsafe(session_id_length)
 
     def __get_signer(self, app: Flask) -> Signer:
