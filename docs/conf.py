@@ -3,7 +3,9 @@ import importlib.metadata
 project = "Flask-Session"
 author = "Pallets Community Ecosystem"
 copyright = f"2014, {author}"
-release = importlib.metadata.version("Flask-Session")
+version = release = importlib.metadata.version("Flask-Session")
+
+# General --------------------------------------------------------------
 
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.intersphinx", "sphinx_favicon"]
 
@@ -14,14 +16,9 @@ intersphinx_mapping = {
     "flask-sqlalchemy": ("http://flask-sqlalchemy.palletsprojects.com/", None),
 }
 
-html_theme = "furo"
-html_static_path = ["_static"]
-html_css_files = [
-    "styles.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/fontawesome.min.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/solid.min.css",
-    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/brands.min.css",
-]
+
+# HTML -----------------------------------------------------------------
+
 favicons = [
     {"rel": "icon", "href": "icon.svg", "type": "image/svg+xml"},
     {"rel": "icon", "sizes": "16x16", "href": "favicon-16x16.png", "type": "image/png"},
@@ -50,16 +47,31 @@ favicons = [
         "href": "safari-pinned-tab.svg",
     },
 ]
-
-
+html_copy_source = False
+html_css_files = [
+    "styles.css",
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/fontawesome.min.css",
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/solid.min.css",
+    "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/brands.min.css",
+]
+html_domain_indices = False
+html_static_path = ["_static"]
+html_theme = "furo"
 html_theme_options = {
+    "source_repository": "https://github.com/pallets-eco/flask-session/",
+    "source_branch": "main",
+    "source_directory": "docs/",
     "light_logo": "logo/logo-light.png",
     "dark_logo": "logo/logo-dark.png",
     "light_css_variables": {
+        "font-stack": "'Atkinson Hyperlegible', sans-serif",
+        "font-stack--monospace": "'Source Code Pro', monospace",
         "color-brand-primary": "#39A9BE",
         "color-brand-content": "#39A9BE",
     },
     "dark_css_variables": {
+        "font-stack": "'Atkinson Hyperlegible', sans-serif",
+        "font-stack--monospace": "'Source Code Pro', monospace",
         "color-brand-primary": "#39A9BE",
         "color-brand-content": "#39A9BE",
     },
@@ -86,3 +98,4 @@ html_theme_options = {
         },
     ],
 }
+html_use_index = False
