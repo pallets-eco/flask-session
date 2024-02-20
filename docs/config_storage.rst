@@ -1,4 +1,4 @@
-Backend configuration
+Storage configuration
 ---------------------
 
 

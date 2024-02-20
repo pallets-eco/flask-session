@@ -30,7 +30,29 @@ def total_seconds(timedelta):
 
 
 class ServerSideSession(CallbackDict, SessionMixin):
-    """Baseclass for server-side based sessions."""
+    """Baseclass for server-side based sessions. This can be accessed through ``flask.session``.
+
+    .. attribute:: sid
+
+    Session id, internally we use :func:`secrets.token_urlsafe` to generate one
+    session id.
+
+    .. attribute:: modified
+
+    When data is changed, this is set to ``True``. Only the session dictionary
+    itself is tracked; if the session contains mutable data (for example a nested
+    dict) then this must be set to ``True`` manually when modifying that data. The
+    session cookie will only be written to the response if this is ``True``.
+
+    Default is ``False``.
+
+    .. attribute:: permanent
+
+    This sets and reflects the ``'_permanent'`` key in the dict.
+
+    Default is ``False``.
+
+    """
 
     def __bool__(self) -> bool:
         return bool(dict(self)) and self.keys() != {"_permanent"}
@@ -275,18 +297,23 @@ class ServerSideSessionInterface(SessionInterface, ABC):
 
     @retry_query()
     def _delete_expired_sessions(self) -> None:
-        """Delete expired sessions from the backend storage. Only required for non-TTL databases."""
+        """Delete expired sessions from the session storage. Only required for non-TTL databases."""
         pass
 
 
 class RedisSessionInterface(ServerSideSessionInterface):
-    """Uses the Redis key-value store as a session backend. (`redis-py` required)
+    """Uses the Redis key-value store as a session storage. (`redis-py` required)
 
-    :param redis: A ``redis.Redis`` instance.
+    :param app: A Flask app instance.
     :param key_prefix: A prefix that is added to all Redis store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
+    :param serialization_format: The serialization format to use for the session data.
+    :param redis: A ``redis.Redis`` instance.
+
+    .. versionadded:: 0.7
+        The `serialization_format` and `app` parameters were added.
 
     .. versionadded:: 0.6
         The `sid_length` parameter was added.
@@ -353,13 +380,18 @@ class RedisSessionInterface(ServerSideSessionInterface):
 
 
 class MemcachedSessionInterface(ServerSideSessionInterface):
-    """A Session interface that uses memcached as backend. (`pylibmc` or `python-memcached` or `pymemcache` required)
+    """A Session interface that uses memcached as session storage. (`pylibmc` or `python-memcached` or `pymemcache` required)
 
-    :param client: A ``memcache.Client`` instance.
+    :param app: A Flask app instance.
     :param key_prefix: A prefix that is added to all Memcached store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
+    :param serialization_format: The serialization format to use for the session data.
+    :param client: A ``memcache.Client`` instance.
+
+    .. versionadded:: 0.7
+        The `serialization_format` and `app` parameters were added.
 
     .. versionadded:: 0.6
         The `sid_length` parameter was added.
@@ -415,7 +447,6 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
             timeout += int(time.time())
         return timeout
 
-    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (item) from the database
         serialized_session_data = self.client.get(store_id)
@@ -429,11 +460,9 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
                 )
         return None
 
-    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         self.client.delete(store_id)
 
-    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -451,16 +480,20 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
 
 
 class FileSystemSessionInterface(ServerSideSessionInterface):
-    """Uses the :class:`cachelib.file.FileSystemCache` as a session backend.
+    """Uses the :class:`cachelib.file.FileSystemCache` as a session storage.
 
-    :param cache_dir: the directory where session files are stored.
-    :param threshold: the maximum number of items the session stores before it
-                      starts deleting some.
-    :param mode: the file mode wanted for the session files, default 0600
+    :param app: A Flask app instance.
     :param key_prefix: A prefix that is added to FileSystemCache store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
+    :param serialization_format: The serialization format to use for the session data.
+    :param cache_dir: the directory where session files are stored.
+    :param threshold: the maximum number of items the session stores before it
+    :param mode: the file mode wanted for the session files, default 0600
+
+    .. versionadded:: 0.7
+        The `serialization_format` and `app` parameters were added.
 
     .. versionadded:: 0.6
         The `sid_length` parameter was added.
@@ -491,16 +524,13 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
             app, key_prefix, use_signer, permanent, sid_length, serialization_format
         )
 
-    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (item) from the database
         return self.cache.get(store_id)
 
-    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         self.cache.delete(store_id)
 
-    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -518,15 +548,20 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
 
 
 class MongoDBSessionInterface(ServerSideSessionInterface):
-    """A Session interface that uses mongodb as backend. (`pymongo` required)
+    """A Session interface that uses mongodb as session storage. (`pymongo` required)
 
-    :param client: A ``pymongo.MongoClient`` instance.
-    :param db: The database you want to use.
-    :param collection: The collection you want to use.
+    :param app: A Flask app instance.
     :param key_prefix: A prefix that is added to all MongoDB store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
+    :param serialization_format: The serialization format to use for the session data.
+    :param client: A ``pymongo.MongoClient`` instance.
+    :param db: The database you want to use.
+    :param collection: The collection you want to use.
+
+    .. versionadded:: 0.7
+        The `serialization_format` and `app` parameters were added.
 
     .. versionadded:: 0.6
         The `sid_length` parameter was added.
@@ -566,7 +601,6 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
             app, key_prefix, use_signer, permanent, sid_length, serialization_format
         )
 
-    @retry_query()
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (document) from the database
         document = self.store.find_one({"id": store_id})
@@ -581,14 +615,12 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
                 )
         return None
 
-    @retry_query()
     def _delete_session(self, store_id: str) -> None:
         if self.use_deprecated_method:
             self.store.remove({"id": store_id})
         else:
             self.store.delete_one({"id": store_id})
 
-    @retry_query()
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
@@ -623,22 +655,23 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
 
 
 class SqlAlchemySessionInterface(ServerSideSessionInterface):
-    """Uses the Flask-SQLAlchemy from a flask app as a session backend.
+    """Uses the Flask-SQLAlchemy from a flask app as session storage.
 
     :param app: A Flask app instance.
-    :param db: A Flask-SQLAlchemy instance.
-    :param table: The table name you want to use.
     :param key_prefix: A prefix that is added to all store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
+    :param serialization_format: The serialization format to use for the session data.
+    :param db: A Flask-SQLAlchemy instance.
+    :param table: The table name you want to use.
     :param sequence: The sequence to use for the primary key if needed.
     :param schema: The db schema to use
     :param bind_key: The db bind key to use
     :param cleanup_n_requests: Delete expired sessions on average every N requests.
 
     .. versionadded:: 0.7
-        The `cleanup_n_requests` parameter was added.
+        The `cleanup_n_requests`, `app`, `cleanup_n_requests` parameters were added.
 
     .. versionadded:: 0.6
         The `sid_length`, `sequence`, `schema` and `bind_key` parameters were added.

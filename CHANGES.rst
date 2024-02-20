@@ -1,17 +1,20 @@
 Version 0.7.0
 ------------------
 
--   Use msgpack for serialization, along with ``SESSION_SERIALIZATION_FORMAT``.
+-   Use msgpack for serialization, along with ``SESSION_SERIALIZATION_FORMAT`` to choose between ``json`` and ``msgpack``.
+-   Deprecated pickle. It is still available to read existing sessions, but will be removed in 1.0.0. All sessions will transfer to msgspec upon first interaction with 0.7.0.
 -   Prevent sid reuse on storage miss.
 -   Add time-to-live expiration for MongoDB.
+-   Add retry for SQL based storage.
 -   Abstraction to improve consistency between backends.
--   Enforce PERMANENT_SESSION_LIFETIME as expiration consistently for all backends.
+-   Enforce ``PERMANENT_SESSION_LIFETIME`` as expiration consistently for all backends.
 -   Add logo and additional documentation.
--   Add ``flask session_cleanup`` command and alternatively, ``SESSION_CLEANUP_N_REQUESTS`` for SQLAlchemy
--   Use Vary cookie header
--   Type hints
+-   Add ``flask session_cleanup`` command and alternatively, ``SESSION_CLEANUP_N_REQUESTS`` for SQLAlchemy or future non-TTL backends.
+-   Use Vary cookie header.
+-   Type hints.
 -   Remove null session in favour of specific exception messages.
 -   Deprecate ``SESSION_USE_SIGNER``.
+-   Remove backend session interfaces from public API and semver.
 
 
 Version 0.6.0

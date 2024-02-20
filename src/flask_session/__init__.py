@@ -14,30 +14,16 @@ class Session:
     """This class is used to add Server-side Session to one or more Flask
     applications.
 
-    There are two usage modes.  One is initialize the instance with a very
-    specific Flask application::
+    For a typical setup use the following initialization::
 
         app = Flask(__name__)
         Session(app)
-
-    The second possibility is to create the object once and configure the
-    application later::
-
-        sess = Session()
-
-        def create_app():
-            app = Flask(__name__)
-            sess.init_app(app)
-            return app
-
-    By default Flask-Session will use :class:`NullSessionInterface`, you
-    really should configurate your app to use a different SessionInterface.
 
     .. note::
 
         You can not use ``Session`` instance directly, what ``Session`` does
         is just change the :attr:`~flask.Flask.session_interface` attribute on
-        your Flask applications.
+        your Flask applications. You should always use :class:`flask.session`.
     """
 
     def __init__(self, app=None):
@@ -46,7 +32,14 @@ class Session:
             self.init_app(app)
 
     def init_app(self, app):
-        """This is used to set up session for your app object.
+        """This the the alternate setup method, typically used in an application factory pattern::
+
+            sess = Session()
+
+            def create_app():
+                app = Flask(__name__)
+                sess.init_app(app)
+                return app
 
         :param app: the Flask app object with proper configuration.
         """

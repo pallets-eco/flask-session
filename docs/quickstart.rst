@@ -7,8 +7,11 @@ Quick Start
 Create your Flask application, load the configuration of choice, and
 then create the :class:`Session` object by passing it the application.
 
-The ``Session`` instance is not used for direct access, you should always use
-:class:`flask.session`.
+.. note::
+
+        You can not use ``Session`` instance directly, what ``Session`` does
+        is just change the :attr:`~flask.Flask.session_interface` attribute on
+        your Flask applications. You should always use :class:`flask.session`.
 
 .. code-block:: python
 

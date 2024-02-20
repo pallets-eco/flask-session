@@ -12,22 +12,22 @@ Flask-Session's only required dependency is msgspec for serialization, which has
 
 .. note::
 
-  You need to choose and a backend and install an appropriate client library, unless you are using the FileSystemCache.
+  You need to choose a storage type and install an appropriate client library, unless you are using the FileSystemCache.
 
-For example, if you want to use Redis as your backend, you will need to install the redis-py client library:
+For example, if you want to use Redis as your storage, you will need to install the redis-py client library:
 
 .. code-block:: bash
 
     $ pip install redis
 
 
-Supported backends and client libraries:
+Supported storage and client libraries:
 
 
 .. list-table::
    :header-rows: 1
 
-   * - Backend
+   * - Storage
      - Client Library
    * - Redis
      - redis-py_
