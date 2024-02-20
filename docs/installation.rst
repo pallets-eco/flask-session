@@ -20,6 +20,7 @@ For example, if you want to use Redis as your storage, you will need to install 
 
     $ pip install redis
 
+Redis is the recommended storage type for Flask-Session, as it has the most complete support for the features of Flask-Session with minimal configuration.
 
 Supported storage and client libraries:
 
