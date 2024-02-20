@@ -15,4 +15,4 @@ Configuration
 
 .. include:: config_flask_session.rst
 
-.. include:: config_backend.rst
+.. include:: config_storage.rst

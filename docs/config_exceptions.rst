@@ -1,7 +1,34 @@
-Exception handling
--------------------
+Storage exceptions
+===================
 
-Flask-session will retry up to 3 times any database operation that fails with an Exception. This is to handle transient errors like network issues or database restarts. If the operation still fails after 3 retries, the exception will be raised.
+For various reasons, database operations can fail. When a database operation fails, the database client will raise an Exception.
+
+Retries
+--------
+
+Upon an Exception, Flask-Session will retry with backoff up to 3 times for SQL based storage. If the operation still fails after 3 retries, the Exception will be raised.
+
+For other storage types, the retry logic is either included or can be configured in the client setup. Refer to the client's documentation for more information.
+
+Redis example with retries on certain errors:
+
+.. code-block:: python
+    
+    from redis.backoff import ExponentialBackoff
+    from redis.retry import Retry
+    from redis.client import Redis
+    from redis.exceptions import (
+        BusyLoadingError,
+        ConnectionError,
+        TimeoutError
+    )
+
+    retry = Retry(ExponentialBackoff(), 3)
+    r = Redis(host='localhost', port=6379, retry=retry, retry_on_error=[BusyLoadingError, ConnectionError, TimeoutError])
+
+
+Logging
+-------------------
 
 If you want to show user more helpful error messages, you can use `Flask's error handling`_. For example:
 
