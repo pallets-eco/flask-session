@@ -1,41 +1,47 @@
+.. image:: https://github.com/pallets-eco/flask-session/tree/main/docs/_static/icon/favicon-192x192.png
+    :alt: Flask-Session
+    :target: https://flask-session.readthedocs.io
+    :align: left
+    :width: 60px
+
+==============
 Flask-Session
-=============
+==============
 
 Flask-Session is an extension for Flask that adds support for server-side sessions to
 your application.
 
-   
-.. image:: https://github.com/pallets-eco/flask-session/actions/workflows/test.yaml/badge.svg?branch=development
-    :target: https://github.com/pallets-eco/flask-session/actions/workflows/test.yaml?query=workflow%3ACI+branch%3Amain
-    :alt: Tests
+.. image:: https://img.shields.io/github/actions/workflow/status/pallets-eco/flask-session/test.yaml?logo=github&style=flat-square
+    :alt: GitHub Actions Workflow Status
+    :target: https://github.com/pallets-eco/flask-session/actions/workflows/test.yaml?query=workflow%3ACI+branch%3Adevelopment
 
-.. image:: https://readthedocs.org/projects/flask-session/badge/?version=stable&style=flat
+.. image:: https://img.shields.io/readthedocs/flask-session?logo=readthedocs&style=flat-square
     :target: https://flask-session.readthedocs.io
-    :alt: docs
+    :alt: Documentation status
 
-.. image:: https://img.shields.io/github/license/pallets-eco/flask-session
+.. image:: https://img.shields.io/github/license/pallets-eco/flask-session?logo=bsd&style=flat-square
     :target: ./LICENSE
     :alt: BSD-3 Clause License
 
-.. image:: https://img.shields.io/pypi/v/flask-session.svg?
-    :target: https://pypi.org/project/flask-session
-    :alt: PyPI
+.. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&style=flat-square&label=style
+    :target: https://github.com/charliermarsh/ruff
+    :alt: Code style: ruff
 
-.. image:: https://img.shields.io/badge/dynamic/json?query=info.requires_python&label=python&url=https%3A%2F%2Fpypi.org%2Fpypi%2Fflask-session%2Fjson
+.. image:: https://img.shields.io/pypi/v/flask-session.svg?logo=pypi&style=flat-square
+    :target: https://pypi.org/project/flask-session
+    :alt: PyPI - Latest Version
+
+.. image:: https://img.shields.io/badge/dynamic/json?query=info.requires_python&label=python&logo=python&url=https%3A%2F%2Fpypi.org%2Fpypi%2Fflask-session%2Fjson&style=flat-square
     :target: https://pypi.org/project/Flask-Session/
     :alt: PyPI - Python Version
 
-.. image:: https://img.shields.io/github/v/release/pallets-eco/flask-session?include_prereleases&label=latest-prerelease
-    :target: https://github.com/pallets-eco/flask-session/releases
-    :alt: pre-release
-
-.. image:: https://codecov.io/gh/pallets-eco/flask-session/branch/master/graph/badge.svg?token=yenl5fzxxr
-    :target: https://codecov.io/gh/pallets-eco/flask-session
-    :alt: codecov
-
-.. image:: https://img.shields.io/discord/531221516914917387?logo=discord
+.. image:: https://img.shields.io/discord/531221516914917387?logo=discord&style=flat-square
     :target: https://discord.gg/pallets
     :alt: Discord
+
+.. image:: https://img.shields.io/pypi/dm/flask-session?logo=pypi&style=flat-square
+    :target: https://pypistats.org/packages/flask-session
+    :alt: PyPI - Downloads
 
 Installing
 ------------
