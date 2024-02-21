@@ -74,6 +74,14 @@ A Simple Example
     def get():
         return session.get('key', 'not set')
 
+Supported Storage Types
+------------------------
+- Redis
+- Memcached
+- FileSystem
+- MongoDB
+- SQLALchemy
+
 Documentation
 -------------
 Learn more at the official `Flask-Session Documentation <https://flask-session.readthedocs.io/en/latest/>`_.

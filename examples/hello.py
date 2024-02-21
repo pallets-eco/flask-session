@@ -7,7 +7,6 @@ app.config.from_object(__name__)
 app.config.update(
     {
         "SESSION_TYPE": "redis",
-        "FLASK_ENV": "production",
     }
 )
 Session(app)
@@ -27,9 +26,13 @@ def get():
 
 @app.route("/delete/")
 def delete():
-    # del session["key"]
-    raise RedisError("test")
+    del session["key"]
     return "deleted"
+
+
+@app.route("/error/")
+def error():
+    raise RedisError("An error occurred with Redis")
 
 
 @app.errorhandler(RedisError)

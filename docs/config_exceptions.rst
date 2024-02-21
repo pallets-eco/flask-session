@@ -24,7 +24,7 @@ Redis example with retries on certain errors:
     )
 
     retry = Retry(ExponentialBackoff(), 3)
-    r = Redis(host='localhost', port=6379, retry=retry, retry_on_error=[BusyLoadingError, ConnectionError, TimeoutError])
+    SESSION_REDIS = Redis(host='localhost', port=6379, retry=retry, retry_on_error=[BusyLoadingError, ConnectionError, TimeoutError])
 
 
 Logging
