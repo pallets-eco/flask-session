@@ -2,7 +2,6 @@ import json
 from contextlib import contextmanager
 
 import flask
-import flask_session
 import memcache  # Import the memcache library
 from flask_session.memcached import MemcachedSession
 

@@ -2,7 +2,8 @@ Version 0.7.0
 ------------------
 
 Added
--   Use msgpack for serialization, along with ``SESSION_SERIALIZATION_FORMAT`` to choose between ``json`` and ``msgpack``.
+~~~~~~~
+-   Use msgpack for serialization, along with ``SESSION_SERIALIZATION_FORMAT`` to choose between ``'json'`` and ``'msgpack'``.
 -   Add time-to-live expiration for MongoDB.
 -   Add retry for SQL based storage.
 -   Add ``flask session_cleanup`` command and alternatively, ``SESSION_CLEANUP_N_REQUESTS`` for SQLAlchemy or future non-TTL backends.
@@ -10,12 +11,14 @@ Added
 -   Add logo and additional documentation.
 
 Deprecated
--   Deprecated pickle. It is still available to read existing sessions, but will be removed in 1.0.0. All sessions will transfer to msgspec upon first interaction with 0.7.0.
+~~~~~~~~~~
+-   Deprecated pickle. It is still available to read existing sessions, but will be removed in 1.0.0. All sessions will transfer to msgspec upon first interaction with 0.1.0.
 -   Remove null session in favour of specific exception messages.
 -   Deprecate ``SESSION_USE_SIGNER``.
--   Deprecate FileSystemSessionInterface in favor of the broader CacheLibSessionInterface.
+-   Deprecate :class:`flask_session.filesystem.FileSystemSessionInterface` in favor of the broader :class:`flask_session.cachelib.CacheLibSessionInterface`.
 
 Fixed
+~~~~~
 -   Prevent sid reuse on storage miss.
 -   Abstraction to improve consistency between backends.
 -   Enforce ``PERMANENT_SESSION_LIFETIME`` as expiration consistently for all backends.
@@ -28,7 +31,7 @@ Version 0.6.0
 
 Released 2024-01-16
 
--   Use ``should_set_cookie`` for preventing each request from saving the session again.
+-   Use :meth:`~ServerSideSession.should_set_cookie` for preventing each request from saving the session again.
 -   Permanent session otherwise empty will not be saved.
 -   Use `secrets` module to generate session identifiers, with 256 bits of
     entropy (was previously 122).

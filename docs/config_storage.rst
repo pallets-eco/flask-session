@@ -31,11 +31,15 @@ FileSystem
    
    Default: ``flask_session`` directory under current working directory.
 
+   .. deprecated:: 0.7.0
+
 .. py:data:: SESSION_FILE_THRESHOLD
     
    The maximum number of items the session stores before it starts deleting some.
    
    Default: ``500``
+
+   .. deprecated:: 0.7.0
 
 .. py:data:: SESSION_FILE_MODE
     
@@ -43,20 +47,23 @@ FileSystem
    
    Default: ``0600``
 
-.. deprecated:: 0.7.0
-    ``SESSION_FILE_MODE``, ``SESSION_FILE_THRESHOLD`` and ``SESSION_FILE_DIR``. Use ``SESSION_CACHELIB`` instead.
+   .. deprecated:: 0.7.0
 
-Cachelib
+CacheLib
 ~~~~~~~~~~~~~~~~~~~~~~~
 .. py:data:: SESSION_CACHELIB
 
-   Any valid `cachelib backend <https://cachelib.readthedocs.io/en/stable/>`_. This allows you maximum flexibility in choosing the cache backend and its configuration.
+   Any valid `cachelib backend <https://cachelib.readthedocs.io/en/stable/>`_. This allows you maximum flexibility in choosing the cache backend and it's configuration.
    
    The following would set a cache directory called "flask_session" and a threshold of 500 items before it starts deleting some.
    
    .. code-block:: python
 
       app.config['SESSION_CACHELIB'] = FileSystemCache(cache_dir='flask_session', threshold=500)
+   
+   .. important::
+   
+      A ``default_timeout`` set in any of the ``CacheLib`` backends will be overrode by the ``PERMANENT_SESSION_LIFETIME`` when each stored session's expiry is set.
    
    Default: ``FileSystemCache`` in ``./flask_session`` directory.
 
@@ -123,8 +130,12 @@ SqlAlchemy
    
    Default: ``None``
 
+.. deprecated:: 0.7.0
+
+   ``SESSION_FILE_DIR``, ``SESSION_FILE_THRESHOLD``, ``SESSION_FILE_MODE``. Use ``SESSION_CACHELIB`` instead.
+
 .. versionadded:: 0.7.0
     ``SESSION_CLEANUP_N_REQUESTS``
 
-.. versionadded:: 0.6
+.. versionadded:: 0.6.0
     ``SESSION_SQLALCHEMY_BIND_KEY``, ``SESSION_SQLALCHEMY_SCHEMA``, ``SESSION_SQLALCHEMY_SEQUENCE``

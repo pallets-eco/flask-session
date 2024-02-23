@@ -1,12 +1,12 @@
+import warnings
 from datetime import timedelta as TimeDelta
 from typing import Optional
 
-from flask import Flask
-from .._utils import total_seconds
-from ..defaults import Defaults
-from ..base import ServerSideSession, ServerSideSessionInterface
 from cachelib.file import FileSystemCache
-import warnings
+
+from .._utils import total_seconds
+from ..base import ServerSideSession, ServerSideSessionInterface
+from ..defaults import Defaults
 
 
 class FileSystemSession(ServerSideSession):

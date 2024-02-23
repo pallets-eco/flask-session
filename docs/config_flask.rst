@@ -21,9 +21,9 @@ modify them at runtime.
 
 `SESSION_COOKIE_SAMESITE`_
 
-`PERMANENT_SESSION_LIFETIME`_
-
 `SESSION_REFRESH_EACH_REQUEST`_
+
+`PERMANENT_SESSION_LIFETIME`_
 
 .. _SESSION_COOKIE_NAME: https://flask.palletsprojects.com/en/latest/config/#SESSION_COOKIE_NAME
 .. _SESSION_COOKIE_DOMAIN: https://flask.palletsprojects.com/en/latest/config/#SESSION_COOKIE_DOMAIN

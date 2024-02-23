@@ -1,4 +1,3 @@
-import tempfile
 
 import flask
 from flask_session.cachelib import CacheLibSession

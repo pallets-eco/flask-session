@@ -1,1 +1,1 @@
-from .filesystem import FileSystemSessionInterface, FileSystemSession
+from .filesystem import FileSystemSession, FileSystemSessionInterface  # noqa: F401

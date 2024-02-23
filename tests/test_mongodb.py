@@ -2,9 +2,9 @@ import json
 from contextlib import contextmanager
 
 import flask
+from flask_session.mongodb import MongoDBSession
 from itsdangerous import want_bytes
 from pymongo import MongoClient
-from flask_session.mongodb import MongoDBSession
 
 
 class TestMongoSession:

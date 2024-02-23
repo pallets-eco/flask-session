@@ -1,1 +1,1 @@
-from .sqlalchemy import SqlAlchemySessionInterface, SqlAlchemySession
+from .sqlalchemy import SqlAlchemySession, SqlAlchemySessionInterface  # noqa: F401

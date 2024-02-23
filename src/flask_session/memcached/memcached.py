@@ -1,13 +1,10 @@
-from datetime import timedelta as TimeDelta
-from typing import Any, Optional
-
-import msgspec
 import time
-from flask import Flask
+from datetime import timedelta as TimeDelta
+from typing import Any, Optional, Protocol
+
 from .._utils import total_seconds
-from ..defaults import Defaults
 from ..base import ServerSideSession, ServerSideSessionInterface
-from typing import Protocol, Optional, Any
+from ..defaults import Defaults
 
 
 class MemcacheClientProtocol(Protocol):

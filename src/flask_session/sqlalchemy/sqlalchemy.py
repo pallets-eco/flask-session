@@ -2,15 +2,14 @@ from datetime import datetime
 from datetime import timedelta as TimeDelta
 from typing import Any, Optional
 
-import msgspec
 from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
 from itsdangerous import want_bytes
+from sqlalchemy import Column, DateTime, Integer, LargeBinary, Sequence, String
 
 from .._utils import retry_query
-from ..defaults import Defaults
 from ..base import ServerSideSession, ServerSideSessionInterface
-from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import Column, String, LargeBinary, DateTime, Integer, Sequence
+from ..defaults import Defaults
 
 
 class SqlAlchemySession(ServerSideSession):

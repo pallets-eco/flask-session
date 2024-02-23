@@ -3,7 +3,7 @@ Retries
 
 Only for SQL based storage, upon an exception, Flask-Session will retry with backoff up to 3 times. If the operation still fails after 3 retries, the exception will be raised.
 
-For other storage types, the retry logic is either included or can be configured in the client setup. Refer to the client's documentation for more information.
+For other storage types, the retry logic is either included or can be configured in the client setup. Refer to the relevant client documentation for more information.
 
 Redis example with retries on certain errors:
 

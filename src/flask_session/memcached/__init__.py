@@ -1,1 +1,1 @@
-from .memcached import MemcachedSessionInterface, MemcachedSession
+from .memcached import MemcachedSession, MemcachedSessionInterface  # noqa: F401

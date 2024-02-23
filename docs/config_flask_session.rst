@@ -30,6 +30,8 @@ These are specific to Flask-Session.
    
    Default: ``False``
 
+   .. deprecated:: 0.7.0
+
 .. py:data:: SESSION_KEY_PREFIX
 
    A prefix that is added before all session keys. This makes it easier to use the same backend storage server for different apps.
@@ -42,14 +44,21 @@ These are specific to Flask-Session.
    
    Default: ``32``
 
+   .. versionadded:: 0.6.0
+
 .. py:data:: SESSION_SERIALIZATION_FORMAT
    
-   The serialization format to use. Can be 'msgpack' or 'json'. Set to 'msgpack' for a more efficient serialization format. Set to 'json' for a human-readable format.
+   The serialization format to use. Can be `'msgpack'`` or `'json'`. Set to `'msgpack'`` for a more efficient serialization format. Set to `'json'`` for a human-readable format.
    
    Default: ``'msgpack'``
+
+   .. versionadded:: 0.7.0
+
+.. deprecated:: 0.7.0
+    ``SESSION_USE_SIGNER``
 
 .. versionadded:: 0.7.0
     ``SESSION_SERIALIZATION_FORMAT``
 
-.. versionadded:: 0.6
+.. versionadded:: 0.6.0
     ``SESSION_ID_LENGTH``

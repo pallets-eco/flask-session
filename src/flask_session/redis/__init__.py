@@ -1,1 +1,1 @@
-from .redis import RedisSessionInterface, RedisSession
+from .redis import RedisSession, RedisSessionInterface  # noqa: F401

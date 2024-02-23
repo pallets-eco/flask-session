@@ -7,14 +7,8 @@ Quickstart
 .. currentmodule:: flask_session
 
 
-Create your Flask application, load the configuration of choice, and
+Create your :class:`~flask.Flask` application, load the configuration of choice, and
 then create the :class:`Session` object by passing it the application.
-
-.. note::
-
-        You can not use ``Session`` instance directly, what ``Session`` does
-        is just change the :attr:`~flask.Flask.session_interface` attribute on
-        your Flask applications. You should always use :class:`flask.session` when accessing the current session.
 
 .. code-block:: python
 
@@ -38,24 +32,30 @@ then create the :class:`Session` object by passing it the application.
 
 This would automatically setup a redis client connected to `localhost:6379` and use it to store the session data.
 
-See the `configuration section <config.rst>`_ for more details.
+.. note::
+
+        You can not use :class:`~Session` instance directly, what :class:`~Session` does
+        is just change the :attr:`~flask.Flask.session_interface` attribute on
+        your Flask applications. You should always use :class:`flask.session` when accessing or modifying the current session.
+
+See the configuration section for more details.
 
 Alternative initialization
 ---------------------------
 
-Rather than calling `Session(app)`, you may initialize later using :meth:`~Session.init_app`.
+Rather than calling :class:`~Session`, you may initialize later using :meth:`~Session.init_app`.
 
 .. code-block:: python
     
     sess = Session()
     sess.init_app(app)
 
-Or, if you prefer to directly set parameters rather than using the configuration constants, you can initialize by setting the interface constructor directly to the :attr:`session_interface`.
+Or, if you prefer to directly set parameters rather than using the configuration constants, you can initialize by setting an instance of :class:`flask_session.redis.RedisSessionInterface` directly to the :attr:`flask.Flask.session_interface`.
 
 .. code-block:: python
 
-    from flask_session.implementations.redis import RedisSessionInterface
-
+    from flask_session.redis import RedisSessionInterface
+    from redis import Redis
     ...
 
     redis = Redis(

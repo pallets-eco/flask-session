@@ -10,11 +10,7 @@ Install from PyPI using an installer such as pip:
 
 Flask-Session's only required dependency is msgspec for serialization, which has no sub-dependencies. 
 
-.. note::
-
-  You need to choose a storage type and install an appropriate client library.
-
-For example, if you want to use Redis as your storage, you will need to install the redis-py client library:
+You need to choose a storage type and install an appropriate client library so the app can communicate with storage. For example, if you want to use Redis as your storage, you will need to install the redis-py client library:
 
 .. code-block:: bash
 
@@ -22,40 +18,36 @@ For example, if you want to use Redis as your storage, you will need to install 
 
 Redis is the recommended storage type for Flask-Session, as it has the most complete support for the features of Flask-Session with minimal configuration.
 
-Support
---------
+Direct support
+---------------
 
-Directly supported storage and client libraries:
+Flask-Session has an increasing number of directly supported storage and client libraries.
 
 .. list-table::
    :header-rows: 1
+   :align: left
 
    * - Storage
      - Client Library
    * - Redis
      - redis-py_
    * - Memcached
-     - pylibmc_, python-memcached_ or pymemcache_
+     - pylibmc_, python-memcached_, libmc_ or pymemcache_
    * - MongoDB
      - pymongo_
    * - SQL Alchemy
      - flask-sqlalchemy_
 
-Other clients may work if they use the same commands as the ones listed above.
+Other libraries may work if they use the same commands as the ones listed above.
 
 Cachelib
 --------
 
-Flask-Session also indirectly supports storage and client libraries via cachelib_, which is a wrapper around various cache libraries and subject to change. You must also install cachelib_ itself to use these.
-
-.. warning::
-
-  As of writing, cachelib_ still use pickle_ as the default serializer, which may have security implications.
-
-Using cachlib :class:`FileSystemCache`` or :class:`SimpleCache` may be useful for development.
+Flask-Session also indirectly supports storage and client libraries via cachelib_, which is a wrapper around various cache libraries. You must also install cachelib_ itself to use these.
 
 .. list-table::
    :header-rows: 1
+   :align: left
 
    * - Storage
      - Client Library
@@ -74,6 +66,10 @@ Using cachlib :class:`FileSystemCache`` or :class:`SimpleCache` may be useful fo
    * - DynamoDB
      - boto3_
   
+
+.. warning::
+
+  As of writing, cachelib_ still uses pickle_ as the default serializer, which may have security implications in production.
 
 
 .. _redis-py: https://github.com/andymccurdy/redis-py

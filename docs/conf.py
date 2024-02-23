@@ -14,6 +14,7 @@ intersphinx_mapping = {
     "flask": ("http://flask.palletsprojects.com/", None),
     "werkzeug": ("http://werkzeug.palletsprojects.com/", None),
     "flask-sqlalchemy": ("http://flask-sqlalchemy.palletsprojects.com/", None),
+    "redis": ("http://redis-py.readthedocs.io/", None),
 }
 
 

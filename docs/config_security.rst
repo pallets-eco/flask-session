@@ -2,15 +2,11 @@
 Security configuration
 ----------------------
 
-.. caution::
+.. warning::
 
   Flask is a micro-framework and does not provide all security features out of the box. It is important to configure security settings for your application.
   
 Please refer to documentation for `Flask`_, `OWASP`_, and other resources such as `MDN`_ for the latest information on best practice.
-
-.. _Flask: https://flask.palletsprojects.com/en/2.3.x/security/#set-cookie-options
-.. _MDN: https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
-.. _OWASP: https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
 
 Consider the following Flask configurations in production:
 
@@ -26,4 +22,10 @@ Consider the following Flask configurations in production:
    * - SESSION_COOKIE_SAMESITE
      - Use ``Lax`` or ``Strict``
 
-You can use a security plugin such as ``Flask-Talisman`` to set these and more.
+You can use a security plugin such as `Flask-Talisman`_ to set these and more.
+
+
+.. _Flask: https://flask.palletsprojects.com/en/2.3.x/security/#set-cookie-options
+.. _MDN: https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
+.. _OWASP: https://cheatsheetseries.owasp.org/cheatsheets/Session_Management_Cheat_Sheet.html
+.. _Flask-Talisman: https://github.com/wntrblm/flask-talisman

@@ -1,13 +1,11 @@
 from datetime import timedelta as TimeDelta
-from typing import Any, Optional
+from typing import Optional
 
-import msgspec
-
-from flask import Flask
-from .._utils import total_seconds
-from ..defaults import Defaults
-from ..base import ServerSideSession, ServerSideSessionInterface
 from redis import Redis
+
+from .._utils import total_seconds
+from ..base import ServerSideSession, ServerSideSessionInterface
+from ..defaults import Defaults
 
 
 class RedisSession(ServerSideSession):

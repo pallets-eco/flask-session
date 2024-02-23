@@ -1,14 +1,12 @@
 from datetime import datetime
 from datetime import timedelta as TimeDelta
-from typing import Any, Optional
+from typing import Optional
 
-import msgspec
-from flask import Flask
 from itsdangerous import want_bytes
-from ..defaults import Defaults
-from ..base import ServerSideSession, ServerSideSessionInterface
-
 from pymongo import MongoClient, version
+
+from ..base import ServerSideSession, ServerSideSessionInterface
+from ..defaults import Defaults
 
 
 class MongoDBSession(ServerSideSession):

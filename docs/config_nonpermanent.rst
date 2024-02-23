@@ -1,7 +1,7 @@
 Non-permanent session configuration
 ------------------------------------
 
-.. warning::
+.. caution::
 
     Flask-session is primarily designed to be used with permanent sessions. If you want to use non-permanent sessions, you must set ``SESSION_PERMANENT=False`` and be aware of significant limitations.
 

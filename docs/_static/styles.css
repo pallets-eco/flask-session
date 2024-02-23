@@ -3,3 +3,11 @@
 .padded {
     padding: 40px;
 }
+
+table {
+    max-width: 680px;
+    width: -webkit-fill-available;
+    width: -moz-available;
+    width: fill-available;
+    width: stretch;    
+}
