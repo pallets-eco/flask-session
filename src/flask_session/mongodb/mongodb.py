@@ -17,13 +17,13 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
     """A Session interface that uses mongodb as session storage. (`pymongo` required)
 
     :param client: A ``pymongo.MongoClient`` instance.
-    :param key_prefix: A prefix that is added to all MongoDB store keys.
+    :param key_prefix: A prefix that is added to all storage keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
     :param serialization_format: The serialization format to use for the session data.
-    :param db: The database you want to use.
-    :param collection: The collection you want to use.
+    :param db: The database to use.
+    :param collection: The collection to use.
 
     .. versionadded:: 0.7
         The `serialization_format` and `app` parameters were added.

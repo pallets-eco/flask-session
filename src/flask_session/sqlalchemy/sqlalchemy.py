@@ -51,15 +51,15 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
     :param app: A Flask app instance.
     :param client: A Flask-SQLAlchemy instance.
-    :param key_prefix: A prefix that is added to all store keys.
+    :param key_prefix: A prefix that is added to all storage keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
     :param serialization_format: The serialization format to use for the session data.
     :param table: The table name you want to use.
     :param sequence: The sequence to use for the primary key if needed.
-    :param schema: The db schema to use
-    :param bind_key: The db bind key to use
+    :param schema: The db schema to use.
+    :param bind_key: The db bind key to use.
     :param cleanup_n_requests: Delete expired sessions on average every N requests.
 
     .. versionadded:: 1.0

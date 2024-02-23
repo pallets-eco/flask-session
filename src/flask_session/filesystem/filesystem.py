@@ -16,7 +16,7 @@ class FileSystemSession(ServerSideSession):
 class FileSystemSessionInterface(ServerSideSessionInterface):
     """Uses the :class:`cachelib.file.FileSystemCache` as a session storage.
 
-    :param key_prefix: A prefix that is added to FileSystemCache store keys.
+    :param key_prefix: A prefix that is added to stored keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.

@@ -16,7 +16,7 @@ class CacheLibSessionInterface(ServerSideSessionInterface):
     """Uses any :class:`cachelib` backend as a session storage.
 
     :param client: A :class:`cachelib` backend instance.
-    :param key_prefix: A prefix that is added to store keys.
+    :param key_prefix: A prefix that is added to storage keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.

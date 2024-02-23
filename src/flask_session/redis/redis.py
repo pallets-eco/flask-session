@@ -16,7 +16,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
     """Uses the Redis key-value store as a session storage. (`redis-py` required)
 
     :param client: A ``redis.Redis`` instance.
-    :param key_prefix: A prefix that is added to all Redis store keys.
+    :param key_prefix: A prefix that is added to all storage keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
