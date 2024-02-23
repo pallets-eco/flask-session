@@ -2,7 +2,7 @@ import json
 from contextlib import contextmanager
 
 import flask
-import flask_session
+from flask_session.redis import RedisSession
 from redis import Redis
 
 
@@ -27,7 +27,7 @@ class TestRedisSession:
             app = app_utils.create_app({"SESSION_TYPE": "redis"})
 
             with app.test_request_context():
-                assert isinstance(flask.session, flask_session.sessions.RedisSession)
+                assert isinstance(flask.session, RedisSession)
                 app_utils.test_session(app)
 
                 # Check if the session is stored in Redis

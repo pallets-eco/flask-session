@@ -2,7 +2,7 @@ import json
 from contextlib import contextmanager
 
 import flask
-import flask_session
+from flask_session.sqlalchemy import SqlAlchemySession
 from sqlalchemy import text
 
 
@@ -12,16 +12,16 @@ class TestSQLAlchemy:
     @contextmanager
     def setup_sqlalchemy(self, app):
         try:
-            app.session_interface.db.session.execute(text("DELETE FROM sessions"))
-            app.session_interface.db.session.commit()
+            app.session_interface.client.session.execute(text("DELETE FROM sessions"))
+            app.session_interface.client.session.commit()
             yield
         finally:
-            app.session_interface.db.session.execute(text("DELETE FROM sessions"))
-            app.session_interface.db.session.close()
+            app.session_interface.client.session.execute(text("DELETE FROM sessions"))
+            app.session_interface.client.session.close()
 
     def retrieve_stored_session(self, key, app):
         session_model = (
-            app.session_interface.db.session.query(
+            app.session_interface.client.session.query(
                 app.session_interface.sql_session_model
             )
             .filter_by(session_id=key)
@@ -41,7 +41,10 @@ class TestSQLAlchemy:
         with app.app_context() and self.setup_sqlalchemy(
             app
         ) and app.test_request_context():
-            assert isinstance(flask.session, flask_session.sessions.SqlAlchemySession)
+            assert isinstance(
+                flask.session,
+                SqlAlchemySession,
+            )
             app_utils.test_session(app)
 
             # Check if the session is stored in SQLAlchemy

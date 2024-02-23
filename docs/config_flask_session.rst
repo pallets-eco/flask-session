@@ -10,7 +10,8 @@ These are specific to Flask-Session.
 
    - **redis**: RedisSessionInterface
    - **memcached**: MemcachedSessionInterface
-   - **filesystem**: FileSystemSessionInterface
+   - **filesystem**: FileSystemSessionInterface (Deprecated in 0.7.0, will be removed in 1.0.0 in favor of CacheLibSessionInterface)
+   - **cachelib**: CacheLibSessionInterface
    - **mongodb**: MongoDBSessionInterface
    - **sqlalchemy**: SqlAlchemySessionInterface
 

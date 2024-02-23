@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import flask
 import flask_session
 import memcache  # Import the memcache library
+from flask_session.memcached import MemcachedSession
 
 
 class TestMemcachedSession:
@@ -28,7 +29,8 @@ class TestMemcachedSession:
 
             with app.test_request_context():
                 assert isinstance(
-                    flask.session, flask_session.sessions.MemcachedSession
+                    flask.session,
+                    MemcachedSession,
                 )
                 app_utils.test_session(app)
 

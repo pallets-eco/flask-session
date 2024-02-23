@@ -43,6 +43,22 @@ FileSystem
    
    Default: ``0600``
 
+.. deprecated:: 0.7.0
+    ``SESSION_FILE_MODE``, ``SESSION_FILE_THRESHOLD`` and ``SESSION_FILE_DIR``. Use ``SESSION_CACHELIB`` instead.
+
+Cachelib
+~~~~~~~~~~~~~~~~~~~~~~~
+.. py:data:: SESSION_CACHELIB
+
+   Any valid `cachelib backend <https://cachelib.readthedocs.io/en/stable/>`_. This allows you maximum flexibility in choosing the cache backend and its configuration.
+   
+   The following would set a cache directory called "flask_session" and a threshold of 500 items before it starts deleting some.
+   
+   .. code-block:: python
+
+      app.config['SESSION_CACHELIB'] = FileSystemCache(cache_dir='flask_session', threshold=500)
+   
+   Default: ``FileSystemCache`` in ``./flask_session`` directory.
 
 MongoDB
 ~~~~~~~~~~~~~~~~~~~~~~~

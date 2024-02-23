@@ -21,11 +21,16 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
+
 import time
 from functools import wraps
 from typing import Any, Callable
 
 from flask import current_app
+
+
+def total_seconds(timedelta):
+    return int(timedelta.total_seconds())
 
 
 def retry_query(

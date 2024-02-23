@@ -1,11 +1,4 @@
 from .defaults import Defaults
-from .sessions import (
-    FileSystemSessionInterface,
-    MemcachedSessionInterface,
-    MongoDBSessionInterface,
-    RedisSessionInterface,
-    SqlAlchemySessionInterface,
-)
 
 __version__ = "0.6.0rc1"
 
@@ -13,6 +6,8 @@ __version__ = "0.6.0rc1"
 class Session:
     """This class is used to add Server-side Session to one or more Flask
     applications.
+
+    :param app: A Flask app instance.
 
     For a typical setup use the following initialization::
 
@@ -50,10 +45,11 @@ class Session:
 
         # Flask-session specific settings
         SESSION_TYPE = config.get("SESSION_TYPE", Defaults.SESSION_TYPE)
+
         SESSION_PERMANENT = config.get("SESSION_PERMANENT", Defaults.SESSION_PERMANENT)
         SESSION_USE_SIGNER = config.get(
             "SESSION_USE_SIGNER", Defaults.SESSION_USE_SIGNER
-        )
+        )  # TODO: remove in 1.0
         SESSION_KEY_PREFIX = config.get(
             "SESSION_KEY_PREFIX", Defaults.SESSION_KEY_PREFIX
         )
@@ -70,7 +66,11 @@ class Session:
         # Memcached settings
         SESSION_MEMCACHED = config.get("SESSION_MEMCACHED", Defaults.SESSION_MEMCACHED)
 
+        # CacheLib settings
+        SESSION_CACHELIB = config.get("SESSION_CACHELIB", Defaults.SESSION_CACHELIB)
+
         # Filesystem settings
+        # TODO: remove in 1.0
         SESSION_FILE_DIR = config.get("SESSION_FILE_DIR", Defaults.SESSION_FILE_DIR)
         SESSION_FILE_THRESHOLD = config.get(
             "SESSION_FILE_THRESHOLD", Defaults.SESSION_FILE_THRESHOLD
@@ -107,7 +107,6 @@ class Session:
         )
 
         common_params = {
-            "app": app,
             "key_prefix": SESSION_KEY_PREFIX,
             "use_signer": SESSION_USE_SIGNER,
             "permanent": SESSION_PERMANENT,
@@ -116,23 +115,37 @@ class Session:
         }
 
         if SESSION_TYPE == "redis":
+            from .redis import RedisSessionInterface
+
             session_interface = RedisSessionInterface(
                 **common_params,
-                redis=SESSION_REDIS,
+                client=SESSION_REDIS,
             )
         elif SESSION_TYPE == "memcached":
+            from .memcached import MemcachedSessionInterface
+
             session_interface = MemcachedSessionInterface(
                 **common_params,
                 client=SESSION_MEMCACHED,
             )
         elif SESSION_TYPE == "filesystem":
+            from .filesystem import FileSystemSessionInterface
+
             session_interface = FileSystemSessionInterface(
                 **common_params,
                 cache_dir=SESSION_FILE_DIR,
                 threshold=SESSION_FILE_THRESHOLD,
                 mode=SESSION_FILE_MODE,
             )
+        elif SESSION_TYPE == "cachelib":
+            from .cachelib import CacheLibSessionInterface
+
+            session_interface = CacheLibSessionInterface(
+                **common_params, client=SESSION_CACHELIB
+            )
         elif SESSION_TYPE == "mongodb":
+            from .mongodb import MongoDBSessionInterface
+
             session_interface = MongoDBSessionInterface(
                 **common_params,
                 client=SESSION_MONGODB,
@@ -140,9 +153,12 @@ class Session:
                 collection=SESSION_MONGODB_COLLECT,
             )
         elif SESSION_TYPE == "sqlalchemy":
+            from .sqlalchemy import SqlAlchemySessionInterface
+
             session_interface = SqlAlchemySessionInterface(
+                app=app,
                 **common_params,
-                db=SESSION_SQLALCHEMY,
+                client=SESSION_SQLALCHEMY,
                 table=SESSION_SQLALCHEMY_TABLE,
                 sequence=SESSION_SQLALCHEMY_SEQUENCE,
                 schema=SESSION_SQLALCHEMY_SCHEMA,

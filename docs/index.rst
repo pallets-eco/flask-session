@@ -6,7 +6,7 @@ Table of Contents
 
     introduction
     installation
-    quickstart
+    usage
     config
     api
     contributing

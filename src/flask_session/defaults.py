@@ -19,7 +19,11 @@ class Defaults:
     # Memcached settings
     SESSION_MEMCACHED = None
 
+    # CacheLib settings
+    SESSION_CACHELIB = None
+
     # Filesystem settings
+    # TODO: remove in 1.0
     SESSION_FILE_DIR = os.path.join(os.getcwd(), "flask_session")
     SESSION_FILE_THRESHOLD = 500
     SESSION_FILE_MODE = 384

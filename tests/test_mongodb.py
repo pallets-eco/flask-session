@@ -2,9 +2,9 @@ import json
 from contextlib import contextmanager
 
 import flask
-import flask_session
 from itsdangerous import want_bytes
 from pymongo import MongoClient
+from flask_session.mongodb import MongoDBSession
 
 
 class TestMongoSession:
@@ -24,7 +24,6 @@ class TestMongoSession:
 
     def retrieve_stored_session(self, key):
         document = self.collection.find_one({"id": key})
-        print(document)
         return want_bytes(document["val"])
 
     def test_mongo_default(self, app_utils):
@@ -37,7 +36,7 @@ class TestMongoSession:
             )
 
             with app.test_request_context():
-                assert isinstance(flask.session, flask_session.sessions.MongoDBSession)
+                assert isinstance(flask.session, MongoDBSession)
                 app_utils.test_session(app)
 
                 # Check if the session is stored in MongoDB

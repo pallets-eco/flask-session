@@ -12,7 +12,7 @@ Flask-Session's only required dependency is msgspec for serialization, which has
 
 .. note::
 
-  You need to choose a storage type and install an appropriate client library, unless you are using the FileSystemCache.
+  You need to choose a storage type and install an appropriate client library.
 
 For example, if you want to use Redis as your storage, you will need to install the redis-py client library:
 
@@ -22,8 +22,10 @@ For example, if you want to use Redis as your storage, you will need to install 
 
 Redis is the recommended storage type for Flask-Session, as it has the most complete support for the features of Flask-Session with minimal configuration.
 
-Supported storage and client libraries:
+Support
+--------
 
+Directly supported storage and client libraries:
 
 .. list-table::
    :header-rows: 1
@@ -33,7 +35,7 @@ Supported storage and client libraries:
    * - Redis
      - redis-py_
    * - Memcached
-     - pylibmc_, python-memcached_, pymemcache_
+     - pylibmc_, python-memcached_ or pymemcache_
    * - MongoDB
      - pymongo_
    * - SQL Alchemy
@@ -41,9 +43,48 @@ Supported storage and client libraries:
 
 Other clients may work if they use the same commands as the ones listed above.
 
+Cachelib
+--------
+
+Flask-Session also indirectly supports storage and client libraries via cachelib_, which is a wrapper around various cache libraries and subject to change. You must also install cachelib_ itself to use these.
+
+.. warning::
+
+  As of writing, cachelib_ still use pickle_ as the default serializer, which may have security implications.
+
+Using cachlib :class:`FileSystemCache`` or :class:`SimpleCache` may be useful for development.
+
+.. list-table::
+   :header-rows: 1
+
+   * - Storage
+     - Client Library
+   * - File System
+     - Not required
+   * - Simple Memory
+     - Not required
+   * - UWSGI
+     - uwsgi_
+   * - Redis
+     - redis-py_
+   * - Memcached
+     - pylibmc_, memcached, libmc_ or `google.appengine.api.memcached`_
+   * - MongoDB
+     - pymongo_
+   * - DynamoDB
+     - boto3_
+  
+
+
 .. _redis-py: https://github.com/andymccurdy/redis-py
 .. _pylibmc: http://sendapatch.se/projects/pylibmc/
 .. _python-memcached: https://github.com/linsomniac/python-memcached
 .. _pymemcache: https://github.com/pinterest/pymemcache
-.. _pymongo: http://api.mongodb.org/python/current/index.html
+.. _pymongo: https://pymongo.readthedocs.io/en/stable
 .. _Flask-SQLAlchemy: https://github.com/pallets-eco/flask-sqlalchemy
+.. _cachelib: https://cachelib.readthedocs.io/en/stable/
+.. _google.appengine.api.memcached: https://cloud.google.com/appengine/docs/legacy/standard/python/memcache
+.. _boto3: https://boto3.amazonaws.com/v1/documentation/api/latest/index.html
+.. _libmc: https://github.com/douban/libmc
+.. _uwsgi: https://uwsgi-docs.readthedocs.io/en/latest/WSGIquickstart.html
+.. _pickle: https://docs.python.org/3/library/pickle
