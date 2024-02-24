@@ -31,15 +31,14 @@ then create the :class:`Session` object by passing it the application.
     def get():
         return session.get('key', 'not set')
 
-This would automatically setup a redis client connected to `localhost:6379` and use it to store the session data.
+See the configuration section for more details.
 
 .. note::
 
-        You can not use :class:`~Session` instance directly, what :class:`~Session` does
-        is just change the :attr:`~flask.Flask.session_interface` attribute on
-        your Flask applications. You should always use :class:`flask.session` when accessing or modifying the current session.
+    You can not use :class:`~Session` instance directly, what :class:`~Session` does
+    is just change the :attr:`~flask.Flask.session_interface` attribute on
+    your Flask applications. You should always use :class:`flask.session` when accessing or modifying the current session.
 
-See the configuration section for more details.
 
 Alternative initialization
 ---------------------------

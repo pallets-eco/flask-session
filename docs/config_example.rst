@@ -1,4 +1,4 @@
-Configuration example
+Example
 ---------------------
 
 Here is an example of how to configure a redis backend:
