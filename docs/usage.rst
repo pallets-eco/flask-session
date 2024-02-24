@@ -18,6 +18,7 @@ then create the :class:`Session` object by passing it the application.
     app = Flask(__name__)
 
     SESSION_TYPE = 'redis'
+    SESSION_REDIS = Redis(host='localhost', port=6379)
     app.config.from_object(__name__)
     Session(app)
 
@@ -47,6 +48,7 @@ Rather than calling :class:`~Session`, you may initialize later using :meth:`~Se
 
 .. code-block:: python
     
+    ...
     sess = Session()
     sess.init_app(app)
 
@@ -54,14 +56,13 @@ Or, if you prefer to directly set parameters rather than using the configuration
 
 .. code-block:: python
 
+    from flask import Flask, session
     from flask_session.redis import RedisSessionInterface
     from redis import Redis
-    ...
 
-    redis = Redis(
-        host='localhost',
-        port=6379,
-    )
+    app = Flask(__name__)
+
+    redis = Redis(host='localhost', port=6379)
     app.session_interface = RedisSessionInterface(
         client=redis,
     )

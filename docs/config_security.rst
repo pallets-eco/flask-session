@@ -12,6 +12,7 @@ Consider the following Flask configurations in production:
 
 .. list-table::
    :header-rows: 1
+   :align: left
 
    * - Setting
      - Consideration

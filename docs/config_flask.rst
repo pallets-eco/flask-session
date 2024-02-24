@@ -35,4 +35,4 @@ modify them at runtime.
 .. _SESSION_REFRESH_EACH_REQUEST: https://flask.palletsprojects.com/en/latest/config/#SESSION_REFRESH_EACH_REQUEST
 
 .. note::
-      ``PERMANENT_SESSION_LIFETIME`` is also used to set the expiration time of the session data on the server side, regardless of permanence.
+      ``PERMANENT_SESSION_LIFETIME`` is also used to set the expiration time of the session data on the server side, regardless of ``SESSION_PERMANENT``.

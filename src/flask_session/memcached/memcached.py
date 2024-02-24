@@ -21,7 +21,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
     """A Session interface that uses memcached as session storage. (`pylibmc`, `libmc`, `python-memcached` or `pymemcache` required)
 
     :param client: A ``memcache.Client`` instance.
-    :param key_prefix: A prefix that is added to all Memcached store keys.
+    :param key_prefix: A prefix that is added to all storage keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.

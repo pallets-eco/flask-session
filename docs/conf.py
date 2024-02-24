@@ -14,7 +14,7 @@ intersphinx_mapping = {
     "flask": ("http://flask.palletsprojects.com/", None),
     "werkzeug": ("http://werkzeug.palletsprojects.com/", None),
     "flask-sqlalchemy": ("http://flask-sqlalchemy.palletsprojects.com/", None),
-    "redis": ("http://redis-py.readthedocs.io/", None),
+    "redis": ("http://redis-py.readthedocs.io/en/stable/", None),
 }
 
 
@@ -59,6 +59,7 @@ html_domain_indices = False
 html_static_path = ["_static"]
 html_theme = "furo"
 html_theme_options = {
+    "announcement": "Flask-Session is switching serializers to msgpack in 1.0.0. Use version 0.7.0 if you need graceful migration for existing sessions.",
     "source_repository": "https://github.com/pallets-eco/flask-session/",
     "source_branch": "main",
     "source_directory": "docs/",
