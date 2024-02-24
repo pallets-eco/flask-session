@@ -1,4 +1,4 @@
-Non-permanent session configuration
+Non-permanent sessions
 ------------------------------------
 
 .. caution::

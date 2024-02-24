@@ -62,6 +62,4 @@ Or, if you prefer to directly set parameters rather than using the configuration
     app = Flask(__name__)
 
     redis = Redis(host='localhost', port=6379)
-    app.session_interface = RedisSessionInterface(
-        client=redis,
-    )
+    app.session_interface = RedisSessionInterface(client=redis)

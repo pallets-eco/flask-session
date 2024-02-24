@@ -1,5 +1,5 @@
 
-Security configuration
+Security
 ----------------------
 
 .. warning::
@@ -25,6 +25,10 @@ Consider the following Flask configurations in production:
 
 You can use a security plugin such as `Flask-Talisman`_ to set these and more.
 
+.. warning::
+
+  Take care to secure your storage and storage client connection. For example, setup SSL/TLS and storage authentication.
+  
 
 .. _Flask: https://flask.palletsprojects.com/en/2.3.x/security/#set-cookie-options
 .. _MDN: https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies
