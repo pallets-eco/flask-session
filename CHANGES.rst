@@ -4,6 +4,7 @@ Version 0.7.0
 Added
 ~~~~~~~
 -   Use msgpack for serialization, along with ``SESSION_SERIALIZATION_FORMAT`` to choose between ``'json'`` and ``'msgpack'``.
+-   All sessions that are accessed or modified while using 0.7.0 will convert to msgspec. Once using 1.0.0, any sessions that are still in pickle will be cleared upon access.
 -   Add time-to-live expiration for MongoDB.
 -   Add retry for SQL based storage.
 -   Add ``flask session_cleanup`` command and alternatively, ``SESSION_CLEANUP_N_REQUESTS`` for SQLAlchemy or future non-TTL backends.
