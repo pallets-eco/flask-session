@@ -59,7 +59,7 @@ html_domain_indices = False
 html_static_path = ["_static"]
 html_theme = "furo"
 html_theme_options = {
-    "announcement": "Flask-Session is switching serializer to msgspec in 1.0.0. Version 0.7.0 includes graceful migration for existing sessions.",
+    "announcement": "Flask-Session is switching serializer to msgspec in 1.0.0. Version 0.7.0 will migrate existing sessions upon read or write.",
     "source_repository": "https://github.com/pallets-eco/flask-session/",
     "source_branch": "main",
     "source_directory": "docs/",
