@@ -1,4 +1,4 @@
-.. image:: https://github.com/pallets-eco/flask-session/tree/main/docs/_static/icon/favicon-192x192.png
+.. image:: https://raw.githubusercontent.com/pallets-eco/flask-session/development/docs/_static/icon/favicon-192x192.png
     :alt: Flask-Session
     :target: https://flask-session.readthedocs.io
     :align: left
