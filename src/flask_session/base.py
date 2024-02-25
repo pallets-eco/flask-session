@@ -83,13 +83,19 @@ class Serializer(ABC):
 
 class MsgSpecSerializer(Serializer):
     def __init__(self, app: Flask, format: str):
-        self.app = app
+        self.app: Flask = app
+        self.encoder: msgspec.msgpack.Encoder or msgspec.json.Encoder
+        self.decoder: msgspec.msgpack.Decoder or msgspec.json.Decoder
+        self.alternate_decoder: msgspec.msgpack.Decoder or msgspec.json.Decoder
+
         if format == "msgpack":
             self.encoder = msgspec.msgpack.Encoder()
             self.decoder = msgspec.msgpack.Decoder()
+            self.alternate_decoder = msgspec.json.Decoder()
         elif format == "json":
             self.encoder = msgspec.json.Encoder()
             self.decoder = msgspec.json.Decoder()
+            self.alternate_decoder = msgspec.msgpack.Decoder()
         else:
             raise ValueError(f"Unsupported serialization format: {format}")
 
