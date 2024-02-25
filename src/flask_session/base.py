@@ -108,7 +108,7 @@ class MsgSpecSerializer(Serializer):
             return self.decoder.decode(serialized_data)
         with suppress(msgspec.DecodeError):
             return self.alternate_decoder.decode(serialized_data)
-        with suppress(msgspec.DecodeError):
+        with suppress(pickle.UnpicklingError):
             return pickle.loads(serialized_data)
         # If all decoders fail, raise the final exception
         self.app.logger.error("Failed to deserialize session data", exc_info=True)
