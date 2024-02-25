@@ -1,3 +1,4 @@
+import warnings
 from datetime import datetime
 from datetime import timedelta as TimeDelta
 from typing import Any, Optional
@@ -96,6 +97,11 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         self.app = app
 
         if client is None:
+            warnings.warn(
+                "No valid SQLAlchemy instance provided, attempting to create a new instance on localhost with default settings.",
+                RuntimeWarning,
+                stacklevel=1,
+            )
             client = SQLAlchemy(app)
         self.client = client
 

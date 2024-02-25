@@ -1,3 +1,4 @@
+import warnings
 from datetime import timedelta as TimeDelta
 from typing import Optional
 
@@ -45,6 +46,11 @@ class RedisSessionInterface(ServerSideSessionInterface):
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
     ):
         if client is None:
+            warnings.warn(
+                "No valid Redis instance provided, attempting to create a new instance on localhost with default settings.",
+                RuntimeWarning,
+                stacklevel=1,
+            )
             client = Redis()
         self.client = client
         super().__init__(

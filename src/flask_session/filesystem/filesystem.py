@@ -55,20 +55,26 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
             warnings.warn(
                 "'SESSION_FILE_DIR' is deprecated and will be removed in a future release. Instead pass FileSystemCache(directory, threshold, mode) instance as SESSION_CACHELIB.",
                 DeprecationWarning,
-                stacklevel=2,
+                stacklevel=1,
             )
         if threshold != Defaults.SESSION_FILE_THRESHOLD:
             warnings.warn(
                 "'SESSION_FILE_THRESHOLD' is deprecated and will be removed in a future release. Instead pass FileSystemCache(directory, threshold, mode) instance as SESSION_CLIENT.",
                 DeprecationWarning,
-                stacklevel=2,
+                stacklevel=1,
             )
         if mode != Defaults.SESSION_FILE_MODE:
             warnings.warn(
                 "'SESSION_FILE_MODE' is deprecated and will be removed in a future release. Instead pass FileSystemCache(directory, threshold, mode) instance as SESSION_CLIENT.",
                 DeprecationWarning,
-                stacklevel=2,
+                stacklevel=1,
             )
+
+        warnings.warn(
+            "FileSystemSessionInterface is deprecated and will be removed in a future release. Instead use the CacheLib directly.",
+            DeprecationWarning,
+            stacklevel=1,
+        )
 
         self.cache = FileSystemCache(
             cache_dir=cache_dir, threshold=threshold, mode=mode

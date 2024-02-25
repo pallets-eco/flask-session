@@ -1,4 +1,5 @@
 import time
+import warnings
 from datetime import timedelta as TimeDelta
 from typing import Any, Optional, Protocol
 
@@ -51,6 +52,11 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
     ):
         if client is None:
+            warnings.warn(
+                "No valid memcache.Client instance provided, attempting to create a new instance on localhost with default settings.",
+                RuntimeWarning,
+                stacklevel=1,
+            )
             client = self._get_preferred_memcache_client()
         self.client = client
         super().__init__(

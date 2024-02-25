@@ -1,3 +1,4 @@
+import warnings
 from datetime import timedelta as TimeDelta
 from typing import Optional
 
@@ -37,7 +38,13 @@ class CacheLibSessionInterface(ServerSideSessionInterface):
     ):
 
         if client is None:
+            warnings.warn(
+                "No valid cachelib instance provided, attempting to create a new instance on localhost with default settings.",
+                RuntimeWarning,
+                stacklevel=1,
+            )
             client = FileSystemCache("flask_session", threshold=500)
+
         self.cache = client
 
         super().__init__(

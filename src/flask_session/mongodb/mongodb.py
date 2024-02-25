@@ -1,3 +1,4 @@
+import warnings
 from datetime import datetime
 from datetime import timedelta as TimeDelta
 from typing import Optional
@@ -51,6 +52,11 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
     ):
 
         if client is None:
+            warnings.warn(
+                "No valid MongoClient instance provided, attempting to create a new instance on localhost with default settings.",
+                RuntimeWarning,
+                stacklevel=1,
+            )
             client = MongoClient()
 
         self.client = client
