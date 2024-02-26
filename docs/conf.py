@@ -10,11 +10,11 @@ version = release = importlib.metadata.version("Flask-Session")
 extensions = ["sphinx.ext.autodoc", "sphinx.ext.intersphinx", "sphinx_favicon"]
 
 intersphinx_mapping = {
-    "python": ("http://docs.python.org/", None),
-    "flask": ("http://flask.palletsprojects.com/", None),
-    "werkzeug": ("http://werkzeug.palletsprojects.com/", None),
-    "flask-sqlalchemy": ("http://flask-sqlalchemy.palletsprojects.com/", None),
-    "redis": ("http://redis-py.readthedocs.io/en/stable/", None),
+    "python": ("https://docs.python.org/", None),
+    "flask": ("https://flask.palletsprojects.com/", None),
+    "werkzeug": ("https://werkzeug.palletsprojects.com/", None),
+    "flask-sqlalchemy": ("https://flask-sqlalchemy.palletsprojects.com/", None),
+    "redis": ("https://redis-py.readthedocs.io/en/stable/", None),
 }
 
 
