@@ -15,7 +15,7 @@ class TestMongoSession:
     @contextmanager
     def setup_dynamodb(self):
         self.client = boto3.resource("dynamodb", endpoint_url="http://localhost:8000")
-        self.store = self.client.Table("flask-session")
+        self.store = self.client.Table("FlaskSession")
         try:
             scan = self.store.scan()
             with self.store.batch_writer() as batch:
@@ -43,7 +43,7 @@ class TestMongoSession:
                 {
                     "SESSION_TYPE": "dynamodb",
                     "SESSION_DYNAMODB": self.client,
-                    "SESSION_DYNAMODB_TABLE": "flask-sessions",
+                    "SESSION_DYNAMODB_TABLE": "FlaskSession",
                 }
             )
 
