@@ -9,7 +9,7 @@ from itsdangerous import want_bytes
 import boto3
 
 
-class TestMongoSession:
+class TestDynamoDBSession:
     """This requires package: boto3"""
 
     @contextmanager

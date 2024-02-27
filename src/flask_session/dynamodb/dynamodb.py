@@ -27,7 +27,7 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
     """A Session interface that uses dynamodb as backend. (`boto3` required)
 
     :param client: A ``DynamoDBServiceResource`` instance.
-    :param key_prefix: A prefix that is added to all MongoDB store keys.
+    :param key_prefix: A prefix that is added to all DynamoDB store keys.
     :param use_signer: Whether to sign the session id cookie or not.
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
@@ -55,7 +55,7 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
     ):
         if client is None:
             warnings.warn(
-                "No valid MongoClient instance provided, attempting to create a new instance on localhost with default settings.",
+                "No valid DynamoDBServiceResource instance provided, attempting to create a new instance on localhost:8000.",
                 RuntimeWarning,
                 stacklevel=1,
             )
