@@ -7,8 +7,6 @@ Configuration
 
 .. include:: config_cleanup.rst
 
-.. include:: config_security.rst
-
 .. include:: config_exceptions.rst
 
 .. include:: config_flask.rst

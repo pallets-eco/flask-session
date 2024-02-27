@@ -216,6 +216,19 @@ class ServerSideSessionInterface(FlaskSessionInterface, ABC):
         if self.cleanup_n_requests and random.randint(0, self.cleanup_n_requests) == 0:
             self._delete_expired_sessions()
 
+    # SECURITY API METHODS
+
+    def regenerate(self, session: ServerSideSession) -> None:
+        """Regenerate the session id for the given session."""
+        if session:
+            # Remove the old session from storage
+            self._delete_session(self._get_store_id(session.sid))
+            # Generate a new session ID
+            new_sid = self._generate_sid(self.sid_length)
+            session.sid = new_sid
+            # Mark the session as modified to ensure it gets saved
+            session.modified = True
+
     # METHODS OVERRIDE FLASK SESSION INTERFACE
 
     def save_session(

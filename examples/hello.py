@@ -30,16 +30,5 @@ def delete():
     return "deleted"
 
 
-@app.route("/error/")
-def error():
-    raise RedisError("An error occurred with Redis")
-
-
-@app.errorhandler(RedisError)
-def handle_redis_error(error):
-    app.logger.error(f"Redis error encountered: {error}")
-    return "A problem occurred with our Redis service. Please try again later.", 500
-
-
 if __name__ == "__main__":
     app.run(debug=True)

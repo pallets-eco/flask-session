@@ -8,6 +8,7 @@ Table of Contents
     installation
     usage
     config
+    security
     api
     contributing
     license
