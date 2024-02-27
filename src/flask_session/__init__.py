@@ -114,6 +114,8 @@ class Session:
             "serialization_format": SESSION_SERIALIZATION_FORMAT,
         }
 
+        SESSION_TYPE = SESSION_TYPE.lower()
+
         if SESSION_TYPE == "redis":
             from .redis import RedisSessionInterface
 
