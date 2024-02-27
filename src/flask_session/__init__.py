@@ -104,6 +104,12 @@ class Session:
             "SESSION_CLEANUP_N_REQUESTS", Defaults.SESSION_CLEANUP_N_REQUESTS
         )
 
+        # DynamoDB settings
+        SESSION_DYNAMODB = config.get("SESSION_DYNAMODB", Defaults.SESSION_DYNAMODB)
+        SESSION_DYNAMODB_TABLE = config.get(
+            "SESSION_DYNAMODB_TABLE", Defaults.SESSION_DYNAMODB_TABLE
+        )
+
         common_params = {
             "app": app,
             "key_prefix": SESSION_KEY_PREFIX,
@@ -165,6 +171,15 @@ class Session:
                 bind_key=SESSION_SQLALCHEMY_BIND_KEY,
                 cleanup_n_requests=SESSION_CLEANUP_N_REQUESTS,
             )
+        elif SESSION_TYPE == "dynamodb":
+            from .dynamodb import DynamoDBSessionInterface
+
+            session_interface = DynamoDBSessionInterface(
+                **common_params,
+                client=SESSION_DYNAMODB,
+                table_name=SESSION_DYNAMODB_TABLE,
+            )
+
         else:
             raise ValueError(f"Unrecognized value for SESSION_TYPE: {SESSION_TYPE}")
 
