@@ -66,6 +66,12 @@ class ServerSideSession(CallbackDict, SessionMixin):
             self.permanent = permanent
         self.modified = False
 
+    def clear(self) -> None:
+        """Clear the session except for the '_permanent' key."""
+        permanent = self.get("_permanent", False)
+        super().clear()
+        self["_permanent"] = permanent
+
 
 class Serializer(ABC):
     """Baseclass for session serialization."""
