@@ -18,7 +18,7 @@ class TestDynamoDBSession:
         self.client = boto3.resource(
             "dynamodb", endpoint_url=Defaults.SESSION_DYNAMODB_URL
         )
-        self.store = self.client.Table("FlaskSession")
+        self.store = self.client.Table(Defaults.SESSION_DYNAMODB_TABLE)
         try:
             scan = self.store.scan()
             with self.store.batch_writer() as batch:
@@ -46,7 +46,6 @@ class TestDynamoDBSession:
                 {
                     "SESSION_TYPE": "dynamodb",
                     "SESSION_DYNAMODB": self.client,
-                    "SESSION_DYNAMODB_TABLE": "FlaskSession",
                 }
             )
 
