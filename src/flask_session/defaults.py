@@ -43,3 +43,4 @@ class Defaults:
     # DynamoDB settings
     SESSION_DYNAMODB = None
     SESSION_DYNAMODB_TABLE = "FlaskSession"
+    SESSION_DYNAMODB_URL = "http://localhost:8000"

@@ -32,6 +32,7 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
     :param table_name: DynamoDB table name to store the session.
+    :param url: DynamoDB URL for local testing.
 
     .. versionadded:: 0.6
         The `sid_length` parameter was added.
@@ -52,6 +53,7 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
         sid_length: int = Defaults.SESSION_SID_LENGTH,
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
         table_name: str = Defaults.SESSION_DYNAMODB_TABLE,
+        url: str = Defaults.SESSION_DYNAMODB_URL,
     ):
         if client is None:
             warnings.warn(
@@ -59,7 +61,7 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
                 RuntimeWarning,
                 stacklevel=1,
             )
-            client = boto3.resource("dynamodb", endpoint_url="http://localhost:8000")
+            client = boto3.resource("dynamodb", endpoint_url=url)
         try:
             client.meta.client.update_time_to_live(
                 TableName=self.table_name,

@@ -4,6 +4,7 @@ from contextlib import contextmanager
 import time
 
 import flask
+from flask_session.defaults import Defaults
 from flask_session.dynamodb import DynamoDBSession
 from itsdangerous import want_bytes
 import boto3
@@ -14,7 +15,9 @@ class TestDynamoDBSession:
 
     @contextmanager
     def setup_dynamodb(self):
-        self.client = boto3.resource("dynamodb", endpoint_url="http://localhost:8000")
+        self.client = boto3.resource(
+            "dynamodb", endpoint_url=Defaults.SESSION_DYNAMODB_URL
+        )
         self.store = self.client.Table("FlaskSession")
         try:
             scan = self.store.scan()

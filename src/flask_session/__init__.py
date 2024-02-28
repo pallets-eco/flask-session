@@ -109,6 +109,9 @@ class Session:
         SESSION_DYNAMODB_TABLE = config.get(
             "SESSION_DYNAMODB_TABLE", Defaults.SESSION_DYNAMODB_TABLE
         )
+        SESSION_DYNAMODB_URL = config.get(
+            "SESSION_DYNAMODB_URL", Defaults.SESSION_DYNAMODB_URL
+        )
 
         common_params = {
             "app": app,
@@ -178,6 +181,7 @@ class Session:
                 **common_params,
                 client=SESSION_DYNAMODB,
                 table_name=SESSION_DYNAMODB_TABLE,
+                url=SESSION_DYNAMODB_URL,
             )
 
         else:
