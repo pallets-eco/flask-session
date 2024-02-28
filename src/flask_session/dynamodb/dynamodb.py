@@ -79,9 +79,9 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
 
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (document) from the database
-        document = self.store.get_item(Key={"id": store_id})["Item"]
+        document = self.store.get_item(Key={"id": store_id}).get("Item")
         if document:
-            serialized_session_data = want_bytes(document["val"].value)
+            serialized_session_data = want_bytes(document.get("val").value)
             return self.serializer.decode(serialized_session_data)
         return None
 

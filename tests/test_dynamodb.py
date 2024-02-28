@@ -22,20 +22,20 @@ class TestDynamoDBSession:
         try:
             scan = self.store.scan()
             with self.store.batch_writer() as batch:
-                for each in scan["Items"]:
+                for each in scan.get("Items"):
                     batch.delete_item(
                         Key={
-                            "id": each["id"],
+                            "id": each.get("id"),
                         }
                     )
             yield
         finally:
             scan = self.store.scan()
             with self.store.batch_writer() as batch:
-                for each in scan["Items"]:
+                for each in scan.get("Items"):
                     batch.delete_item(
                         Key={
-                            "id": each["id"],
+                            "id": each.get("id"),
                         }
                     )
             pass
