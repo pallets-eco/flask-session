@@ -18,8 +18,8 @@ class TestDynamoDBSession:
         self.client = boto3.resource(
             "dynamodb", endpoint_url=Defaults.SESSION_DYNAMODB_URL
         )
-        self.store = self.client.Table(Defaults.SESSION_DYNAMODB_TABLE)
         try:
+            self.store = self.client.Table(Defaults.SESSION_DYNAMODB_TABLE)
             scan = self.store.scan()
             with self.store.batch_writer() as batch:
                 for each in scan.get("Items"):
@@ -28,17 +28,17 @@ class TestDynamoDBSession:
                             "id": each.get("id"),
                         }
                     )
-            yield
-        finally:
-            scan = self.store.scan()
-            with self.store.batch_writer() as batch:
-                for each in scan.get("Items"):
-                    batch.delete_item(
-                        Key={
-                            "id": each.get("id"),
-                        }
-                    )
+        except self.client.meta.client.exceptions.ResourceNotFoundException:
             pass
+        yield
+        scan = self.store.scan()
+        with self.store.batch_writer() as batch:
+            for each in scan.get("Items"):
+                batch.delete_item(
+                    Key={
+                        "id": each.get("id"),
+                    }
+                )
 
     def test_dynamodb_default(self, app_utils):
         with self.setup_dynamodb():

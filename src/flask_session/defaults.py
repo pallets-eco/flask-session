@@ -44,3 +44,5 @@ class Defaults:
     SESSION_DYNAMODB = None
     SESSION_DYNAMODB_TABLE = "FlaskSession"
     SESSION_DYNAMODB_URL = "http://localhost:8000"
+    SESSION_DYNAMODB_READ = 5
+    SESSION_DYNAMODB_WRITE = 5

@@ -33,6 +33,8 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
     :param sid_length: The length of the generated session id in bytes.
     :param table_name: DynamoDB table name to store the session.
     :param url: DynamoDB URL for local testing.
+    :param read_capacity: DynamoDB table read capacity units.
+    :param write_capacity: DynamoDB table write capacity units.
 
     .. versionadded:: 0.6
         The `sid_length` parameter was added.
@@ -54,7 +56,10 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
         table_name: str = Defaults.SESSION_DYNAMODB_TABLE,
         url: str = Defaults.SESSION_DYNAMODB_URL,
+        read_capacity: int = Defaults.SESSION_DYNAMODB_READ,
+        write_capacity: int = Defaults.SESSION_DYNAMODB_WRITE,
     ):
+
         if client is None:
             warnings.warn(
                 "No valid DynamoDBServiceResource instance provided, attempting to create a new instance on localhost:8000.",
@@ -62,7 +67,22 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
                 stacklevel=1,
             )
             client = boto3.resource("dynamodb", endpoint_url=url)
+
         try:
+            client.create_table(
+                AttributeDefinitions=[
+                    {"AttributeName": "id", "AttributeType": "S"},
+                ],
+                TableName=table_name,
+                KeySchema=[
+                    {"AttributeName": "id", "KeyType": "HASH"},
+                ],
+                ProvisionedThroughput={
+                    "ReadCapacityUnits": read_capacity,
+                    "WriteCapacityUnits": write_capacity,
+                },
+            )
+
             client.meta.client.update_time_to_live(
                 TableName=self.table_name,
                 TimeToLiveSpecification={
@@ -70,7 +90,7 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
                     "AttributeName": "expiration",
                 },
             )
-        except AttributeError:
+        except (AttributeError, client.meta.client.exceptions.ResourceInUseException):
             pass
 
         self.client = client
