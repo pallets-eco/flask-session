@@ -51,7 +51,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         collection: str = Defaults.SESSION_MONGODB_COLLECT,
     ):
 
-        if client is None:
+        if client is None or not isinstance(client, MongoClient):
             warnings.warn(
                 "No valid MongoClient instance provided, attempting to create a new instance on localhost with default settings.",
                 RuntimeWarning,

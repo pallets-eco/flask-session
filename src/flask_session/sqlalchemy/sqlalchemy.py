@@ -96,7 +96,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
     ):
         self.app = app
 
-        if client is None:
+        if client is None or not isinstance(client, SQLAlchemy):
             warnings.warn(
                 "No valid SQLAlchemy instance provided, attempting to create a new instance on localhost with default settings.",
                 RuntimeWarning,

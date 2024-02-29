@@ -51,7 +51,9 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
         sid_length: int = Defaults.SESSION_SID_LENGTH,
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
     ):
-        if client is None:
+        if client is None or not all(
+            hasattr(client, method) for method in ["get", "set", "delete"]
+        ):
             warnings.warn(
                 "No valid memcache.Client instance provided, attempting to create a new instance on localhost with default settings.",
                 RuntimeWarning,
