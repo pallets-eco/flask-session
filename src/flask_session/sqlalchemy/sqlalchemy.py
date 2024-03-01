@@ -20,11 +20,7 @@ class SqlAlchemySession(ServerSideSession):
 def create_session_model(db, table_name, schema=None, bind_key=None, sequence=None):
     class Session(db.Model):
         __tablename__ = table_name
-        __table_args__ = (
-            {"schema": schema, "keep_existing": True}
-            if schema
-            else {"keep_existing": True}
-        )
+        __table_args__ = {"schema": schema} if schema else {}
         __bind_key__ = bind_key
 
         id = (
