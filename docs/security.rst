@@ -6,7 +6,7 @@ Security
   Flask is a micro-framework and does not provide all security features out of the box. It is important to configure security settings for your application.
   
 Flask configuration
-------------------
+--------------------
 
 Please refer to documentation for `Flask`_, `OWASP`_, and other resources such as `MDN`_ for the latest information on best practice.
 

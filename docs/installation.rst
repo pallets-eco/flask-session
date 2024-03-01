@@ -88,4 +88,4 @@ Flask-Session also indirectly supports storage and client libraries via cachelib
 .. _boto3: https://boto3.amazonaws.com/v1/documentation/api/latest/index.html
 .. _libmc: https://github.com/douban/libmc
 .. _uwsgi: https://uwsgi-docs.readthedocs.io/en/latest/WSGIquickstart.html
-.. _pickle: https://docs.python.org/3/library/pickle
+.. _pickle: https://docs.python.org/3/library/pickle.html

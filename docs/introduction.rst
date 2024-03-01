@@ -4,7 +4,7 @@ Introduction
 Flask-Session is an extension for `Flask`_ that adds support for server-side sessions to
 your application.
 
-.. _Flask: http://flask.palletsprojects.com/
+.. _Flask: https://flask.palletsprojects.com/en/3.0.x/
 
 Client-side vs Server-side sessions
 ------------------------------------
