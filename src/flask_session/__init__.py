@@ -53,9 +53,7 @@ class Session:
         SESSION_KEY_PREFIX = config.get(
             "SESSION_KEY_PREFIX", Defaults.SESSION_KEY_PREFIX
         )
-        SESSION_SID_LENGTH = config.get(
-            "SESSION_ID_LENGTH", Defaults.SESSION_SID_LENGTH
-        )
+        SESSION_ID_LENGTH = config.get("SESSION_ID_LENGTH", Defaults.SESSION_ID_LENGTH)
         SESSION_SERIALIZATION_FORMAT = config.get(
             "SESSION_SERIALIZATION_FORMAT", Defaults.SESSION_SERIALIZATION_FORMAT
         )
@@ -110,7 +108,7 @@ class Session:
             "key_prefix": SESSION_KEY_PREFIX,
             "use_signer": SESSION_USE_SIGNER,
             "permanent": SESSION_PERMANENT,
-            "sid_length": SESSION_SID_LENGTH,
+            "sid_length": SESSION_ID_LENGTH,
             "serialization_format": SESSION_SERIALIZATION_FORMAT,
         }
 

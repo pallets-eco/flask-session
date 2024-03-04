@@ -7,7 +7,7 @@ class Defaults:
     SESSION_KEY_PREFIX = "session:"
     SESSION_USE_SIGNER = False
     SESSION_PERMANENT = True
-    SESSION_SID_LENGTH = 32
+    SESSION_ID_LENGTH = 32
     SESSION_SERIALIZATION_FORMAT = "msgpack"
 
     # Clean up settings for non TTL backends (SQL, PostgreSQL, etc.)

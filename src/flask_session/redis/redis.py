@@ -42,7 +42,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,
-        sid_length: int = Defaults.SESSION_SID_LENGTH,
+        sid_length: int = Defaults.SESSION_ID_LENGTH,
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
     ):
         if client is None or not isinstance(client, Redis):

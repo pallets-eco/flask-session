@@ -45,7 +45,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,
-        sid_length: int = Defaults.SESSION_SID_LENGTH,
+        sid_length: int = Defaults.SESSION_ID_LENGTH,
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
         db: str = Defaults.SESSION_MONGODB_DB,
         collection: str = Defaults.SESSION_MONGODB_COLLECT,

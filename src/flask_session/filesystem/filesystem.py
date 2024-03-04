@@ -43,7 +43,7 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,
-        sid_length: int = Defaults.SESSION_SID_LENGTH,
+        sid_length: int = Defaults.SESSION_ID_LENGTH,
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
         cache_dir: str = Defaults.SESSION_FILE_DIR,
         threshold: int = Defaults.SESSION_FILE_THRESHOLD,
