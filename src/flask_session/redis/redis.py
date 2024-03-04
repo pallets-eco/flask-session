@@ -2,6 +2,7 @@ import warnings
 from datetime import timedelta as TimeDelta
 from typing import Optional
 
+from flask import Flask
 from redis import Redis
 
 from .._utils import total_seconds
@@ -38,6 +39,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
 
     def __init__(
         self,
+        app: Flask,
         client: Optional[Redis] = Defaults.SESSION_REDIS,
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
@@ -54,7 +56,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
             client = Redis()
         self.client = client
         super().__init__(
-            None, key_prefix, use_signer, permanent, sid_length, serialization_format
+            app, key_prefix, use_signer, permanent, sid_length, serialization_format
         )
 
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:

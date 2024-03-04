@@ -136,7 +136,7 @@ class ServerSideSessionInterface(FlaskSessionInterface, ABC):
 
     def __init__(
         self,
-        app: Optional[Flask],
+        app: Flask,
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,

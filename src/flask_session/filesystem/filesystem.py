@@ -3,6 +3,7 @@ from datetime import timedelta as TimeDelta
 from typing import Optional
 
 from cachelib.file import FileSystemCache
+from flask import Flask
 
 from .._utils import total_seconds
 from ..base import ServerSideSession, ServerSideSessionInterface
@@ -40,6 +41,7 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
 
     def __init__(
         self,
+        app: Flask,
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,
@@ -81,7 +83,7 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
         )
 
         super().__init__(
-            None, key_prefix, use_signer, permanent, sid_length, serialization_format
+            app, key_prefix, use_signer, permanent, sid_length, serialization_format
         )
 
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:

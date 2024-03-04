@@ -3,6 +3,8 @@ import warnings
 from datetime import timedelta as TimeDelta
 from typing import Any, Optional, Protocol
 
+from flask import Flask
+
 from .._utils import total_seconds
 from ..base import ServerSideSession, ServerSideSessionInterface
 from ..defaults import Defaults
@@ -44,6 +46,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
 
     def __init__(
         self,
+        app: Flask,
         client: Optional[MemcacheClientProtocol] = Defaults.SESSION_MEMCACHED,
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
@@ -62,7 +65,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
             client = self._get_preferred_memcache_client()
         self.client = client
         super().__init__(
-            None, key_prefix, use_signer, permanent, sid_length, serialization_format
+            app, key_prefix, use_signer, permanent, sid_length, serialization_format
         )
 
     def _get_preferred_memcache_client(self):

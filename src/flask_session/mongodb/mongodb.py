@@ -3,6 +3,7 @@ from datetime import datetime
 from datetime import timedelta as TimeDelta
 from typing import Optional
 
+from flask import Flask
 from itsdangerous import want_bytes
 from pymongo import MongoClient, version
 
@@ -41,6 +42,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
 
     def __init__(
         self,
+        app: Flask,
         client: Optional[MongoClient] = Defaults.SESSION_MONGODB,
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
@@ -67,7 +69,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         self.store.create_index("expiration", expireAfterSeconds=0)
 
         super().__init__(
-            None, key_prefix, use_signer, permanent, sid_length, serialization_format
+            app, key_prefix, use_signer, permanent, sid_length, serialization_format
         )
 
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
