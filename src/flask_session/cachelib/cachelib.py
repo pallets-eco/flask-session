@@ -3,6 +3,7 @@ from datetime import timedelta as TimeDelta
 from typing import Optional
 
 from cachelib.file import FileSystemCache
+from flask import Flask
 
 from .._utils import total_seconds
 from ..base import ServerSideSession, ServerSideSessionInterface
@@ -29,6 +30,7 @@ class CacheLibSessionInterface(ServerSideSessionInterface):
 
     def __init__(
         self,
+        app: Flask = None,
         client: Optional[FileSystemCache] = Defaults.SESSION_CACHELIB,
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
