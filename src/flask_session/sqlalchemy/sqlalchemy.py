@@ -107,9 +107,11 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         )
         # Create the table if it does not exist
         with app.app_context():
-            self.sql_session_model.__table__.create(
-                bind=self.client.engine, checkfirst=True
-            )
+            if bind_key:
+                engine = self.client.get_engine(app, bind=bind_key)
+            else:
+                engine = self.client.engine
+            self.sql_session_model.__table__.create(bind=engine, checkfirst=True)
 
         super().__init__(
             app,
