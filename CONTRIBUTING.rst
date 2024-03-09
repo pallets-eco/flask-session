@@ -11,7 +11,6 @@ Create and activate a virtual environment
 
 Install dependencies
 .. code-block:: text
-    pip install -r requirements/dev.txt
     pip install -r requirements/pytest.txt
 
 

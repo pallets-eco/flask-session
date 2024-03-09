@@ -138,7 +138,58 @@ class ServerSideSessionInterface(SessionInterface, ABC):
         raise NotImplementedError()
 
 
-class RedisSessionInterface(ServerSideSessionInterface):
+class CachelibSessionInterface(ServerSideSessionInterface):
+    """Uses any class in `cachelib` as a session backend.
+
+    :param cache: any class implements cachelib.BaseCache
+    :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
+    """
+
+    session_class = ServerSideSession
+
+    def __init__(self, cache, key_prefix, use_signer=False, permanent=True, sid_length=32):
+        self.cache = cache
+        super.__init__(None, key_prefix, use_signer, permanent, sid_length)
+
+    def fetch_session(self, sid):
+        self.cache.get(sid)
+
+    def save_session(self, app, session, response):
+        domain = self.get_cookie_domain(app)
+        path = self.get_cookie_path(app)
+        if not session:
+            if session.modified:
+                self.cache.delete(session.sid)
+                response.delete_cookie(
+                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
+                )
+            return
+
+        conditional_cookie_kwargs = {}
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        if self.has_same_site_capability:
+            conditional_cookie_kwargs["samesite"] = self.get_cookie_samesite(app)
+        expires = self.get_expiration_time(app, session)
+        data = dict(session)
+        self.cache.set(session.sid, data, total_seconds(app.permanent_session_lifetime))
+        if self.use_signer:
+            session_id = self._get_signer(app).sign(want_bytes(session.sid))
+        else:
+            session_id = session.sid
+        response.set_cookie(
+            app.config["SESSION_COOKIE_NAME"],
+            session_id,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+            **conditional_cookie_kwargs
+        )
+
+class RedisSessionInterface(CachelibSessionInterface):
     """Uses the Redis key-value store as a session backend. (`redis-py` required)
 
     :param redis: A ``redis.Redis`` instance.
@@ -163,57 +214,10 @@ class RedisSessionInterface(ServerSideSessionInterface):
 
             redis = Redis()
         self.redis = redis
-        super().__init__(redis, key_prefix, use_signer, permanent, sid_length)
+        from cachelib import RedisCache
 
-    def fetch_session(self, sid):
-        # Get the saved session (value) from the database
-        prefixed_session_id = self.key_prefix + sid
-        value = self.redis.get(prefixed_session_id)
-
-        # If the saved session still exists and hasn't auto-expired, load the session data from the document
-        if value is not None:
-            try:
-                session_data = self.serializer.loads(value)
-                return self.session_class(session_data, sid=sid)
-            except pickle.UnpicklingError:
-                return self.session_class(sid=sid, permanent=self.permanent)
-
-        # If the saved session  does not exist, create a new session
-        return self.session_class(sid=sid, permanent=self.permanent)
-
-    def save_session(self, app, session, response):
-        if not self.should_set_cookie(app, session):
-            return
-
-        # Get the domain and path for the cookie from the app config
-        domain = self.get_cookie_domain(app)
-        path = self.get_cookie_path(app)
-
-        # If the session is empty, do not save it to the database or set a cookie
-        if not session:
-            # If the session was deleted (empty and modified), delete the saved session  from the database and tell the client to delete the cookie
-            if session.modified:
-                self.redis.delete(self.key_prefix + session.sid)
-                response.delete_cookie(
-                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
-                )
-            return
-
-        # Get the new expiration time for the session
-        expiration_datetime = self.get_expiration_time(app, session)
-
-        # Serialize the session data
-        serialized_session_data = self.serializer.dumps(dict(session))
-
-        # Update existing or create new session in the database
-        self.redis.set(
-            name=self.key_prefix + session.sid,
-            value=serialized_session_data,
-            ex=total_seconds(app.permanent_session_lifetime),
-        )
-
-        # Set the browser cookie
-        self.set_cookie_to_response(app, session, response, expiration_datetime)
+        cache = RedisCache(host=redis, key_prefix=key_prefix)
+        super().__init__(cache, key_prefix, use_signer, permanent, sid_length)
 
 
 class MemcachedSessionInterface(ServerSideSessionInterface):
@@ -323,7 +327,7 @@ class MemcachedSessionInterface(ServerSideSessionInterface):
         self.set_cookie_to_response(app, session, response, expiration_datetime)
 
 
-class FileSystemSessionInterface(ServerSideSessionInterface):
+class FileSystemSessionInterface(CachelibSessionInterface):
     """Uses the :class:`cachelib.file.FileSystemCache` as a session backend.
 
     :param cache_dir: the directory where session files are stored.
@@ -359,57 +363,9 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
         self.cache = FileSystemCache(cache_dir, threshold=threshold, mode=mode)
         super().__init__(self.cache, key_prefix, use_signer, permanent, sid_length)
 
-    def fetch_session(self, sid):
-        # Get the saved session (item) from the database
-        prefixed_session_id = self.key_prefix + sid
-        item = self.cache.get(prefixed_session_id)
-
-        # If the saved session exists and has not auto-expired, load the session data from the item
-        if item is not None:
-            return self.session_class(item, sid=sid)
-
-        # If the saved session  does not exist, create a new session
-        return self.session_class(sid=sid, permanent=self.permanent)
-
-    def save_session(self, app, session, response):
-        if not self.should_set_cookie(app, session):
-            return
-
-        # Get the domain and path for the cookie from the app config
-        domain = self.get_cookie_domain(app)
-        path = self.get_cookie_path(app)
-
-        # Generate a prefixed session id from the session id as a storage key
-        prefixed_session_id = self.key_prefix + session.sid
-
-        # If the session is empty, do not save it to the database or set a cookie
-        if not session:
-            # If the session was deleted (empty and modified), delete the saved session  from the database and tell the client to delete the cookie
-            if session.modified:
-                self.cache.delete(prefixed_session_id)
-                response.delete_cookie(
-                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
-                )
-            return
-
-        # Get the new expiration time for the session
-        expiration_datetime = self.get_expiration_time(app, session)
-
-        # Serialize the session data (or just cast into dictionary in this case)
-        session_data = dict(session)
-
-        # Update existing or create new session in the database
-        self.cache.set(
-            prefixed_session_id,
-            session_data,
-            total_seconds(app.permanent_session_lifetime),
-        )
-
-        # Set the browser cookie
-        self.set_cookie_to_response(app, session, response, expiration_datetime)
 
 
-class MongoDBSessionInterface(ServerSideSessionInterface):
+class MongoDBSessionInterface(CachelibSessionInterface):
     """A Session interface that uses mongodb as backend. (`pymongo` required)
 
     :param client: A ``pymongo.MongoClient`` instance.
@@ -445,100 +401,12 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         if client is None:
             client = pymongo.MongoClient()
 
-        self.client = client
-        self.store = client[db][collection]
-        self.use_deprecated_method = int(pymongo.version.split(".")[0]) < 4
-        super().__init__(self.store, key_prefix, use_signer, permanent, sid_length)
+        from cachelib import MongoDbCache
 
-    def fetch_session(self, sid):
-        # Get the saved session (document) from the database
-        prefixed_session_id = self.key_prefix + sid
-        document = self.store.find_one({"id": prefixed_session_id})
-
-        # If the expiration time is less than or equal to the current time (expired), delete the document
-        if document is not None:
-            expiration_datetime = document.get("expiration")
-            # tz_aware mongodb fix
-            expiration_datetime_tz_aware = expiration_datetime.replace(
-                tzinfo=timezone.utc
-            )
-            now_datetime_tz_aware = datetime.utcnow().replace(tzinfo=timezone.utc)
-            if expiration_datetime is None or (
-                expiration_datetime_tz_aware <= now_datetime_tz_aware
-            ):
-                if self.use_deprecated_method:
-                    self.store.remove({"id": prefixed_session_id})
-                else:
-                    self.store.delete_one({"id": prefixed_session_id})
-                document = None
-
-        # If the saved session still exists after checking for expiration, load the session data from the document
-        if document is not None:
-            try:
-                session_data = self.serializer.loads(want_bytes(document["val"]))
-                return self.session_class(session_data, sid=sid)
-            except pickle.UnpicklingError:
-                return self.session_class(sid=sid, permanent=self.permanent)
-
-        # If the saved session does not exist, create a new session
-        return self.session_class(sid=sid, permanent=self.permanent)
-
-    def save_session(self, app, session, response):
-        if not self.should_set_cookie(app, session):
-            return
-
-        # Get the domain and path for the cookie from the app config
-        domain = self.get_cookie_domain(app)
-        path = self.get_cookie_path(app)
-
-        # Generate a prefixed session id from the session id as a storage key
-        prefixed_session_id = self.key_prefix + session.sid
-
-        # If the session is empty, do not save it to the database or set a cookie
-        if not session:
-            # If the session was deleted (empty and modified), delete the saved session  from the database and tell the client to delete the cookie
-            if session.modified:
-                if self.use_deprecated_method:
-                    self.store.remove({"id": prefixed_session_id})
-                else:
-                    self.store.delete_one({"id": prefixed_session_id})
-                response.delete_cookie(
-                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
-                )
-            return
-
-        # Get the new expiration time for the session
-        expiration_datetime = self.get_expiration_time(app, session)
-
-        # Serialize the session data
-        serialized_session_data = self.serializer.dumps(dict(session))
-
-        # Update existing or create new session in the database
-        if self.use_deprecated_method:
-            self.store.update(
-                {"id": prefixed_session_id},
-                {
-                    "id": prefixed_session_id,
-                    "val": serialized_session_data,
-                    "expiration": expiration_datetime,
-                },
-                True,
-            )
-        else:
-            self.store.update_one(
-                {"id": prefixed_session_id},
-                {
-                    "$set": {
-                        "id": prefixed_session_id,
-                        "val": serialized_session_data,
-                        "expiration": expiration_datetime,
-                    }
-                },
-                True,
-            )
-
-        # Set the browser cookie
-        self.set_cookie_to_response(app, session, response, expiration_datetime)
+        cache = MongoDbCache(
+            client, db=db, collection=collection, key_prefix=key_prefix
+        )
+        super().__init__(cache, key_prefix, use_signer, permanent, sid_length)
 
 
 class SqlAlchemySessionInterface(ServerSideSessionInterface):
