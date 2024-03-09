@@ -7,7 +7,7 @@ try:
 except ImportError:
     import pickle
 
-from datetime import datetime, timezone
+from datetime import datetime
 
 from flask.sessions import SessionInterface as FlaskSessionInterface
 from flask.sessions import SessionMixin
