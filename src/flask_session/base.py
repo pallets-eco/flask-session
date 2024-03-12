@@ -10,7 +10,7 @@ except ImportError:
 
 import random
 from datetime import timedelta as TimeDelta
-from typing import Any, Optional
+from typing import Any, Dict, Optional
 
 import msgspec
 from flask import Flask, Request, Response
@@ -53,7 +53,7 @@ class ServerSideSession(CallbackDict, SessionMixin):
 
     def __init__(
         self,
-        initial: Optional[dict[str, Any]] = None,
+        initial: Optional[Dict[str, Any]] = None,
         sid: Optional[str] = None,
         permanent: Optional[bool] = None,
     ):
