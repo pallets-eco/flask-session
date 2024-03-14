@@ -59,11 +59,9 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
     :param bind_key: The db bind key to use.
     :param cleanup_n_requests: Delete expired sessions on average every N requests.
 
-    .. versionadded:: 1.0
-        db changed to client to be standard on all session interfaces.
-
     .. versionadded:: 0.7
-        The `cleanup_n_requests`, `app`, `cleanup_n_requests` parameters were added.
+        db changed to client to be standard on all session interfaces.
+        The `cleanup_n_request` parameter was added.
 
     .. versionadded:: 0.6
         The `sid_length`, `sequence`, `schema` and `bind_key` parameters were added.

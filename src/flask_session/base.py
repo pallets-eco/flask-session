@@ -225,7 +225,7 @@ class ServerSideSessionInterface(FlaskSessionInterface, ABC):
     # SECURITY API METHODS
 
     def regenerate(self, session: ServerSideSession) -> None:
-        """Regenerate the session id for the given session."""
+        """Regenerate the session id for the given session. Can be used by calling ``flask.session_interface.regenerate()``."""
         if session:
             # Remove the old session from storage
             self._delete_session(self._get_store_id(session.sid))
