@@ -86,6 +86,17 @@ Documentation
 -------------
 Learn more at the official `Flask-Session Documentation <https://flask-session.readthedocs.io/en/latest/>`_.
 
+Maintainers
+------------
+- `Lxstr <https://github.com/Lxstr>`_
+- Pallets Team
+
+Contribute
+----------
+Thanks to all those who have contributed to Flask-Session. A full list can be found at `CONTRIBUTORS.md <https://github.com/pallets-eco/flask-session/blob/development/CONTRIBUTORS.md>`_.
+
+If you want to contribute, please check the `CONTRIBUTING.rst <https://github.com/pallets-eco/flask-session/blob/development/CONTRIBUTING.rst>`_.
+
 Donate
 --------
 The Pallets organization develops and supports Flask-Session and other popular packages. In order to grow the community of contributors and users, and allow the maintainers to devote more time to the projects, please donate today.
