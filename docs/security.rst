@@ -1,3 +1,5 @@
+.. currentmodule:: flask_session
+
 Security
 ==========
 
@@ -37,8 +39,7 @@ Session fixation
 ------------------
 
 Session fixation is an attack that permits an attacker to hijack a valid user session. The attacker can fixate a user's session by providing them with a session identifier. The attacker can then use the session identifier to impersonate the user.
-
-As one tool among others that can mitigate session fixation, is regenerating the session identifier when a user logs in. This can be done by calling the ``session.regenerate()`` method.
+As one tool among others that can mitigate session fixation, is regenerating the session identifier when a user logs in. This can be done by calling the :meth:`flask.Flask.session_interface.regenerate` method. This method is defined in :class:`flask_session.base.ServerSideSession`.
 
 .. code-block:: python
 
