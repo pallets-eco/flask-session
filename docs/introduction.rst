@@ -18,7 +18,7 @@ A cookie is also used, but it only contains the session identifier that links th
 
 .. tip::
    There are generally (some exceptions) no individual session size limitations for server-side sessions, 
-   but developers should be cautious about abusing this for amounts or types data that would be more suited for actual database storage.
+   but developers should be cautious about abusing this for large amounts or types of data that would be more suited for actual database storage.
 
 Flask-Session sequence diagram
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
