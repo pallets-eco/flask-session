@@ -246,6 +246,7 @@ class ServerSideSessionInterface(FlaskSessionInterface, ABC):
         # Get the domain and path for the cookie from the app
         domain = self.get_cookie_domain(app)
         path = self.get_cookie_path(app)
+        name = self.get_cookie_name(app)
 
         # Generate a prefixed session id
         store_id = self._get_store_id(session.sid)
@@ -255,27 +256,31 @@ class ServerSideSessionInterface(FlaskSessionInterface, ABC):
             # If the session was deleted (empty and modified), delete the saved session  from the database and tell the client to delete the cookie
             if session.modified:
                 self._delete_session(store_id)
-                response.delete_cookie(
-                    app.config["SESSION_COOKIE_NAME"], domain=domain, path=path
-                )
+                response.delete_cookie(key=name, domain=domain, path=path)
                 response.vary.add("Cookie")
             return
 
         # Update existing or create new session in the database
         self._upsert_session(app.permanent_session_lifetime, session, store_id)
+        # Get the additional required cookie settings
+        value = self._sign(app, session.sid) if self.use_signer else session.sid
+        expires = self.get_expiration_time(app, session)
+        httponly = self.get_cookie_httponly(app)
+        secure = self.get_cookie_secure(app)
+        samesite = (
+            self.get_cookie_samesite(app) if self.has_same_site_capability else None
+        )
 
         # Set the browser cookie
         response.set_cookie(
-            key=app.config["SESSION_COOKIE_NAME"],
-            value=self._sign(app, session.sid) if self.use_signer else session.sid,
-            expires=self.get_expiration_time(app, session),
-            httponly=self.get_cookie_httponly(app),
-            domain=self.get_cookie_domain(app),
-            path=self.get_cookie_path(app),
-            secure=self.get_cookie_secure(app),
-            samesite=(
-                self.get_cookie_samesite(app) if self.has_same_site_capability else None
-            ),
+            key=name,
+            value=value,
+            expires=expires,
+            httponly=httponly,
+            domain=domain,
+            path=path,
+            secure=secure,
+            samesite=samesite,
         )
         response.vary.add("Cookie")
 
