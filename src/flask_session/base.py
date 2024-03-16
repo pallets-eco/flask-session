@@ -38,6 +38,13 @@ class ServerSideSession(CallbackDict, SessionMixin):
     dict) then this must be set to ``True`` manually when modifying that data. The
     session cookie will only be written to the response if this is ``True``.
 
+    .. attribute:: accessed
+
+    When data is read (or attempted read) or written, this is set to ``True``. Used by
+    :class:`.ServerSideSessionInterface` to add a ``Vary: Cookie``
+    header, which allows caching proxies to cache different pages for
+    different users.
+
     Default is ``False``.
 
     .. attribute:: permanent
@@ -59,12 +66,26 @@ class ServerSideSession(CallbackDict, SessionMixin):
     ):
         def on_update(self) -> None:
             self.modified = True
+            self.accessed = True
 
         CallbackDict.__init__(self, initial, on_update)
         self.sid = sid
         if permanent:
             self.permanent = permanent
         self.modified = False
+        self.accessed = False
+
+    def __getitem__(self, key: str) -> Any:
+        self.accessed = True
+        return super().__getitem__(key)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        self.accessed = True
+        return super().get(key, default)
+
+    def setdefault(self, key: str, default: Any = None) -> Any:
+        self.accessed = True
+        return super().setdefault(key, default)
 
     def clear(self) -> None:
         """Clear the session except for the '_permanent' key."""
@@ -261,6 +282,12 @@ class ServerSideSessionInterface(FlaskSessionInterface, ABC):
 
         # Generate a prefixed session id
         store_id = self._get_store_id(session.sid)
+
+        # Add a "Vary: Cookie" header if the session was accessed at all.
+        # This assumes the app is checking the session values in a request that
+        # behaves differently based on those values. ie. session.get("is_authenticated")
+        if session.accessed:
+            response.vary.add("Cookie")
 
         # If the session is empty, do not save it to the database or set a cookie
         if not session:
