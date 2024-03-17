@@ -2,8 +2,9 @@ import json
 from contextlib import contextmanager
 
 import flask
-from flask_session.redis import RedisSession
 from redis import Redis
+
+from flask_session.redis import RedisSession
 
 
 class TestRedisSession:

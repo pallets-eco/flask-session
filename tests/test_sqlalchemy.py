@@ -2,8 +2,9 @@ import json
 from contextlib import contextmanager
 
 import flask
-from flask_session.sqlalchemy import SqlAlchemySession
 from sqlalchemy import text
+
+from flask_session.sqlalchemy import SqlAlchemySession
 
 
 class TestSQLAlchemy:
@@ -35,7 +36,7 @@ class TestSQLAlchemy:
         app = app_utils.create_app(
             {
                 "SESSION_TYPE": "sqlalchemy",
-                "SQLALCHEMY_DATABASE_URI": "sqlite:///",
+                "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:",
             }
         )
         with app.app_context() and self.setup_sqlalchemy(
