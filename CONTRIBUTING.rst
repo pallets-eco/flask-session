@@ -44,6 +44,12 @@ Run the tests together or individually
     $ pytest tests
     $ pytest tests/test_basic.py
 
+For easier startup and teardown of storage for testing you may use 
+
+.. code-block:: bash
+
+    $ docker-compose up -d
+    $ docker-compose down
 
 Pull requests
 --------------
