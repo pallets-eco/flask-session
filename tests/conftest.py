@@ -14,6 +14,11 @@ def app_utils():
             if config_dict:
                 app.config.update(config_dict)
             app.config["SESSION_SERIALIZATION_FORMAT"] = "json"
+            app.config["SESSION_PERMANENT"] = False
+
+            @app.route("/", methods=["GET"])
+            def app_hello():
+                return "hello world"
 
             @app.route("/set", methods=["POST"])
             def app_set():
@@ -43,9 +48,19 @@ def app_utils():
             # Check no value is set from previous tests
             assert client.get("/get").data not in [b"42", b"43", b"44"]
 
-            # Set a value, modify it, and delete it
+            # Check if the Vary header is not set
+            rv = client.get("/")
+            assert "Vary" not in rv.headers
+
+            # Set a value and check it
             assert client.post("/set", data={"value": "42"}).data == b"value set"
             assert client.get("/get").data == b"42"
+
+            # Check if the Vary header is set
+            rv = client.get("/get")
+            assert rv.headers["Vary"] == "Cookie"
+
+            # Modify and delete the value
             assert client.post("/modify", data={"value": "43"}).data == b"value set"
             assert client.get("/get").data == b"43"
             assert client.post("/delete").data == b"value deleted"
