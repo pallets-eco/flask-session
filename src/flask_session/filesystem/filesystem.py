@@ -73,7 +73,7 @@ class FileSystemSessionInterface(ServerSideSessionInterface):
             )
 
         warnings.warn(
-            "FileSystemSessionInterface is deprecated and will be removed in a future release. Instead use the CacheLib directly.",
+            "FileSystemSessionInterface is deprecated and will be removed in a future release. Instead use the CacheLib backend directly.",
             DeprecationWarning,
             stacklevel=1,
         )
