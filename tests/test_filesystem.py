@@ -1,4 +1,6 @@
-import tempfile
+import os
+import shutil
+from contextlib import contextmanager
 
 import flask
 
@@ -6,17 +8,30 @@ from flask_session.filesystem import FileSystemSession
 
 
 class TestFileSystemSession:
+    session_dir = "testing_session_storage"
+
+    @contextmanager
+    def setup_filesystem(self):
+        try:
+            yield
+        finally:
+            pass
+            if self.session_dir and os.path.isdir(self.session_dir):
+                shutil.rmtree(self.session_dir)
 
     def retrieve_stored_session(self, key, app):
         return app.session_interface.cache.get(key)
 
     def test_filesystem_default(self, app_utils):
         app = app_utils.create_app(
-            {"SESSION_TYPE": "filesystem", "SESSION_FILE_DIR": tempfile.gettempdir()}
+            {
+                "SESSION_TYPE": "filesystem",
+                "SESSION_FILE_DIR": self.session_dir,
+            }
         )
 
         # Should be using FileSystem
-        with app.test_request_context():
+        with self.setup_filesystem(), app.test_request_context():
             assert isinstance(
                 flask.session,
                 FileSystemSession,

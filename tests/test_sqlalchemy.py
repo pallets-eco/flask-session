@@ -1,10 +1,9 @@
 import json
 from contextlib import contextmanager
-
+import pytest
 import flask
-from sqlalchemy import text
-
 from flask_session.sqlalchemy import SqlAlchemySession
+from sqlalchemy import text
 
 
 class TestSQLAlchemy:
@@ -32,6 +31,7 @@ class TestSQLAlchemy:
             return session_model.data
         return None
 
+    @pytest.mark.filterwarnings("ignore:No valid SQLAlchemy instance provided")
     def test_use_signer(self, app_utils):
         app = app_utils.create_app(
             {

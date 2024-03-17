@@ -12,8 +12,8 @@ class TestRedisSession:
 
     @contextmanager
     def setup_redis(self):
+        self.r = Redis()
         try:
-            self.r = Redis()
             self.r.flushall()
             yield
         finally:
@@ -25,7 +25,9 @@ class TestRedisSession:
 
     def test_redis_default(self, app_utils):
         with self.setup_redis():
-            app = app_utils.create_app({"SESSION_TYPE": "redis"})
+            app = app_utils.create_app(
+                {"SESSION_TYPE": "redis", "SESSION_REDIS": self.r}
+            )
 
             with app.test_request_context():
                 assert isinstance(flask.session, RedisSession)

@@ -1,20 +1,41 @@
+import os
+import shutil
+from contextlib import contextmanager
 
 import flask
+from cachelib.file import FileSystemCache
+
 from flask_session.cachelib import CacheLibSession
 
 
 class TestCachelibSession:
+    session_dir = "testing_session_storage"
+
+    @contextmanager
+    def setup_filesystem(self):
+        try:
+            yield
+        finally:
+            pass
+            if self.session_dir and os.path.isdir(self.session_dir):
+                shutil.rmtree(self.session_dir)
 
     def retrieve_stored_session(self, key, app):
         return app.session_interface.cache.get(key)
 
     def test_filesystem_default(self, app_utils):
         app = app_utils.create_app(
-            {"SESSION_TYPE": "cachelib", "SESSION_SERIALIZATION_FORMAT": "json"}
+            {
+                "SESSION_TYPE": "cachelib",
+                "SESSION_SERIALIZATION_FORMAT": "json",
+                "SESSION_CACHELIB": FileSystemCache(
+                    threshold=500, cache_dir=self.session_dir
+                ),
+            }
         )
 
-        # Should be using FileSystem
-        with app.test_request_context():
+        # Should be using CacheLib (FileSystem)
+        with self.setup_filesystem(), app.test_request_context():
             assert isinstance(
                 flask.session,
                 CacheLibSession,

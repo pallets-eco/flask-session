@@ -12,8 +12,8 @@ class TestMemcachedSession:
 
     @contextmanager
     def setup_memcached(self):
+        self.mc = memcache.Client(["127.0.0.1:11211"], debug=0)
         try:
-            self.mc = memcache.Client(["127.0.0.1:11211"], debug=0)
             self.mc.flush_all()
             yield
         finally:
@@ -25,7 +25,9 @@ class TestMemcachedSession:
 
     def test_memcached_default(self, app_utils):
         with self.setup_memcached():
-            app = app_utils.create_app({"SESSION_TYPE": "memcached"})
+            app = app_utils.create_app(
+                {"SESSION_TYPE": "memcached", "SESSION_MEMCACHED": self.mc}
+            )
 
             with app.test_request_context():
                 assert isinstance(
