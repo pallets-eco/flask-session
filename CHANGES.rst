@@ -1,5 +1,9 @@
-Version 0.7.0rc2
+0.7.0 - unreleased
 ------------------
+
+Changed
+~~~~~~~~
+-   Access session interfaces with ``flask_session.redis.RedisSessionInterface``.
 
 Added
 ~~~~~~~
@@ -8,13 +12,15 @@ Added
 -   Add time-to-live expiration for MongoDB.
 -   Add retry for SQL based storage.
 -   Add ``flask session_cleanup`` command and alternatively, ``SESSION_CLEANUP_N_REQUESTS`` for SQLAlchemy or future non-TTL backends.
--   Type hints.
+-   Add type hints.
 -   Add logo and additional documentation.
+-   Add vary cookie header when session modified or accessed as per flask's built-in session.
+-   Add regenerate method to session interface to mitigate fixation.
 
-Deprecated
+Removed
 ~~~~~~~~~~
--   Deprecated pickle. It is still available to read existing sessions, but will be removed in 1.0.0. All sessions will transfer to msgspec upon first interaction with 0.1.0.
 -   Remove null session in favour of specific exception messages.
+-   Deprecate pickle. It is still available to read existing sessions, but will be removed in 1.0.0. All sessions will convert to msgspec upon first interaction with 0.1.0.
 -   Deprecate ``SESSION_USE_SIGNER``.
 -   Deprecate :class:`flask_session.filesystem.FileSystemSessionInterface` in favor of the broader :class:`flask_session.cachelib.CacheLibSessionInterface`.
 
@@ -23,8 +29,8 @@ Fixed
 -   Prevent sid reuse on storage miss.
 -   Abstraction to improve consistency between backends.
 -   Enforce ``PERMANENT_SESSION_LIFETIME`` as expiration consistently for all backends.
--   Use Vary cookie header as per Flask.
 -   Specifically include backend session interfaces in public API and document usage.
+-   Fix non-permanent sessions not updating expiry.
 
 
 Version 0.6.0
