@@ -1,63 +1,73 @@
-0.7.0 - unreleased
+0.7.0 - 2024-03-18
 ------------------
 
 Changed
 ~~~~~~~~
--   Access session interfaces with ``flask_session.redis.RedisSessionInterface``.
+-   Access session interfaces with ``flask_session.redis.RedisSessionInterface`` (`2bc7df <https://github.com/pallets-eco/flask-session/commit/2bc7df1be7b8929e55cb25f13845caf0503630d8>`_).
+-   Deprecate pickle. It is still available to read existing sessions, but will be removed in 1.0.0. All sessions will convert to msgspec upon first interaction with 0.1.0 (`c7f8ce <https://github.com/pallets-eco/flask-session/commit/c7f8ced0e1532dea87850d34b3328a3fcb769988>`_)
+-   Deprecate ``SESSION_USE_SIGNER`` (`a5dba7 <https://github.com/pallets-eco/flask-session/commit/a5dba7022f806c8fb4412d0428b69dd4a077e4a7>`_).
+-   Deprecate :class:`flask_session.filesystem.FileSystemSessionInterface` in favor of the broader :class:`flask_session.cachelib.CacheLibSessionInterface` (`2bc7df <https://github.com/pallets-eco/flask-session/commit/2bc7df1be7b8929e55cb25f13845caf0503630d8>`_).
 
 Added
 ~~~~~~~
--   Use msgpack for serialization, along with ``SESSION_SERIALIZATION_FORMAT`` to choose between ``'json'`` and ``'msgpack'``.
+-   Use msgpack for serialization, along with ``SESSION_SERIALIZATION_FORMAT`` to choose between ``'json'`` and ``'msgpack'`` (`c7f8ce <https://github.com/pallets-eco/flask-session/commit/c7f8ced0e1532dea87850d34b3328a3fcb769988>`_).
 -   All sessions that are accessed or modified while using 0.7.0 will convert to msgspec. Once using 1.0.0, any sessions that are still in pickle will be cleared upon access.
--   Add time-to-live expiration for MongoDB.
--   Add retry for SQL based storage.
--   Add ``flask session_cleanup`` command and alternatively, ``SESSION_CLEANUP_N_REQUESTS`` for SQLAlchemy or future non-TTL backends.
--   Add type hints.
+-   Add time-to-live expiration for MongoDB (`9acee3 <https://github.com/pallets-eco/flask-session/commit/9acee3c5fb7072476f3feea923529d19d5e855c3>`_).
+-   Add retry for SQL based storage (`#211 <https://github.com/pallets-eco/flask-session/pull/211>`_).
+-   Add ``flask session_cleanup`` command and alternatively, ``SESSION_CLEANUP_N_REQUESTS`` for SQLAlchemy or future non-TTL backends (`#211 <https://github.com/pallets-eco/flask-session/pull/211>`_).
+-   Add type hints (`7d7d58 <https://github.com/pallets-eco/flask-session/commit/7d7d58ce371553da39095a421445cf639a62bd5f>`_).
 -   Add logo and additional documentation.
--   Add vary cookie header when session modified or accessed as per flask's built-in session.
--   Add regenerate method to session interface to mitigate fixation.
+-   Add vary cookie header when session modified or accessed as per flask's built-in session (`7ab698 <https://github.com/pallets-eco/flask-session/commit/7ab6980c8ba15912df13dd1e78242803e8104dd6>`_).
+-   Add regenerate method to session interface to mitigate fixation (`#27 <https://github.com/pallets-eco/flask-session/pull/27>`_, `#39 <https://github.com/pallets-eco/flask-session/issue/39>`_)(`80df63 <https://github.com/pallets-eco/flask-session/commit/80df635ffd466fa7798f6031be5469b4d5dae069>`_).
 
 Removed
 ~~~~~~~~~~
--   Remove null session in favour of specific exception messages.
--   Drop support for Python 3.7 which is EOL and precludes use of msgspec.
--   Deprecate pickle. It is still available to read existing sessions, but will be removed in 1.0.0. All sessions will convert to msgspec upon first interaction with 0.1.0.
--   Deprecate ``SESSION_USE_SIGNER``.
--   Deprecate :class:`flask_session.filesystem.FileSystemSessionInterface` in favor of the broader :class:`flask_session.cachelib.CacheLibSessionInterface`.
+-   Remove null session in favour of specific exception messages (`d7ed1c <https://github.com/pallets-eco/flask-session/commit/d7ed1c6e7eb3904888b72f0d6c006db1b9b60795>`_).
+-   Drop support for Python 3.7 which is end-of-life and precludes use of msgspec (`bd7e5b <https://github.com/pallets-eco/flask-session/commit/bd7e5b0bbfc10cdfa9c83b859593c69cc4381571>`_).
 
 Fixed
 ~~~~~
--   Prevent sid reuse on storage miss.
+-   Prevent sid reuse on storage miss (`#76 <https://github.com/pallets-eco/flask-session/pull/76>`_).
 -   Abstraction to improve consistency between backends.
--   Enforce ``PERMANENT_SESSION_LIFETIME`` as expiration consistently for all backends.
--   Specifically include backend session interfaces in public API and document usage.
--   Fix non-permanent sessions not updating expiry.
+-   Enforce ``PERMANENT_SESSION_LIFETIME`` as expiration consistently for all backends (`#81 <https://github.com/pallets-eco/flask-session/issues/81>`_)(`86895b <https://github.com/pallets-eco/flask-session/commit/86895b523203ca67c9f87416bdbf028852dcb357>`_).
+-   Specifically include backend session interfaces in public API and document usage (`#210 <https://github.com/pallets-eco/flask-session/issues/210>`_).
+-   Fix non-permanent sessions not updating expiry (`#221 <https://github.com/pallets-eco/flask-session/issues/221>`_).
 
 
-Version 0.6.0
+0.6.0 - 2024-01-16
 ------------------
 
-Released 2024-01-16
+Changed
+~~~~~~~~
 
 -   Use :meth:`~ServerSideSession.should_set_cookie` for preventing each request from saving the session again.
--   Permanent session otherwise empty will not be saved.
--   Use `secrets` module to generate session identifiers, with 256 bits of
-    entropy (was previously 122).
--   Explicitly name support for python-memcached, pylibmc and pymemcache.
--   Introduce SESSION_KEY_LENGTH to control the length of the session key in bytes, default is 32.
+-   Do not store a permanent session that is otherwise empty.
+-   Use `secrets` module to generate session identifiers, with 256 bits of entropy (was previously 122).
+-   Explicitly name support for ``python-memcached``, ``pylibmc`` and ``pymemcache`` for ``cachelib`` backend.
+
+Added
+~~~~~~~
+
+-   Introduce ``SESSION_KEY_LENGTH`` to control the length of the session key in bytes, default is 32.
+-   Support SQLAlchemy ``SESSION_SQLALCHEMY_SEQUENCE``, ``SESSION_SQLALCHEMY_SCHEMA`` and ``SESSION_SQLALCHEMY_BINDKEY``
+
+Removed
+~~~~~~~~~~
+
+-   Drop support for Redis < 2.6.12.
+
+Fixed
+~~~~~
+
 -   Fix pymongo 4.0 compatibility.
 -   Fix expiry is None bug in SQLAlchemy.
 -   Fix bug when existing SQLAlchemy db instance.
--   Support SQLAlchemy SESSION_SQLALCHEMY_SEQUENCE, SESSION_SQLALCHEMY_SCHEMA and SESSION_SQLALCHEMY_BINDKEY
--   Drop support for Redis < 2.6.12.
 -   Fix empty sessions being saved.
 -   Support Flask 3.0 and Werkzeug 3.0
 
 
-Version 0.5.0
+0.5.0 - 2023-05-11
 -------------
-
-Released 2023-05-11
 
 -   Drop support for Python < 3.7.
 -   Switch to ``pyproject.toml`` and Flit for packaging.
@@ -65,32 +75,32 @@ Released 2023-05-11
 -   Replace use of ``session_cookie_name`` for Flask 2.3 compatibility.
 
 
-Version 0.4.1
+0.4.1
 -------------
 
 -   Temporarily pin Flask < 2.3.
 
 
-Version 0.4.0
+0.4.0
 -------------
 
 -   Added support for ``SESSION_COOKIE_SAMESITE``.
 
 
-Version 0.3.2
+0.3.2
 -------------
 
 -   Changed ``werkzeug.contrib.cache`` to ``cachelib``.
 
 
-Version 0.3.1
+0.3.1
 -------------
 
 -   ``SqlAlchemySessionInterface`` is using ``VARCHAR(255)`` to store session id now.
 -   ``SqlAlchemySessionInterface`` won't run `db.create_all` anymore.
 
 
-Version 0.3
+0.3
 -----------
 
 -   ``SqlAlchemySessionInterface`` is using ``LargeBinary`` type to store data now.
@@ -98,7 +108,7 @@ Version 0.3
 -   Fixed ``TypeError`` when getting ``store_id`` using a signer.
 
 
-Version 0.2.3
+0.2.3
 -------------
 
 -   Fixed signing failure in Python 3.
@@ -107,19 +117,19 @@ Version 0.2.3
 -   Fixed ``StrictRedis`` support.
 
 
-Version 0.2.2
+0.2.2
 -------------
 
 -   Added support for non-permanent session.
 
 
-Version 0.2.1
+0.2.1
 -------------
 
 -   Fixed signing failure.
 
 
-Version 0.2
+0.2
 -----------
 
 -   Added ``SqlAlchemySessionInterface``.
@@ -127,13 +137,13 @@ Version 0.2
 -   Various bugfixes.
 
 
-Version 0.1.1
+0.1.1
 -------------
 
-Fixed MongoDB backend ``InvalidDocument`` error.
+-   Fixed MongoDB backend ``InvalidDocument`` error.
 
 
-Version 0.1
+0.1
 -----------
 
 -   First public preview release.

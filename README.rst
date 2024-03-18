@@ -23,6 +23,10 @@ your application.
     :target: ./LICENSE
     :alt: BSD-3 Clause License
 
+.. image:: https://common-changelog.org/badge.svg
+    :target: https://common-changelog.org
+    :alt: Common Changelog
+    
 .. image:: https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json&label=style
     :target: https://github.com/astral-sh/ruff
     :alt: Code style: ruff
