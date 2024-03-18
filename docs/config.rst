@@ -1,86 +1,32 @@
 Configuration
 =============
 
-Backend Configuration
----------------------
+.. include:: config_example.rst
 
-Here is an example of how to configure a redis backend:
+.. include:: config_nonpermanent.rst
 
-.. code-block:: python
+.. include:: config_cleanup.rst
 
-    app.config['SESSION_TYPE'] = 'redis'
-    app.config['SESSION_REDIS'] = Redis.from_url('redis://127.0.0.1:6379')
+.. include:: config_exceptions.rst
 
-We are not supplying something like ``SESSION_REDIS_HOST`` and
-``SESSION_REDIS_PORT``, if you want to use the ``RedisSessionInterface``,
-you should configure ``SESSION_REDIS`` to your own ``redis.Redis`` instance.
-This gives you more flexibility, such as using the same
-``redis.Redis`` instance for cache purposes too, then you do not need to keep
-two ``redis.Redis`` instance in the same process.
+.. include:: config_serialization.rst
 
-If you do not set ``SESSION_REDIS``, Flask-Session will assume you are developing locally and create a
-``redis.Redis`` instance for you. It is expected you supply an instance of
-``redis.Redis`` in production.
-
-.. note::
-
-    By default, all non-null sessions in Flask-Session are permanent.
-
-Relevant Flask Configuration Values
--------------------------------------
-The following configuration values are builtin configuration values within
-Flask itself that are relate to the Flask session cookie set on the browser. Flask-Session
-loads these values from your Flask application config, so you should configure
-your app first before you pass it to Flask-Session.  
-
-Note that these values
-cannot be modified after the ``init_app`` was applied so make sure to not
-modify them at runtime. 
-
-``PERMANENT_SESSION_LIFETIME`` effects not only the browser cookie lifetime but also 
-the expiration in the server side session storage.
+.. include:: config_flask.rst
 
 
-.. py:data:: SESSION_COOKIE_NAME
-
-   The name of the session cookie.
-
-.. py:data:: SESSION_COOKIE_DOMAIN
-
-   The domain for the session cookie. If this is not set, the cookie will be valid for all subdomains of ``SERVER_NAME``.
-
-.. py:data:: SESSION_COOKIE_PATH
-
-   The path for the session cookie. If this is not set the cookie will be valid for all of ``APPLICATION_ROOT`` or if that is not set for ``'/'``.
-
-.. py:data:: SESSION_COOKIE_HTTPONLY
-
-   Controls if the cookie should be set with the httponly flag.
-
-   Default: ``True``
-
-.. py:data:: SESSION_COOKIE_SECURE
-
-   Controls if the cookie should be set with the secure flag. Browsers will only send cookies with requests over HTTPS if the cookie is marked "secure". The application must be served over HTTPS for this to make sense.
-
-   Default: ``False``
-
-.. py:data:: PERMANENT_SESSION_LIFETIME
-
-   The lifetime of a permanent session as :class:`datetime.timedelta` object. Starting with Flask 0.8 this can also be an integer representing seconds.
-
-
-Flask-Session Configuration Values
+Flask-Session configuration values
 ----------------------------------
+
+These are specific to Flask-Session.
 
 .. py:data:: SESSION_TYPE
 
    Specifies which type of session interface to use. Built-in session types:
 
-   - **null**: NullSessionInterface (default)
    - **redis**: RedisSessionInterface
    - **memcached**: MemcachedSessionInterface
-   - **filesystem**: FileSystemSessionInterface
+   - **filesystem**: FileSystemSessionInterface (Deprecated in 0.7.0, will be removed in 1.0.0 in favor of CacheLibSessionInterface)
+   - **cachelib**: CacheLibSessionInterface
    - **mongodb**: MongoDBSessionInterface
    - **sqlalchemy**: SqlAlchemySessionInterface
 
@@ -92,13 +38,18 @@ Flask-Session Configuration Values
 
 .. py:data:: SESSION_USE_SIGNER
 
-   Whether sign the session cookie sid or not, if set to ``True``, you have to set :attr:`flask.Flask.secret_key`. 
+   Whether sign the session cookie sid or not, if set to ``True``, you have to set :attr:`flask.Flask.secret_key`.
+
+   .. note::
+       This feature is historical and generally only relevant if you are using client-side sessions ie. not Flask-Session. SESSION_ID_LENGTH provides the relevant entropy for session identifiers.
    
    Default: ``False``
 
+   .. deprecated:: 0.7.0
+
 .. py:data:: SESSION_KEY_PREFIX
 
-   A prefix that is added before all session keys. This makes it possible to use the same backend storage server for different apps.
+   A prefix that is added before all session keys. This makes it easier to use the same backend storage server for different apps.
    
    Default: ``'session:'``
 
@@ -108,11 +59,29 @@ Flask-Session Configuration Values
    
    Default: ``32``
 
-.. versionadded:: 0.6
+   .. versionadded:: 0.6.0
+
+.. py:data:: SESSION_SERIALIZATION_FORMAT
+   
+   The serialization format to use. Can be `'msgpack'`` or `'json'`. Set to `'msgpack'`` for a more efficient serialization format. Set to `'json'`` for a human-readable format.
+   
+   Default: ``'msgpack'``
+
+   .. versionadded:: 0.7.0
+
+.. deprecated:: 0.7.0
+    ``SESSION_USE_SIGNER``
+
+.. versionadded:: 0.7.0
+    ``SESSION_SERIALIZATION_FORMAT``
+
+.. versionadded:: 0.6.0
     ``SESSION_ID_LENGTH``
 
-Backend-specific Configuration Values
----------------------------------------
+
+Storage configuration
+---------------------
+
 
 Redis
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -143,11 +112,15 @@ FileSystem
    
    Default: ``flask_session`` directory under current working directory.
 
+   .. deprecated:: 0.7.0
+
 .. py:data:: SESSION_FILE_THRESHOLD
     
    The maximum number of items the session stores before it starts deleting some.
    
    Default: ``500``
+
+   .. deprecated:: 0.7.0
 
 .. py:data:: SESSION_FILE_MODE
     
@@ -155,6 +128,25 @@ FileSystem
    
    Default: ``0600``
 
+   .. deprecated:: 0.7.0
+
+CacheLib
+~~~~~~~~~~~~~~~~~~~~~~~
+.. py:data:: SESSION_CACHELIB
+
+   Any valid `cachelib backend <https://cachelib.readthedocs.io/en/stable/>`_. This allows you maximum flexibility in choosing the cache backend and it's configuration.
+   
+   The following would set a cache directory called "flask_session" and a threshold of 500 items before it starts deleting some.
+   
+   .. code-block:: python
+
+      app.config['SESSION_CACHELIB'] = FileSystemCache(cache_dir='flask_session', threshold=500)
+   
+   .. important::
+   
+      A ``default_timeout`` set in any of the ``CacheLib`` backends will be overrode by the ``PERMANENT_SESSION_LIFETIME`` when each stored session's expiry is set.
+   
+   Default: ``FileSystemCache`` in ``./flask_session`` directory.
 
 MongoDB
 ~~~~~~~~~~~~~~~~~~~~~~~
@@ -211,5 +203,20 @@ SqlAlchemy
    
    Default: ``None``
 
-.. versionadded:: 0.6
+.. py:data:: SESSION_CLEANUP_N_REQUESTS
+
+   Only applicable to non-TTL backends.
+   
+   The average number of requests after which Flask-Session will perform a session cleanup. This involves removing all session data that is older than ``PERMANENT_SESSION_LIFETIME``. Using the app command ``flask session_cleanup`` instead is preferable.
+   
+   Default: ``None``
+
+.. deprecated:: 0.7.0
+
+   ``SESSION_FILE_DIR``, ``SESSION_FILE_THRESHOLD``, ``SESSION_FILE_MODE``. Use ``SESSION_CACHELIB`` instead.
+
+.. versionadded:: 0.7.0
+    ``SESSION_CLEANUP_N_REQUESTS``
+
+.. versionadded:: 0.6.0
     ``SESSION_SQLALCHEMY_BIND_KEY``, ``SESSION_SQLALCHEMY_SCHEMA``, ``SESSION_SQLALCHEMY_SEQUENCE``

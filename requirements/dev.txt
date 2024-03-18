@@ -1,6 +1,6 @@
 # Core
 flask>=2.2
-cachelib
+msgspec
 
 # Linting
 ruff
@@ -14,4 +14,4 @@ redis
 python-memcached
 Flask-SQLAlchemy
 pymongo
-
+cachelib

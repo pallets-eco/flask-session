@@ -1,17 +1,45 @@
+import json
+from contextlib import contextmanager
+
 import flask
-import flask_session
+import memcache  # Import the memcache library
+from flask_session.memcached import MemcachedSession
 
 
-class TestMemcached:
-    """This requires package: memcached
-    This needs to be running before test runs
-    """
+class TestMemcachedSession:
+    """This requires package: python-memcached"""
 
-    def test_basic(self, app_utils):
-        app = app_utils.create_app({"SESSION_TYPE": "memcached"})
+    @contextmanager
+    def setup_memcached(self):
+        self.mc = memcache.Client(["127.0.0.1:11211"], debug=0)
+        try:
+            self.mc.flush_all()
+            yield
+        finally:
+            self.mc.flush_all()
+            # Memcached connections are pooled, no close needed
 
-        # Should be using Memecached
-        with app.test_request_context():
-            isinstance(flask.session, flask_session.sessions.MemcachedSessionInterface)
+    def retrieve_stored_session(self, key):
+        return self.mc.get(key)
 
-        app_utils.test_session_set(app)
+    def test_memcached_default(self, app_utils):
+        with self.setup_memcached():
+            app = app_utils.create_app(
+                {"SESSION_TYPE": "memcached", "SESSION_MEMCACHED": self.mc}
+            )
+
+            with app.test_request_context():
+                assert isinstance(
+                    flask.session,
+                    MemcachedSession,
+                )
+                app_utils.test_session(app)
+
+                # Check if the session is stored in Memcached
+                cookie = app_utils.test_session_with_cookie(app)
+                session_id = cookie.split(";")[0].split("=")[1]
+                byte_string = self.retrieve_stored_session(f"session:{session_id}")
+                stored_session = (
+                    json.loads(byte_string.decode("utf-8")) if byte_string else {}
+                )
+                assert stored_session.get("value") == "44"

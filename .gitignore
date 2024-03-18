@@ -13,3 +13,10 @@ __pycache__/
 /.mypy_cache/
 /.tox/
 /docs/_build/
+
+docs/.DS_Store
+.python-version
+.DS_Store
+.python-version
+requirements.lock
+requirements-dev.lock

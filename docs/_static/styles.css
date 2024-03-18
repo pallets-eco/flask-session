@@ -1,0 +1,13 @@
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400;1,700&family=Source+Code+Pro:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+.padded {
+    padding: 40px;
+}
+
+table {
+    max-width: 680px;
+    width: -webkit-fill-available;
+    width: -moz-available;
+    width: fill-available;
+    width: stretch;    
+}
