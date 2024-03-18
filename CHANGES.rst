@@ -3,14 +3,13 @@
 
 Changed
 ~~~~~~~~
--   Access session interfaces with ``flask_session.redis.RedisSessionInterface`` (`2bc7df <https://github.com/pallets-eco/flask-session/commit/2bc7df1be7b8929e55cb25f13845caf0503630d8>`_).
--   Deprecate pickle. It is still available to read existing sessions, but will be removed in 1.0.0. All sessions will convert to msgspec upon first interaction with 0.1.0 (`c7f8ce <https://github.com/pallets-eco/flask-session/commit/c7f8ced0e1532dea87850d34b3328a3fcb769988>`_)
+-   Access session interfaces via subfolder, for example ``flask_session.redis.RedisSessionInterface`` (`2bc7df <https://github.com/pallets-eco/flask-session/commit/2bc7df1be7b8929e55cb25f13845caf0503630d8>`_).
+-   Deprecate ``pickle`` in favor of ``msgspec``, which is configured with ``SESSION_SERIALIZATION_FORMAT`` to choose between ``'json'`` and ``'msgpack'``. All sessions will convert to msgspec upon first interaction with 0.7.0. Pickle is still available to read existing sessions, but will be removed in 1.0.0. (`c7f8ce <https://github.com/pallets-eco/flask-session/commit/c7f8ced0e1532dea87850d34b3328a3fcb769988>`_, `c7f8ce <https://github.com/pallets-eco/flask-session/commit/c7f8ced0e1532dea87850d34b3328a3fcb769988>`_)
 -   Deprecate ``SESSION_USE_SIGNER`` (`a5dba7 <https://github.com/pallets-eco/flask-session/commit/a5dba7022f806c8fb4412d0428b69dd4a077e4a7>`_).
 -   Deprecate :class:`flask_session.filesystem.FileSystemSessionInterface` in favor of the broader :class:`flask_session.cachelib.CacheLibSessionInterface` (`2bc7df <https://github.com/pallets-eco/flask-session/commit/2bc7df1be7b8929e55cb25f13845caf0503630d8>`_).
 
 Added
 ~~~~~~~
--   Use msgpack for serialization, along with ``SESSION_SERIALIZATION_FORMAT`` to choose between ``'json'`` and ``'msgpack'`` (`c7f8ce <https://github.com/pallets-eco/flask-session/commit/c7f8ced0e1532dea87850d34b3328a3fcb769988>`_).
 -   All sessions that are accessed or modified while using 0.7.0 will convert to msgspec. Once using 1.0.0, any sessions that are still in pickle will be cleared upon access.
 -   Add time-to-live expiration for MongoDB (`9acee3 <https://github.com/pallets-eco/flask-session/commit/9acee3c5fb7072476f3feea923529d19d5e855c3>`_).
 -   Add retry for SQL based storage (`#211 <https://github.com/pallets-eco/flask-session/pull/211>`_).
@@ -18,16 +17,16 @@ Added
 -   Add type hints (`7d7d58 <https://github.com/pallets-eco/flask-session/commit/7d7d58ce371553da39095a421445cf639a62bd5f>`_).
 -   Add logo and additional documentation.
 -   Add vary cookie header when session modified or accessed as per flask's built-in session (`7ab698 <https://github.com/pallets-eco/flask-session/commit/7ab6980c8ba15912df13dd1e78242803e8104dd6>`_).
--   Add regenerate method to session interface to mitigate fixation (`#27 <https://github.com/pallets-eco/flask-session/pull/27>`_, `#39 <https://github.com/pallets-eco/flask-session/issue/39>`_)(`80df63 <https://github.com/pallets-eco/flask-session/commit/80df635ffd466fa7798f6031be5469b4d5dae069>`_).
+-   Add regenerate method to session interface to mitigate fixation (`#27 <https://github.com/pallets-eco/flask-session/pull/27>`_, `#39 <https://github.com/pallets-eco/flask-session/issues/39>`_)(`80df63 <https://github.com/pallets-eco/flask-session/commit/80df635ffd466fa7798f6031be5469b4d5dae069>`_).
 
 Removed
 ~~~~~~~~~~
--   Remove null session in favour of specific exception messages (`d7ed1c <https://github.com/pallets-eco/flask-session/commit/d7ed1c6e7eb3904888b72f0d6c006db1b9b60795>`_).
+-   Remove null session in favour of relevant exception messages (`#107 <https://github.com/pallets-eco/flask-session/issues/107>`_, `#182 <https://github.com/pallets-eco/flask-session/issues/182>`_)(`d7ed1c <https://github.com/pallets-eco/flask-session/commit/d7ed1c6e7eb3904888b72f0d6c006db1b9b60795>`_).
 -   Drop support for Python 3.7 which is end-of-life and precludes use of msgspec (`bd7e5b <https://github.com/pallets-eco/flask-session/commit/bd7e5b0bbfc10cdfa9c83b859593c69cc4381571>`_).
 
 Fixed
 ~~~~~
--   Prevent sid reuse on storage miss (`#76 <https://github.com/pallets-eco/flask-session/pull/76>`_).
+-   Prevent session identifier reuse on storage miss (`#76 <https://github.com/pallets-eco/flask-session/pull/76>`_).
 -   Abstraction to improve consistency between backends.
 -   Enforce ``PERMANENT_SESSION_LIFETIME`` as expiration consistently for all backends (`#81 <https://github.com/pallets-eco/flask-session/issues/81>`_)(`86895b <https://github.com/pallets-eco/flask-session/commit/86895b523203ca67c9f87416bdbf028852dcb357>`_).
 -   Specifically include backend session interfaces in public API and document usage (`#210 <https://github.com/pallets-eco/flask-session/issues/210>`_).
@@ -67,7 +66,7 @@ Fixed
 
 
 0.5.0 - 2023-05-11
--------------
+-------------------
 
 -   Drop support for Python < 3.7.
 -   Switch to ``pyproject.toml`` and Flit for packaging.
