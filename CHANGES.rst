@@ -20,6 +20,7 @@ Added
 Removed
 ~~~~~~~~~~
 -   Remove null session in favour of specific exception messages.
+-   Drop support for Python 3.7 which is EOL and precludes use of msgspec.
 -   Deprecate pickle. It is still available to read existing sessions, but will be removed in 1.0.0. All sessions will convert to msgspec upon first interaction with 0.1.0.
 -   Deprecate ``SESSION_USE_SIGNER``.
 -   Deprecate :class:`flask_session.filesystem.FileSystemSessionInterface` in favor of the broader :class:`flask_session.cachelib.CacheLibSessionInterface`.
