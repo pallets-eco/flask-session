@@ -3,7 +3,6 @@ import shutil
 from contextlib import contextmanager
 
 import flask
-
 from flask_session.filesystem import FileSystemSession
 
 

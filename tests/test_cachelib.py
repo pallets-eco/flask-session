@@ -4,7 +4,6 @@ from contextlib import contextmanager
 
 import flask
 from cachelib.file import FileSystemCache
-
 from flask_session.cachelib import CacheLibSession
 
 

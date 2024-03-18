@@ -17,3 +17,6 @@ __pycache__/
 docs/.DS_Store
 
 .DS_Store
+.python-version
+requirements.lock
+requirements-dev.lock
