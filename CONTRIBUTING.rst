@@ -1,5 +1,7 @@
 Getting started
 -----------------
+Using pip
+~~~~~~~~~~~
 
 Navigate to the project directory and run the following commands:
 
@@ -14,8 +16,8 @@ Install dependencies
 
 .. code-block:: bash
 
-    $ pip install -r requirements/dev.txt
-    $ pip install -r requirements/docs.txt
+    $ pip install -r requirements/dev.in
+    $ pip install -r requirements/docs.in
 
 Install the package in editable mode
 
@@ -29,13 +31,18 @@ Lint the code
 
     $ ruff check --fix
 
-Build updated documentation
+Build updated documentation locally
 
 .. code-block:: bash
 
-    $ pip install -r requirements/docs.txt
     $ cd docs
     $ make html
+
+or
+
+.. code-block:: bash
+
+    $ sphinx-build -b html docs docs/_build
 
 Run the tests together or individually
 
@@ -50,6 +57,22 @@ For easier startup and teardown of storage for testing you may use
 
     $ docker-compose up -d
     $ docker-compose down
+
+Using rye
+~~~~~~~~~~~
+
+.. code-block:: bash
+    
+    $ rye pin 3.11
+    $ rye sync
+
+
+.. code-block:: bash
+    
+    $ rye run python examples/hello.py
+
+
+etc.
 
 Pull requests
 --------------
