@@ -21,31 +21,45 @@ intersphinx_mapping = {
 # HTML -----------------------------------------------------------------
 
 favicons = [
-    {"rel": "icon", "href": "icon.svg", "type": "image/svg+xml"},
-    {"rel": "icon", "sizes": "16x16", "href": "favicon-16x16.png", "type": "image/png"},
-    {"rel": "icon", "sizes": "32x32", "href": "favicon-32x32.png", "type": "image/png"},
-    {"rel": "icon", "sizes": "48x48", "href": "favicon-48x48.png", "type": "image/png"},
+    {
+        "rel": "icon",
+        "sizes": "16x16",
+        "href": "icon/favicon-16x16.png",
+        "type": "image/png",
+    },
+    {
+        "rel": "icon",
+        "sizes": "32x32",
+        "href": "icon/favicon-32x32.png",
+        "type": "image/png",
+    },
+    {
+        "rel": "icon",
+        "sizes": "48x48",
+        "href": "icon/favicon-48x48.png",
+        "type": "image/png",
+    },
     {
         "rel": "icon",
         "sizes": "192x192",
-        "href": "favicon-192x192.png",
+        "href": "icon/favicon-192x192.png",
         "type": "image/png",
     },
     {
         "rel": "icon",
         "sizes": "512x512",
-        "href": "favicon-512x512.png",
+        "href": "icon/favicon-512x512.png",
         "type": "image/png",
     },
     {
         "rel": "apple-touch-icon",
         "sizes": "180x180",
-        "href": "apple-touch-icon-180x180.png",
+        "href": "icon/apple-touch-icon-180x180.png",
         "type": "image/png",
     },
     {
         "rel": "mask-icon",
-        "href": "safari-pinned-tab.svg",
+        "href": "icon/safari-pinned-tab.svg",
     },
 ]
 html_copy_source = False
