@@ -10,7 +10,6 @@ Changed
 
 Added
 ~~~~~~~
--   All sessions that are accessed or modified while using 0.7.0 will convert to msgspec. Once using 1.0.0, any sessions that are still in pickle will be cleared upon access.
 -   Add time-to-live expiration for MongoDB (`9acee3 <https://github.com/pallets-eco/flask-session/commit/9acee3c5fb7072476f3feea923529d19d5e855c3>`_).
 -   Add retry for SQL based storage (`#211 <https://github.com/pallets-eco/flask-session/pull/211>`_).
 -   Add ``flask session_cleanup`` command and alternatively, ``SESSION_CLEANUP_N_REQUESTS`` for SQLAlchemy or future non-TTL backends (`#211 <https://github.com/pallets-eco/flask-session/pull/211>`_).
