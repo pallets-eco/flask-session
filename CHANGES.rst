@@ -1,3 +1,10 @@
+0.7.1 - 2024-03-21
+------------------
+
+Fixed
+~~~~~
+-   Include prematurely removed ``cachelib`` dependency. Will be removed in 1.0.0 to be an optional dependency (`#223 <https://github.com/pallets-eco/flask-session/issues/223>`_).
+
 0.7.0 - 2024-03-18
 ------------------
 
