@@ -2,20 +2,21 @@ name: Run unittests
 on: [push, pull_request]
 jobs:
     unittests:
-        runs-on: ubuntu-latest
-        strategy:
-            matrix:
-                python-version: [3.8, 3.9, 3.10, 3.11, 3.12]
-        services:
-            mongodb:
-                image: mongo
-                ports:
-                    - 27017:27017
-        steps:
-            - uses: actions/checkout@v4
-            - uses: supercharge/redis-github-action@1.5.0
-            - uses: niden/actions-memcached@v7
-            - name: Install testing requirements
-              run: pip3 install -r requirements/dev.txt
-            - name: Run tests
-              run: pytest tests
+    runs-on: ubuntu-latest
+    services:
+        mongodb:
+            image: mongo
+            ports:
+                - 27017:27017
+        dynamodb:
+            image: amazon/dynamodb-local
+            ports:
+                - 8000:8000
+    steps:
+        - uses: actions/checkout@v4
+        - uses: supercharge/redis-github-action@1.5.0
+        - uses: niden/actions-memcached@v7
+        - name: Install testing requirements
+          run: pip3 install -r requirements/dev.txt
+        - name: Run tests
+          run: pytest tests
