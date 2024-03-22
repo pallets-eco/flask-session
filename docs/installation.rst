@@ -42,6 +42,8 @@ Flask-Session has an increasing number of directly supported storage and client 
      - pymongo_
    * - SQL Alchemy
      - flask-sqlalchemy_
+   * - DynamoDB  
+     - boto3_
 
 Other libraries may work if they use the same commands as the ones listed above.
 

@@ -211,6 +211,21 @@ SqlAlchemy
    
    Default: ``None``
 
+Dynamodb
+~~~~~~~~~~~~~~~~~~~~~~~
+
+.. py:data:: SESSION_DYNAMODB
+   
+      A ``boto3.resource`` instance.
+      
+      Default: Instance connected to ``'localhost:8000'``
+
+.. py:data:: SESSION_DYNAMODB_TABLE_NAME
+
+      The name of the table you want to use.
+      
+      Default: ``'Sessions'``
+
 .. deprecated:: 0.7.0
 
    ``SESSION_FILE_DIR``, ``SESSION_FILE_THRESHOLD``, ``SESSION_FILE_MODE``. Use ``SESSION_CACHELIB`` instead.
