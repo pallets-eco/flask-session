@@ -1,18 +1,12 @@
-from decimal import Decimal
 import warnings
 from datetime import datetime
 from datetime import timedelta as TimeDelta
+from decimal import Decimal
 from typing import Optional
-from mypy_boto3_dynamodb import DynamoDBServiceResource
+
 import boto3
-
-try:
-    import cPickle as pickle
-except ImportError:
-    import pickle
-
-from datetime import datetime, timezone
-
+from mypy_boto3_dynamodb.service_resource import DynamoDBServiceResource
+from flask import Flask
 from itsdangerous import want_bytes
 
 from ..base import ServerSideSession, ServerSideSessionInterface
@@ -32,9 +26,6 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
     :param permanent: Whether to use permanent session or not.
     :param sid_length: The length of the generated session id in bytes.
     :param table_name: DynamoDB table name to store the session.
-    :param url: DynamoDB URL for local testing.
-    :param read_capacity: DynamoDB table read capacity units.
-    :param write_capacity: DynamoDB table write capacity units.
 
     .. versionadded:: 0.6
         The `sid_length` parameter was added.
@@ -43,21 +34,18 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
         The `use_signer` parameter was added.
     """
 
-    serializer = pickle
     session_class = DynamoDBSession
 
     def __init__(
         self,
+        app: Flask,
         client: Optional[DynamoDBServiceResource] = Defaults.SESSION_DYNAMODB,
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,
-        sid_length: int = Defaults.SESSION_SID_LENGTH,
+        sid_length: int = Defaults.SESSION_ID_LENGTH,
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
         table_name: str = Defaults.SESSION_DYNAMODB_TABLE,
-        url: str = Defaults.SESSION_DYNAMODB_URL,
-        read_capacity: int = Defaults.SESSION_DYNAMODB_READ,
-        write_capacity: int = Defaults.SESSION_DYNAMODB_WRITE,
     ):
 
         if client is None:
@@ -66,7 +54,13 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
                 RuntimeWarning,
                 stacklevel=1,
             )
-            client = boto3.resource("dynamodb", endpoint_url=url)
+            client = boto3.resource(
+                "dynamodb",
+                endpoint_url="http://localhost:8000",
+                region_name="us-west-2",
+                aws_access_key_id="dummy",
+                aws_secret_access_key="dummy",
+            )
 
         try:
             client.create_table(
@@ -77,12 +71,9 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
                 KeySchema=[
                     {"AttributeName": "id", "KeyType": "HASH"},
                 ],
-                ProvisionedThroughput={
-                    "ReadCapacityUnits": read_capacity,
-                    "WriteCapacityUnits": write_capacity,
-                },
+                BillingMode="PAY_PER_REQUEST",
             )
-
+            client.meta.client.get_waiter("table_exists").wait(TableName=table_name)
             client.meta.client.update_time_to_live(
                 TableName=self.table_name,
                 TimeToLiveSpecification={
@@ -91,11 +82,19 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
                 },
             )
         except (AttributeError, client.meta.client.exceptions.ResourceInUseException):
+            # TTL already exists, or table already exists
             pass
 
         self.client = client
         self.store = client.Table(table_name)
-        super().__init__(self.store, key_prefix, use_signer, permanent, sid_length)
+        super().__init__(
+            app,
+            key_prefix,
+            use_signer,
+            permanent,
+            sid_length,
+            serialization_format,
+        )
 
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (document) from the database
@@ -114,7 +113,6 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
         storage_expiration_datetime = datetime.utcnow() + session_lifetime
         # Serialize the session data
         serialized_session_data = self.serializer.encode(session)
-        print(storage_expiration_datetime.timestamp())
 
         self.store.update_item(
             Key={

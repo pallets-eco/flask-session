@@ -1,13 +1,9 @@
-import datetime
-import json
 from contextlib import contextmanager
-import time
 
+import boto3
 import flask
 from flask_session.defaults import Defaults
 from flask_session.dynamodb import DynamoDBSession
-from itsdangerous import want_bytes
-import boto3
 
 
 class TestDynamoDBSession:
@@ -16,7 +12,11 @@ class TestDynamoDBSession:
     @contextmanager
     def setup_dynamodb(self):
         self.client = boto3.resource(
-            "dynamodb", endpoint_url=Defaults.SESSION_DYNAMODB_URL
+            "dynamodb",
+            endpoint_url="http://localhost:8000",
+            region_name="us-west-2",
+            aws_access_key_id="dummy",
+            aws_secret_access_key="dummy",
         )
         try:
             self.store = self.client.Table(Defaults.SESSION_DYNAMODB_TABLE)

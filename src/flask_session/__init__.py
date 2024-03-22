@@ -109,15 +109,6 @@ class Session:
         SESSION_DYNAMODB_TABLE = config.get(
             "SESSION_DYNAMODB_TABLE", Defaults.SESSION_DYNAMODB_TABLE
         )
-        SESSION_DYNAMODB_URL = config.get(
-            "SESSION_DYNAMODB_URL", Defaults.SESSION_DYNAMODB_URL
-        )
-        SESSION_DYNAMODB_READ = config.get(
-            "SESSION_DYNAMODB_READ", Defaults.SESSION_DYNAMODB_READ
-        )
-        SESSION_DYNAMODB_WRITE = config.get(
-            "SESSION_DYNAMODB_WRITE", Defaults.SESSION_DYNAMODB_WRITE
-        )
 
         common_params = {
             "app": app,
@@ -187,9 +178,6 @@ class Session:
                 **common_params,
                 client=SESSION_DYNAMODB,
                 table_name=SESSION_DYNAMODB_TABLE,
-                url=SESSION_DYNAMODB_URL,
-                read_capacity=SESSION_DYNAMODB_READ,
-                write_capacity=SESSION_DYNAMODB_WRITE,
             )
 
         else:
