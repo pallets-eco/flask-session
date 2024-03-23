@@ -12,7 +12,7 @@ pytest-cov
 
 # Requirements for interfaces
 redis
-python-memcached
+pymemcache
 Flask-SQLAlchemy
 pymongo
 

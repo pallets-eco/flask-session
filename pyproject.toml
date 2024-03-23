@@ -85,4 +85,5 @@ dev-dependencies = [
     "sphinx>=7.1.2",
     "furo>=2024.1.29",
     "sphinx-favicon>=1.0.1",
+    "pymemcache>=4.0.0",
 ]

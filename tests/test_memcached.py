@@ -2,7 +2,7 @@ import json
 from contextlib import contextmanager
 
 import flask
-import memcache  # Import the memcache library
+import pymemcache as memcache  # Import the memcache library
 from flask_session.memcached import MemcachedSession
 
 
@@ -11,7 +11,7 @@ class TestMemcachedSession:
 
     @contextmanager
     def setup_memcached(self):
-        self.mc = memcache.Client(["127.0.0.1:11211"], debug=0)
+        self.mc = memcache.Client(("127.0.0.1:11211"))
         try:
             self.mc.flush_all()
             yield
