@@ -16,4 +16,5 @@ pymemcache
 Flask-SQLAlchemy
 pymongo
 boto3
+mypy_boto3_dynamodb
 
