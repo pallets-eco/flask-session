@@ -63,3 +63,27 @@ Or, if you prefer to directly set parameters rather than using the configuration
 
     redis = Redis(host='localhost', port=6379)
     app.session_interface = RedisSessionInterface(client=redis)
+
+
+Using CacheLib as a session backend
+------------------------------------
+
+.. note::
+
+    FileSystemSession was recently deprecated in favor of CacheLib, which is what is was using under the hood.
+
+The following example demonstrates how to use CacheLib as a session backend with the file system cache. This might be useful for rapid development or testing.
+
+.. code-block:: python
+
+    from flask import Flask, session
+    from flask_session import Session
+    from cachelib.file import FileSystemCache
+
+    app = Flask(__name__)
+
+    SESSION_TYPE = 'cachelib'
+    SESSION_SERIALIZATION_FORMAT = 'json'
+    SESSION_CACHELIB = FileSystemCache(threshold=500, cache_dir="/sessions"),
+    app.config.from_object(__name__)
+    Session(app)

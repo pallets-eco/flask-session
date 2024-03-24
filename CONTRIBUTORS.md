@@ -1,5 +1,6 @@
 ## Contributors
 
+-   [eiriklid](https://github.com/eiriklid)
 -   [nebolax](https://github.com/nebolax)
 -   [Taragolis](https://github.com/Taragolis)
 -   [Lxstr](https://github.com/Lxstr)
