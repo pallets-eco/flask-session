@@ -8,3 +8,5 @@ cachelib
 pymongo
 flask_sqlalchemy
 pymemcache
+boto3
+mypy_boto3_dynamodb

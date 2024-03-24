@@ -20,3 +20,4 @@ Anything documented here is part of the public API that Flask-Session provides, 
 .. autoclass:: flask_session.cachelib.CacheLibSessionInterface
 .. autoclass:: flask_session.mongodb.MongoDBSessionInterface
 .. autoclass:: flask_session.sqlalchemy.SqlAlchemySessionInterface
+.. autoclass:: flask_session.dynamodb.DynamoDBSessionInterface

@@ -39,3 +39,7 @@ class Defaults:
     SESSION_SQLALCHEMY_SEQUENCE = None
     SESSION_SQLALCHEMY_SCHEMA = None
     SESSION_SQLALCHEMY_BIND_KEY = None
+
+    # DynamoDB settings
+    SESSION_DYNAMODB = None
+    SESSION_DYNAMODB_TABLE = "Sessions"

@@ -1,5 +1,6 @@
 ## Contributors
 
+-   [necat1](https://github.com/necat1)
 -   [nebolax](https://github.com/nebolax)
 -   [Taragolis](https://github.com/Taragolis)
 -   [Lxstr](https://github.com/Lxstr)
