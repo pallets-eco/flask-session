@@ -1,6 +1,6 @@
 from .defaults import Defaults
 
-__version__ = "0.8.0"
+__version__ = "0.7.0"
 
 
 class Session:

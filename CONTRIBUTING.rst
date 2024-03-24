@@ -8,7 +8,7 @@ Navigate to the project directory and run the following commands:
 Create and activate a virtual environment
 
 .. code-block:: bash
-
+    
     $ python -m venv .venv
     $ source .venv/bin/activate
 
@@ -16,7 +16,7 @@ Install dependencies
 
 .. code-block:: bash
 
-    $ pip install -r requirements/dev.txt
+    $ pip install -r requirements/dev.in
     $ pip install -r requirements/docs.in
 
 Install the package in editable mode
@@ -47,11 +47,11 @@ or
 Run the tests together or individually
 
 .. code-block:: bash
-
+    
     $ pytest tests
     $ pytest tests/test_basic.py
 
-For easier startup and teardown of storage for testing you may use
+For easier startup and teardown of storage for testing you may use 
 
 .. code-block:: bash
 
@@ -62,13 +62,13 @@ Using rye
 ~~~~~~~~~~~
 
 .. code-block:: bash
-
+    
     $ rye pin 3.11
     $ rye sync
 
 
 .. code-block:: bash
-
+    
     $ rye run python examples/hello.py
 
 
