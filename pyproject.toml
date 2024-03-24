@@ -26,6 +26,14 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[project.optional-dependencies]
+cachelib = ["cachelib>=0.10.2"]
+memcached = ["pymemcache"]
+mongodb = ["pymongo>=4.6.2"]
+redis = ["redis>=5.0.3"]
+sqlalchemy = ["flask-sqlalchemy>=3.0.5"]
+all = ["Flask-Session[cachelib, memcached, mongodb, redis, sqlalchemy]"]
+
 [project.urls]
 Documentation = "https://flask-session.readthedocs.io"
 Changes = "https://flask-session.readthedocs.io/changes.html"
