@@ -1,6 +1,7 @@
 # Core
 flask>=2.2
 msgspec
+cachelib
 
 # Linting
 ruff
@@ -11,7 +12,9 @@ pytest-cov
 
 # Requirements for interfaces
 redis
-python-memcached
+pymemcache
 Flask-SQLAlchemy
 pymongo
-cachelib
+boto3
+mypy_boto3_dynamodb
+

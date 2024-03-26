@@ -77,3 +77,5 @@ etc.
 Pull requests
 --------------
 Please check previous pull requests before submitting a new one.
+
+Please ensure your pull requests are to the `development` branch.

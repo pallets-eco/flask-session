@@ -11,3 +11,7 @@ table {
     width: fill-available;
     width: stretch;    
 }
+
+.announcement-content {
+    white-space: unset !important;
+}
