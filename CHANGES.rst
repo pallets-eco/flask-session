@@ -1,9 +1,10 @@
-0.8.0
+0.8.0 - 2024-03-26
 ------------------
 
 Added
 ~~~~~~~
 -   Add DynamoDB session interface (`#214 <https://github.com/pallets-eco/flask-session/pull/214>`_).
+-   Add ability to install client libraries for backends using optional dependencies (extras) (`#228 <https://github.com/pallets-eco/flask-session/pull/228>`_).
 
 Fixed
 ~~~~~
