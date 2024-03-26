@@ -19,8 +19,10 @@ Flask-Session is an extension for Flask that adds support for server-side sessio
 Install and update using pip:
 
 ```py
-$ pip install flask-session
+$ pip install flask-session[redis]
 ```
+
+You can include any supported storage type in place of redis.
 
 ## A Simple Example
 
@@ -51,6 +53,7 @@ def get():
 -   FileSystem
 -   MongoDB
 -   SQLALchemy
+-   DynamoDB
 
 ## Documentation
 
