@@ -1,7 +1,7 @@
 [project]
 name = "Flask-Session"
 description = "Server-side session support for Flask"
-readme = "README.rst"
+readme = "README.md"
 license = {text = "BSD-3-Clause"}
 maintainers = [{name = "Pallets Community Ecosystem", email = "contact@palletsprojects.com"}]
 authors = [{name = "Shipeng Feng", email = "fsp261@gmail.com"}]
