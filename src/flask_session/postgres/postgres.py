@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from datetime import timedelta as TimeDelta
-from typing import Any, Generator, Optional
+from typing import Generator
 
 from flask import Flask
 from itsdangerous import want_bytes
@@ -40,7 +40,7 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
         permanent: bool = Defaults.SESSION_PERMANENT,
         sid_length: int = Defaults.SESSION_ID_LENGTH,
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
-        cleanup_n_requests: Optional[int] = Defaults.SESSION_CLEANUP_N_REQUESTS,
+        cleanup_n_requests: int | None = Defaults.SESSION_CLEANUP_N_REQUESTS,
         table_name: str = DEFAULT_TABLE_NAME,
         schema_name: str = DEFAULT_SCHEMA_NAME,
         max_db_conn: int = DEFAULT_PG_MAX_DB_CONN,
@@ -85,15 +85,14 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
 
         @contextmanager
         def _get_cursor(
-            self, conn: Optional[PsycoPg2Connection] = None
+            self, conn: PsycoPg2Connection | None = None
         ) -> Generator[PsycoPg2Cursor, None, None]:
             _conn: PsycoPg2Connection = conn or self.pool.getconn()
 
             assert isinstance(_conn, PsycoPg2Connection)
             try:
-                with _conn:
-                    with _conn.cursor() as cur:
-                        yield cur
+                with _conn, _conn.cursor() as cur:
+                    yield cur
             except Exception:
                 raise
             finally:
@@ -119,7 +118,7 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
                 )
 
         @retry_query(max_attempts=3)
-        def _retrieve_session_data(self, store_id: str) -> bytes | None:
+        def _retrieve_session_data(self, store_id: str) -> dict | None:
             with self._get_cursor() as cur:
                 cur.execute(
                     self._queries.retrieve_session_data,
