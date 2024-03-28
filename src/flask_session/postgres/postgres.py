@@ -134,11 +134,14 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
 
         serialized_session_data = self.serializer.encode(session)
 
+        if session.sid is not None:
+            assert session.sid == store_id
+
         with self._get_cursor() as cur:
             cur.execute(
                 self._queries.upsert_session,
                 dict(
-                    session_id=session.sid,
+                    session_id=store_id,
                     data=serialized_session_data,
                     ttl=session_lifetime,
                 ),
