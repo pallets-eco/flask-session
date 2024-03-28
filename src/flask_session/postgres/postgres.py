@@ -77,67 +77,67 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
             cleanup_n_requests,
         )
 
-        @contextmanager
-        def _get_cursor(
-            self, conn: PsycoPg2Connection | None = None
-        ) -> Generator[PsycoPg2Cursor, None, None]:
-            _conn: PsycoPg2Connection = conn or self.pool.getconn()
+    @contextmanager
+    def _get_cursor(
+        self, conn: PsycoPg2Connection | None = None
+    ) -> Generator[PsycoPg2Cursor, None, None]:
+        _conn: PsycoPg2Connection = conn or self.pool.getconn()
 
-            assert isinstance(_conn, PsycoPg2Connection)
-            try:
-                with _conn, _conn.cursor() as cur:
-                    yield cur
-            except Exception:
-                raise
-            finally:
-                self.pool.putconn(_conn)
+        assert isinstance(_conn, PsycoPg2Connection)
+        try:
+            with _conn, _conn.cursor() as cur:
+                yield cur
+        except Exception:
+            raise
+        finally:
+            self.pool.putconn(_conn)
 
-        @retry_query(max_attempts=3)
-        def _create_schema_and_table(self) -> None:
-            with self._get_cursor() as cur:
-                cur.execute(self._queries.create_schema)
-                cur.execute(self._queries.create_table)
+    @retry_query(max_attempts=3)
+    def _create_schema_and_table(self) -> None:
+        with self._get_cursor() as cur:
+            cur.execute(self._queries.create_schema)
+            cur.execute(self._queries.create_table)
 
-        def _delete_expired_sessions(self) -> None:
-            """Delete all expired sessions from the database."""
-            with self._get_cursor() as cur:
-                cur.execute(self._queries.delete_expired_sessions)
+    def _delete_expired_sessions(self) -> None:
+        """Delete all expired sessions from the database."""
+        with self._get_cursor() as cur:
+            cur.execute(self._queries.delete_expired_sessions)
 
-        @retry_query(max_attempts=3)
-        def _delete_session(self, store_id: str) -> None:
-            with self._get_cursor() as cur:
-                cur.execute(
-                    self._queries.delete_session,
-                    dict(session_id=self._get_store_id(store_id)),
-                )
+    @retry_query(max_attempts=3)
+    def _delete_session(self, store_id: str) -> None:
+        with self._get_cursor() as cur:
+            cur.execute(
+                self._queries.delete_session,
+                dict(session_id=self._get_store_id(store_id)),
+            )
 
-        @retry_query(max_attempts=3)
-        def _retrieve_session_data(self, store_id: str) -> dict | None:
-            with self._get_cursor() as cur:
-                cur.execute(
-                    self._queries.retrieve_session_data,
-                    dict(session_id=self._get_store_id(store_id)),
-                )
-                session_data = cur.fetchone()
+    @retry_query(max_attempts=3)
+    def _retrieve_session_data(self, store_id: str) -> dict | None:
+        with self._get_cursor() as cur:
+            cur.execute(
+                self._queries.retrieve_session_data,
+                dict(session_id=self._get_store_id(store_id)),
+            )
+            session_data = cur.fetchone()
 
-            if session_data is not None:
-                serialized_session_data = want_bytes(session_data)
-                return self.serializer.decode(serialized_session_data)
-            return None
+        if session_data is not None:
+            serialized_session_data = want_bytes(session_data)
+            return self.serializer.decode(serialized_session_data)
+        return None
 
-        @retry_query(max_attempts=3)
-        def _upsert_session(
-            self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
-        ) -> None:
+    @retry_query(max_attempts=3)
+    def _upsert_session(
+        self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
+    ) -> None:
 
-            serialized_session_data = self.serializer.encode(session)
+        serialized_session_data = self.serializer.encode(session)
 
-            with self._get_cursor() as cur:
-                cur.execute(
-                    self._queries.upsert_session,
-                    dict(
-                        session_id=session.sid,
-                        data=serialized_session_data,
-                        ttl=session_lifetime,
-                    ),
-                )
+        with self._get_cursor() as cur:
+            cur.execute(
+                self._queries.upsert_session,
+                dict(
+                    session_id=session.sid,
+                    data=serialized_session_data,
+                    ttl=session_lifetime,
+                ),
+            )
