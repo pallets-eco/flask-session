@@ -1,21 +1,19 @@
 from __future__ import annotations
 
-from typing import Optional
 from contextlib import contextmanager
-
-from flask import Flask
-from psycopg2.pool import ThreadedConnectionPool
-from psycopg2.extensions import connection as PsycoPg2Connection
-from psycopg2.extensions import cursor as PsycoPg2Cursor
 from datetime import timedelta as TimeDelta
 from typing import Any, Generator, Optional
-from itsdangerous import want_bytes
 
+from flask import Flask
+from itsdangerous import want_bytes
+from psycopg2.extensions import connection as PsycoPg2Connection
+from psycopg2.extensions import cursor as PsycoPg2Cursor
+from psycopg2.pool import ThreadedConnectionPool
+
+from .._utils import retry_query
 from ..base import ServerSideSession, ServerSideSessionInterface
 from ..defaults import Defaults
-
 from ._queries import Queries
-from .._utils import retry_query
 
 DEFAULT_TABLE_NAME = "flask_sessions"
 DEFAULT_SCHEMA_NAME = "public"
