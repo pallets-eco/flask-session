@@ -58,10 +58,10 @@ class Queries:
     @property
     def upsert_session(self) -> str:
         return sql.SQL(
-            """INSERT INTO {schema}.{table} (session_id, data, expiry)
-            VALUES (%(session_id)s, %(data)s, %(expiry)s)
+            """INSERT INTO {schema}.{table} (session_id, data, ttl)
+            VALUES (%(session_id)s, %(data)s, NOW() + %(ttl)s)
             ON CONFLICT (session_id)
-            DO UPDATE SET data = %(data)s, expiry = %(expiry)s;
+            DO UPDATE SET data = %(data)s, expiry = NOW() + %(ttl)s;
         """
         ).format(schema=sql.Identifier(self.schema), table=sql.Identifier(self.table))
 

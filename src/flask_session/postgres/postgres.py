@@ -8,7 +8,6 @@ from psycopg2.pool import ThreadedConnectionPool
 from psycopg2.extensions import connection as PsycoPg2Connection
 from psycopg2.extensions import cursor as PsycoPg2Cursor
 from datetime import timedelta as TimeDelta
-from datetime import datetime
 from typing import Any, Generator, Optional
 from itsdangerous import want_bytes
 
@@ -142,15 +141,12 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
 
             serialized_session_data = self.serializer.encode(session)
 
-            # TODO: use database's NOW() rather than datetime.utcnow()
-            expiry = datetime.utcnow() + session_lifetime
-
             with self._get_cursor() as cur:
                 cur.execute(
                     self._queries.upsert_session,
                     dict(
                         session_id=session.sid,
                         data=serialized_session_data,
-                        expiry=expiry,
+                        ttl=session_lifetime,
                     ),
                 )
