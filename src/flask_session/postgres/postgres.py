@@ -67,6 +67,8 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
 
         self._queries = Queries(schema=self._schema, table=self._table)
 
+        self._create_schema_and_table()
+
         super().__init__(
             app,
             key_prefix,
