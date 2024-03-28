@@ -37,8 +37,8 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
         sid_length: int = Defaults.SESSION_ID_LENGTH,
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
         cleanup_n_requests: int | None = Defaults.SESSION_CLEANUP_N_REQUESTS,
-        table_name: str = Defaults.SESSION_POSTGRESQL_TABLE,
-        schema_name: str = Defaults.SESSION_POSTGRESQL_SCHEMA,
+        table: str = Defaults.SESSION_POSTGRESQL_TABLE,
+        schema: str = Defaults.SESSION_POSTGRESQL_SCHEMA,
         max_db_conn: int = Defaults.SESSION_POSTGRESQL_MAX_DB_CONN,
     ) -> None:
         """Initialize a new Flask-PgSession instance.
@@ -62,10 +62,10 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
         """
         self.pool = ThreadedConnectionPool(1, max_db_conn, uri)
 
-        self._table = table_name
-        self._schema = schema_name
+        self._table = table
+        self._schema = schema
 
-        self._queries = Queries(schema=schema_name, table=table_name)
+        self._queries = Queries(schema=self._schema, table=self._table)
 
         super().__init__(
             app,
@@ -76,8 +76,6 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
             serialization_format,
             cleanup_n_requests,
         )
-
-        # QUERY HELPERS
 
         @contextmanager
         def _get_cursor(
