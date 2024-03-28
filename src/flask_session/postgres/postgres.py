@@ -15,10 +15,6 @@ from ..base import ServerSideSession, ServerSideSessionInterface
 from ..defaults import Defaults
 from ._queries import Queries
 
-DEFAULT_TABLE_NAME = "flask_sessions"
-DEFAULT_SCHEMA_NAME = "public"
-DEFAULT_PG_MAX_DB_CONN = 10
-
 
 class PostgreSqlSession(ServerSideSession):
     pass
@@ -41,9 +37,9 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
         sid_length: int = Defaults.SESSION_ID_LENGTH,
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
         cleanup_n_requests: int | None = Defaults.SESSION_CLEANUP_N_REQUESTS,
-        table_name: str = DEFAULT_TABLE_NAME,
-        schema_name: str = DEFAULT_SCHEMA_NAME,
-        max_db_conn: int = DEFAULT_PG_MAX_DB_CONN,
+        table_name: str = Defaults.SESSION_POSTGRESQL_TABLE,
+        schema_name: str = Defaults.SESSION_POSTGRESQL_SCHEMA,
+        max_db_conn: int = Defaults.SESSION_POSTGRESQL_MAX_DB_CONN,
     ) -> None:
         """Initialize a new Flask-PgSession instance.
 
