@@ -101,7 +101,7 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
         document = self.store.get_item(Key={"id": store_id}).get("Item")
         if document:
             serialized_session_data = want_bytes(document.get("val").value)
-            return self.serializer.decode(serialized_session_data)
+            return self.serializer.loads(serialized_session_data)
         return None
 
     def _delete_session(self, store_id: str) -> None:
@@ -112,7 +112,7 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
     ) -> None:
         storage_expiration_datetime = datetime.utcnow() + session_lifetime
         # Serialize the session data
-        serialized_session_data = self.serializer.encode(session)
+        serialized_session_data = self.serializer.dumps(dict(session))
 
         self.store.update_item(
             Key={

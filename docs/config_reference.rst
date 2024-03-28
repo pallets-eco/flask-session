@@ -1,19 +1,8 @@
-Configuration
-=============
-
-.. include:: config_example.rst
-
-.. include:: config_nonpermanent.rst
-
-.. include:: config_cleanup.rst
-
-.. include:: config_exceptions.rst
-
-.. include:: config_serialization.rst
+Configuration Reference
+=========================
 
 .. include:: config_flask.rst
-
-
+   
 Flask-Session configuration values
 ----------------------------------
 
@@ -79,8 +68,8 @@ These are specific to Flask-Session.
     ``SESSION_ID_LENGTH``
 
 
-Storage configuration
----------------------
+Storage configuration values
+----------------------------
 
 
 Redis
