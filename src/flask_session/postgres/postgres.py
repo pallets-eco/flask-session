@@ -24,7 +24,7 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
     pass
 
     session_class = PostgreSqlSession
-    ttl = True
+    ttl = False
 
     def __init__(
         self,
