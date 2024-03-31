@@ -21,13 +21,13 @@ class Session:
         your Flask applications. You should always use :class:`flask.session`.
     """
 
-    def __init__(self, app=None):
+    def __init__(self, app=None, custom_interface=None):
         self.app = app
         if app is not None:
-            self.init_app(app)
+            self.init_app(app, custom_interface)
 
-    def init_app(self, app):
-        """This the the alternate setup method, typically used in an application factory pattern::
+    def init_app(self, app, custom_interface=None):
+        """This the alternate setup method, typically used in an application factory pattern::
 
             sess = Session()
 
@@ -37,8 +37,9 @@ class Session:
                 return app
 
         :param app: the Flask app object with proper configuration.
+        :param custom_interface: a custom session interface to use.
         """
-        app.session_interface = self._get_interface(app)
+        app.session_interface = custom_interface or self._get_interface(app)
 
     def _get_interface(self, app):
         config = app.config
