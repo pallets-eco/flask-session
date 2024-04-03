@@ -194,7 +194,7 @@ class Session:
             )
 
         elif SESSION_TYPE == "postgresql":
-            from .postgres import PostgreSqlSessionInterface
+            from .postgresql import PostgreSqlSessionInterface
 
             session_interface = PostgreSqlSessionInterface(
                 **common_params,

@@ -2,9 +2,9 @@
 name = "Flask-Session"
 description = "Server-side session support for Flask"
 readme = "README.md"
-license = { text = "BSD-3-Clause" }
-maintainers = [{ name = "Pallets Community Ecosystem", email = "contact@palletsprojects.com" }]
-authors = [{ name = "Shipeng Feng", email = "fsp261@gmail.com" }]
+license = {text = "BSD-3-Clause"}
+maintainers = [{name = "Pallets Community Ecosystem", email = "contact@palletsprojects.com"}]
+authors = [{name = "Shipeng Feng", email = "fsp261@gmail.com"}]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Environment :: Web Environment",

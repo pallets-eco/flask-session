@@ -1,1 +1,1 @@
-from .postgres import PostgreSqlSession, PostgreSqlSessionInterface  # noqa: F401
+from .postgresql import PostgreSqlSession, PostgreSqlSessionInterface  # noqa: F401
