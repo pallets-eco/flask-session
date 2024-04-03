@@ -58,7 +58,7 @@ class Queries:
     @property
     def upsert_session(self) -> str:
         return sql.SQL(
-            """INSERT INTO {schema}.{table} (session_id, data, ttl)
+            """INSERT INTO {schema}.{table} (session_id, data, expiry)
             VALUES (%(session_id)s, %(data)s, NOW() + %(ttl)s)
             ON CONFLICT (session_id)
             DO UPDATE SET data = %(data)s, expiry = NOW() + %(ttl)s;
@@ -78,7 +78,7 @@ class Queries:
         ).format(schema=sql.Identifier(self.schema), table=sql.Identifier(self.table))
 
     @property
-    def drop_sessions_table(self) -> None:
-        sql.SQL("DROP TABLE IF EXISTS {schema}.{table};").format(
+    def drop_sessions_table(self) -> str:
+        return sql.SQL("DROP TABLE IF EXISTS {schema}.{table};").format(
             schema=sql.Identifier(self.schema), table=sql.Identifier(self.table)
         )

@@ -103,7 +103,7 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
         with self._get_cursor() as cur:
             cur.execute(
                 self._queries.delete_session,
-                dict(session_id=self._get_store_id(store_id)),
+                dict(session_id=store_id),
             )
 
     @retry_query(max_attempts=3)
@@ -111,12 +111,12 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
         with self._get_cursor() as cur:
             cur.execute(
                 self._queries.retrieve_session_data,
-                dict(session_id=self._get_store_id(store_id)),
+                dict(session_id=store_id),
             )
             session_data = cur.fetchone()
 
         if session_data is not None:
-            serialized_session_data = want_bytes(session_data)
+            serialized_session_data = want_bytes(session_data[0])
             return self.serializer.decode(serialized_session_data)
         return None
 
@@ -128,7 +128,7 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
         serialized_session_data = self.serializer.encode(session)
 
         if session.sid is not None:
-            assert session.sid == store_id
+            assert session.sid == store_id.removeprefix(self.key_prefix)
 
         with self._get_cursor() as cur:
             cur.execute(
@@ -139,3 +139,8 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
                     ttl=session_lifetime,
                 ),
             )
+
+    def _drop_table(self):
+        with self._get_cursor() as cur:
+            print(self._queries.drop_sessions_table)
+            cur.execute(self._queries.drop_sessions_table)
