@@ -21,7 +21,6 @@ class PostgreSqlSession(ServerSideSession):
 
 
 class PostgreSqlSessionInterface(ServerSideSessionInterface):
-    pass
 
     session_class = PostgreSqlSession
     ttl = False
