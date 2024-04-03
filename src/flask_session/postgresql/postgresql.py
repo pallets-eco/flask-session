@@ -142,5 +142,4 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
 
     def _drop_table(self):
         with self._get_cursor() as cur:
-            print(self._queries.drop_sessions_table)
             cur.execute(self._queries.drop_sessions_table)
