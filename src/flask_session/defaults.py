@@ -47,4 +47,3 @@ class Defaults:
     # PostgreSQL settings
     SESSION_POSTGRESQL_TABLE = "flask_sessions"
     SESSION_POSTGRESQL_SCHEMA = "public"
-    SESSION_POSTGRESQL_MAX_DB_CONN = 10

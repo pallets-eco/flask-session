@@ -28,9 +28,8 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
 
     def __init__(
         self,
-        uri: str,
-        *,
         app: Flask,
+        pool: ThreadedConnectionPool,
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,
@@ -39,7 +38,6 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
         cleanup_n_requests: int | None = Defaults.SESSION_CLEANUP_N_REQUESTS,
         table: str = Defaults.SESSION_POSTGRESQL_TABLE,
         schema: str = Defaults.SESSION_POSTGRESQL_SCHEMA,
-        max_db_conn: int = Defaults.SESSION_POSTGRESQL_MAX_DB_CONN,
     ) -> None:
         """Initialize a new Flask-PgSession instance.
 
@@ -60,7 +58,10 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
             max_db_conn (int, optional): The maximum number of database connections to
                 keep open. Defaults to 10.
         """
-        self.pool = ThreadedConnectionPool(1, max_db_conn, uri)
+        if not isinstance(pool, ThreadedConnectionPool):
+            raise TypeError("No valid ThreadedConnectionPool instance provided.")
+
+        self.pool = pool
 
         self._table = table
         self._schema = schema
