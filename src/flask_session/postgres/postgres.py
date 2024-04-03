@@ -21,6 +21,18 @@ class PostgreSqlSession(ServerSideSession):
 
 
 class PostgreSqlSessionInterface(ServerSideSessionInterface):
+    """A Session interface that uses PostgreSQL as a session storage. (`psycopg2` required)
+
+    :param pool: A ``psycopg2.pool.ThreadedConnectionPool`` instance.
+    :param key_prefix: A prefix that is added to all storage keys.
+    :param use_signer: Whether to sign the session id cookie or not.
+    :param permanent: Whether to use permanent session or not.
+    :param sid_length: The length of the generated session id in bytes.
+    :param serialization_format: The serialization format to use for the session data.
+    :param table: The table name you want to use.
+    :param schema: The db schema to use.
+    :param cleanup_n_requests: Delete expired sessions on average every N requests.
+    """
 
     session_class = PostgreSqlSession
     ttl = False
@@ -34,29 +46,10 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
         permanent: bool = Defaults.SESSION_PERMANENT,
         sid_length: int = Defaults.SESSION_ID_LENGTH,
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
-        cleanup_n_requests: int | None = Defaults.SESSION_CLEANUP_N_REQUESTS,
         table: str = Defaults.SESSION_POSTGRESQL_TABLE,
         schema: str = Defaults.SESSION_POSTGRESQL_SCHEMA,
+        cleanup_n_requests: int | None = Defaults.SESSION_CLEANUP_N_REQUESTS,
     ) -> None:
-        """Initialize a new Flask-PgSession instance.
-
-        Args:
-            uri (str): The database URI to connect to.
-            table_name (str, optional): The name of the table to store sessions in.
-                Defaults to "flask_sessions".
-            schema_name (str, optional): The name of the schema to store sessions in.
-                Defaults to "public".
-            key_prefix (str, optional): The prefix to prepend to the session ID when
-                storing it in the database. Defaults to "".
-            use_signer (bool, optional): Whether to use a signer to sign the session.
-                Defaults to False.
-            permanent (bool, optional): Whether the session should be permanent.
-                Defaults to True.
-            autodelete_expired_sessions (bool, optional): Whether to automatically
-                delete expired sessions. Defaults to True.
-            max_db_conn (int, optional): The maximum number of database connections to
-                keep open. Defaults to 10.
-        """
         if not isinstance(pool, ThreadedConnectionPool):
             raise TypeError("No valid ThreadedConnectionPool instance provided.")
 
