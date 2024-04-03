@@ -1,48 +1,48 @@
-version: "3.8"
+version: '3.8'
 
 services:
-    dynamodb-local:
-        image: "amazon/dynamodb-local:latest"
-        container_name: dynamodb-local
-        ports:
-            - "8000:8000"
-        environment:
-            - AWS_ACCESS_KEY_ID=dummy
-            - AWS_SECRET_ACCESS_KEY=dummy
-            - AWS_DEFAULT_REGION=us-west-2
+  dynamodb-local:
+    image: "amazon/dynamodb-local:latest"
+    container_name: dynamodb-local
+    ports:
+      - "8000:8000"
+    environment:
+      - AWS_ACCESS_KEY_ID=dummy
+      - AWS_SECRET_ACCESS_KEY=dummy
+      - AWS_DEFAULT_REGION=us-west-2
 
-    mongo:
-        image: mongo:latest
-        ports:
-            - "27017:27017"
-        volumes:
-            - mongo_data:/data/db
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
 
-    redis:
-        image: redis:latest
-        ports:
-            - "6379:6379"
-        volumes:
-            - redis_data:/data
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
 
-    memcached:
-        image: memcached:latest
-        ports:
-            - "11211:11211"
+  memcached:
+    image: memcached:latest
+    ports:
+      - "11211:11211"
 
-    postgres:
-        image: postgres:latest
-        environment:
-            - POSTGRES_USER=root
-            - POSTGRES_PASSWORD=pwd
-            - POSTGRES_DB=dummy
-        ports:
-            - "5433:5432"
-        volumes:
-            - postgres_data:/var/lib/postgresql/data
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=pwd
+      - POSTGRES_DB=dummy
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
-    postgres_data:
-    mongo_data:
-    redis_data:
-    dynamodb_data:
+  postgres_data:
+  mongo_data:
+  redis_data:
+  dynamodb_data:

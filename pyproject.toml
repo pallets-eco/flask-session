@@ -3,9 +3,7 @@ name = "Flask-Session"
 description = "Server-side session support for Flask"
 readme = "README.md"
 license = { text = "BSD-3-Clause" }
-maintainers = [
-    { name = "Pallets Community Ecosystem", email = "contact@palletsprojects.com" },
-]
+maintainers = [{ name = "Pallets Community Ecosystem", email = "contact@palletsprojects.com" }]
 authors = [{ name = "Shipeng Feng", email = "fsp261@gmail.com" }]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -21,7 +19,11 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Application Frameworks",
 ]
 requires-python = ">=3.8"
-dependencies = ["flask>=2.2", "msgspec>=0.18.6", "cachelib"]
+dependencies = [
+    "flask>=2.2", 
+    "msgspec>=0.18.6", 
+    "cachelib"
+]
 dynamic = ["version"]
 
 [project.urls]
