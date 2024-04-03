@@ -76,3 +76,9 @@ class Queries:
         return sql.SQL(
             "DELETE FROM {schema}.{table} WHERE session_id = %(session_id)s;"
         ).format(schema=sql.Identifier(self.schema), table=sql.Identifier(self.table))
+
+    @property
+    def drop_sessions_table(self) -> None:
+        sql.SQL("DROP TABLE IF EXISTS {schema}.{table};").format(
+            schema=sql.Identifier(self.schema), table=sql.Identifier(self.table)
+        )
