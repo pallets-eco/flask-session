@@ -40,7 +40,7 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
     def __init__(
         self,
         app: Flask,
-        pool: ThreadedConnectionPool,
+        pool: ThreadedConnectionPool | None = Defaults.SESSION_POSTGRESQL,
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,

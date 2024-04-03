@@ -45,5 +45,6 @@ class Defaults:
     SESSION_DYNAMODB_TABLE = "Sessions"
 
     # PostgreSQL settings
+    SESSION_POSTGRESQL = None
     SESSION_POSTGRESQL_TABLE = "flask_sessions"
     SESSION_POSTGRESQL_SCHEMA = "public"
