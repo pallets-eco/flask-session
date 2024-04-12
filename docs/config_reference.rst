@@ -18,6 +18,7 @@ These are specific to Flask-Session.
    - **cachelib**: CacheLibSessionInterface
    - **mongodb**: MongoDBSessionInterface
    - **sqlalchemy**: SqlAlchemySessionInterface
+   - **dynamodb**: DynamoDBSessionInterface
 
 .. py:data:: SESSION_PERMANENT
 
@@ -214,6 +215,12 @@ Dynamodb
       The name of the table you want to use.
       
       Default: ``'Sessions'``
+
+.. py:data:: SESSION_DYNAMODB_TABLE_NAME_EXISTS
+
+      By default it will create a new table with the TTL setting activated unless you set this parameter to ``True``, then it assumes that the table already exists.
+      
+      Default: ``False``
 
 .. deprecated:: 0.7.0
 

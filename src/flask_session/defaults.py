@@ -43,3 +43,4 @@ class Defaults:
     # DynamoDB settings
     SESSION_DYNAMODB = None
     SESSION_DYNAMODB_TABLE = "Sessions"
+    SESSION_DYNAMODB_TABLE_EXISTS = False
