@@ -23,7 +23,8 @@ class TestMemcachedSession(ABSTestSession):
             # Memcached connections are pooled, no close needed
 
     def retrieve_stored_session(self, key, app):
-        return self.mc.get(key)
+        byte_string = self.mc.get(key)
+        return json.loads(byte_string.decode("utf-8")) if byte_string else {}
 
     @session_permanent
     @session_refresh_each_request
