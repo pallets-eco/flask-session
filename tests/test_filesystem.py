@@ -1,12 +1,17 @@
 import os
 import shutil
 from contextlib import contextmanager
+from datetime import timedelta, datetime, timezone
 
+import time
 import flask
 from flask_session.filesystem import FileSystemSession
+from tests.utils import session_permanent, session_refresh_each_request
+
+from tests.abs_test import ABSTestSession
 
 
-class TestFileSystemSession:
+class TestFileSystemSession(ABSTestSession):
     session_dir = "testing_session_storage"
 
     @contextmanager
@@ -21,11 +26,16 @@ class TestFileSystemSession:
     def retrieve_stored_session(self, key, app):
         return app.session_interface.cache.get(key)
 
-    def test_filesystem_default(self, app_utils):
+    @session_permanent
+    @session_refresh_each_request
+    def test_default(self, app_utils, _session_permanent,
+                                _session_refresh_each_request):
         app = app_utils.create_app(
             {
                 "SESSION_TYPE": "filesystem",
                 "SESSION_FILE_DIR": self.session_dir,
+                "SESSION_PERMANENT": _session_permanent,
+                "SESSION_REFRESH_EACH_REQUEST": _session_refresh_each_request,
             }
         )
 
@@ -35,10 +45,27 @@ class TestFileSystemSession:
                 flask.session,
                 FileSystemSession,
             )
-            app_utils.test_session(app)
+            self._default_test(app_utils, app)
 
-            # Check if the session is stored in the filesystem
-            cookie = app_utils.test_session_with_cookie(app)
-            session_id = cookie.split(";")[0].split("=")[1]
-            stored_session = self.retrieve_stored_session(f"session:{session_id}", app)
-            assert stored_session.get("value") == "44"
+    @session_permanent
+    @session_refresh_each_request
+    def test_lifetime(self, app_utils,
+                                 _session_permanent,
+                                 _session_refresh_each_request):
+        app = app_utils.create_app(
+            {
+                "SESSION_TYPE": "filesystem",
+                "SESSION_FILE_DIR": self.session_dir,
+                "SESSION_PERMANENT": _session_permanent,
+                "SESSION_REFRESH_EACH_REQUEST": _session_refresh_each_request,
+                "PERMANENT_SESSION_LIFETIME": timedelta(seconds=5),
+            }
+        )
+
+        # Should be using FileSystem
+        with self.setup_filesystem(), app.test_request_context():
+            assert isinstance(
+                flask.session,
+                FileSystemSession,
+            )
+            self._test_lifetime(app, _session_permanent)

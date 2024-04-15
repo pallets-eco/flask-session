@@ -1,13 +1,17 @@
 import json
 from contextlib import contextmanager
+from datetime import timedelta
 
 import flask
 import pytest
 from flask_session.sqlalchemy import SqlAlchemySession
 from sqlalchemy import text
+from tests.utils import session_permanent, session_refresh_each_request
+
+from tests.abs_test import ABSTestSession
 
 
-class TestSQLAlchemy:
+class TestSQLAlchemy(ABSTestSession):
     """This requires package: sqlalchemy"""
 
     @contextmanager
@@ -29,15 +33,20 @@ class TestSQLAlchemy:
             .first()
         )
         if session_model:
-            return session_model.data
-        return None
+            return json.loads(session_model.data.decode("utf-8")) if session_model.data else {}
+        return {}
 
+    @session_permanent
+    @session_refresh_each_request
     @pytest.mark.filterwarnings("ignore:No valid SQLAlchemy instance provided")
-    def test_use_signer(self, app_utils):
+    def test_default(self, app_utils, _session_permanent,
+                     _session_refresh_each_request):
         app = app_utils.create_app(
             {
                 "SESSION_TYPE": "sqlalchemy",
                 "SQLALCHEMY_DATABASE_URI": "sqlite:///",
+                "SESSION_PERMANENT": _session_permanent,
+                "SESSION_REFRESH_EACH_REQUEST": _session_refresh_each_request,
             }
         )
         with app.app_context() and self.setup_sqlalchemy(
@@ -47,13 +56,28 @@ class TestSQLAlchemy:
                 flask.session,
                 SqlAlchemySession,
             )
-            app_utils.test_session(app)
+            self._default_test(app_utils, app)
 
-            # Check if the session is stored in SQLAlchemy
-            cookie = app_utils.test_session_with_cookie(app)
-            session_id = cookie.split(";")[0].split("=")[1]
-            byte_string = self.retrieve_stored_session(f"session:{session_id}", app)
-            stored_session = (
-                json.loads(byte_string.decode("utf-8")) if byte_string else {}
+    @session_permanent
+    @session_refresh_each_request
+    def test_lifetime(self, app_utils,
+                      _session_permanent,
+                      _session_refresh_each_request):
+        app = app_utils.create_app(
+            {
+                "SESSION_TYPE": "sqlalchemy",
+                "SQLALCHEMY_DATABASE_URI": "sqlite:///",
+                "SESSION_PERMANENT": _session_permanent,
+                "SESSION_REFRESH_EACH_REQUEST": _session_refresh_each_request,
+                "PERMANENT_SESSION_LIFETIME": timedelta(seconds=5),
+
+            }
+        )
+        with app.app_context() and self.setup_sqlalchemy(
+            app
+        ) and app.test_request_context():
+            assert isinstance(
+                flask.session,
+                SqlAlchemySession,
             )
-            assert stored_session.get("value") == "44"
+            self._test_lifetime(app, _session_permanent)
