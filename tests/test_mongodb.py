@@ -58,18 +58,18 @@ class TestMongoSession(ABSTestSession):
                                  _session_permanent,
                                  _session_refresh_each_request):
         pytest.skip("TTL index issue")
-    #     with self.setup_mongo():
-    #
-    #         app = app_utils.create_app(
-    #             {
-    #                 "SESSION_TYPE": "mongodb",
-    #                 "SESSION_MONGODB": self.client,
-    #                 "SESSION_PERMANENT": _session_permanent,
-    #                 "SESSION_REFRESH_EACH_REQUEST": _session_refresh_each_request,
-    #                 "PERMANENT_SESSION_LIFETIME": timedelta(seconds=5),
-    #             }
-    #         )
-    #
-    #         with app.test_request_context():
-    #             assert isinstance(flask.session, MongoDBSession)
-    #             self._test_lifetime(app, _session_permanent)
+        with self.setup_mongo():
+
+            app = app_utils.create_app(
+                {
+                    "SESSION_TYPE": "mongodb",
+                    "SESSION_MONGODB": self.client,
+                    "SESSION_PERMANENT": _session_permanent,
+                    "SESSION_REFRESH_EACH_REQUEST": _session_refresh_each_request,
+                    "PERMANENT_SESSION_LIFETIME": timedelta(seconds=5),
+                }
+            )
+
+            with app.test_request_context():
+                assert isinstance(flask.session, MongoDBSession)
+                self._test_lifetime(app, _session_permanent)
