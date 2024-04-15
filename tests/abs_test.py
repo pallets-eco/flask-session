@@ -1,6 +1,6 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 from contextlib import contextmanager
-from datetime import timedelta, datetime, timezone
+from datetime import datetime, timezone
 
 import time
 from tests.utils import session_permanent, session_refresh_each_request
@@ -12,6 +12,7 @@ class ABSTestSession(ABC):
     def setup_filesystem(self):
         raise NotImplementedError
 
+    @abstractmethod
     def retrieve_stored_session(self, key, app):
         raise NotImplementedError
 
@@ -20,7 +21,6 @@ class ABSTestSession(ABC):
     def test_default(self, app_utils,_session_permanent,
                                      _session_refresh_each_request):
         raise NotImplementedError
-
 
     def _default_test(self, app_utils, app):
         app_utils.test_session(app)

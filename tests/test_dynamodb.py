@@ -44,6 +44,9 @@ class TestDynamoDBSession(ABSTestSession):
                     }
                 )
 
+    def retrieve_stored_session(self, key, app):
+        return self.store.get_item(Key={"id": key}).get("Item")
+
     def test_dynamodb_default(self, app_utils):
         with self.setup_dynamodb():
             app = app_utils.create_app(
