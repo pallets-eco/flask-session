@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from datetime import timedelta as TimeDelta
-from typing import Generator
+from typing import Generator, Optional
 
 from flask import Flask
 from itsdangerous import want_bytes
@@ -40,7 +40,7 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
     def __init__(
         self,
         app: Flask,
-        pool: ThreadedConnectionPool | None = Defaults.SESSION_POSTGRESQL,
+        pool: Optional[ThreadedConnectionPool] = Defaults.SESSION_POSTGRESQL,
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,
@@ -48,7 +48,7 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
         table: str = Defaults.SESSION_POSTGRESQL_TABLE,
         schema: str = Defaults.SESSION_POSTGRESQL_SCHEMA,
-        cleanup_n_requests: int | None = Defaults.SESSION_CLEANUP_N_REQUESTS,
+        cleanup_n_requests: Optional[int] = Defaults.SESSION_CLEANUP_N_REQUESTS,
     ) -> None:
         if not isinstance(pool, ThreadedConnectionPool):
             raise TypeError("No valid ThreadedConnectionPool instance provided.")
@@ -74,7 +74,7 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
 
     @contextmanager
     def _get_cursor(
-        self, conn: PsycoPg2Connection | None = None
+        self, conn: Optional[PsycoPg2Connection] = None
     ) -> Generator[PsycoPg2Cursor, None, None]:
         _conn: PsycoPg2Connection = conn or self.pool.getconn()
 
@@ -107,7 +107,7 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
             )
 
     @retry_query(max_attempts=3)
-    def _retrieve_session_data(self, store_id: str) -> dict | None:
+    def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         with self._get_cursor() as cur:
             cur.execute(
                 self._queries.retrieve_session_data,
