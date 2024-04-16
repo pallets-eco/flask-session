@@ -86,6 +86,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         sequence: Optional[str] = Defaults.SESSION_SQLALCHEMY_SEQUENCE,
         schema: Optional[str] = Defaults.SESSION_SQLALCHEMY_SCHEMA,
         bind_key: Optional[str] = Defaults.SESSION_SQLALCHEMY_BIND_KEY,
+        create_table: bool = Defaults.SESSION_SQLALCHEMY_CREATE_TABLE,
         cleanup_n_requests: Optional[int] = Defaults.SESSION_CLEANUP_N_REQUESTS,
     ):
         self.app = app
@@ -103,13 +104,15 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         self.sql_session_model = create_session_model(
             client, table, schema, bind_key, sequence
         )
-        # Create the table if it does not exist
-        with app.app_context():
-            if bind_key:
-                engine = self.client.get_engine(app, bind=bind_key)
-            else:
-                engine = self.client.engine
-            self.sql_session_model.__table__.create(bind=engine, checkfirst=True)
+        
+        # Optionally create the table if it does not exist
+        if create_table:
+            with app.app_context():
+                if bind_key:
+                    engine = self.client.get_engine(app, bind=bind_key)
+                else:
+                    engine = self.client.engine
+                self.sql_session_model.__table__.create(bind=engine, checkfirst=True)
 
         super().__init__(
             app,
