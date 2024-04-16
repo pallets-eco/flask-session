@@ -100,14 +100,27 @@ class Session:
         SESSION_SQLALCHEMY_BIND_KEY = config.get(
             "SESSION_SQLALCHEMY_BIND_KEY", Defaults.SESSION_SQLALCHEMY_BIND_KEY
         )
-        SESSION_CLEANUP_N_REQUESTS = config.get(
-            "SESSION_CLEANUP_N_REQUESTS", Defaults.SESSION_CLEANUP_N_REQUESTS
-        )
 
         # DynamoDB settings
         SESSION_DYNAMODB = config.get("SESSION_DYNAMODB", Defaults.SESSION_DYNAMODB)
         SESSION_DYNAMODB_TABLE = config.get(
             "SESSION_DYNAMODB_TABLE", Defaults.SESSION_DYNAMODB_TABLE
+        )
+
+        # PostgreSQL settings
+        SESSION_POSTGRESQL = config.get(
+            "SESSION_POSTGRESQL", Defaults.SESSION_POSTGRESQL
+        )
+        SESSION_POSTGRESQL_TABLE = config.get(
+            "SESSION_POSTGRESQL_TABLE", Defaults.SESSION_POSTGRESQL_TABLE
+        )
+        SESSION_POSTGRESQL_SCHEMA = config.get(
+            "SESSION_POSTGRESQL_SCHEMA", Defaults.SESSION_POSTGRESQL_SCHEMA
+        )
+
+        # Shared settings
+        SESSION_CLEANUP_N_REQUESTS = config.get(
+            "SESSION_CLEANUP_N_REQUESTS", Defaults.SESSION_CLEANUP_N_REQUESTS
         )
 
         common_params = {
@@ -178,6 +191,17 @@ class Session:
                 **common_params,
                 client=SESSION_DYNAMODB,
                 table_name=SESSION_DYNAMODB_TABLE,
+            )
+
+        elif SESSION_TYPE == "postgresql":
+            from .postgresql import PostgreSqlSessionInterface
+
+            session_interface = PostgreSqlSessionInterface(
+                **common_params,
+                pool=SESSION_POSTGRESQL,
+                table=SESSION_POSTGRESQL_TABLE,
+                schema=SESSION_POSTGRESQL_SCHEMA,
+                cleanup_n_requests=SESSION_CLEANUP_N_REQUESTS,
             )
 
         else:

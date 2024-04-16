@@ -30,6 +30,17 @@ services:
     ports:
       - "11211:11211"
 
+  postgres:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=pwd
+      - POSTGRES_DB=dummy
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
 volumes:
   postgres_data:
   mongo_data:
