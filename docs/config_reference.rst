@@ -175,6 +175,12 @@ SqlAlchemy
    
    Default: ``'sessions'``
 
+.. py:data:: SESSION_SQLALCHEMY_CREATE_TABLE
+    
+   Whether (or not) Flask-Session should manage creation of the table for storing session data.
+   
+   Default: ``True``
+
 .. py:data:: SESSION_SQLALCHEMY_SEQUENCE
     
    The name of the sequence you want to use for the primary key.
