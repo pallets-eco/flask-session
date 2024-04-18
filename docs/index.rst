@@ -7,7 +7,8 @@ Table of Contents
     introduction
     installation
     usage
-    config
+    config_guide
+    config_reference
     security
     api
     contributing

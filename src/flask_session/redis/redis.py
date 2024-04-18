@@ -63,7 +63,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
         # Get the saved session (value) from the database
         serialized_session_data = self.client.get(store_id)
         if serialized_session_data:
-            return self.serializer.decode(serialized_session_data)
+            return self.serializer.loads(serialized_session_data)
         return None
 
     def _delete_session(self, store_id: str) -> None:
@@ -75,7 +75,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
         storage_time_to_live = total_seconds(session_lifetime)
 
         # Serialize the session data
-        serialized_session_data = self.serializer.encode(session)
+        serialized_session_data = self.serializer.dumps(dict(session))
 
         # Update existing or create new session in the database
         self.client.set(

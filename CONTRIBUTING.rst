@@ -16,7 +16,7 @@ Install dependencies
 
 .. code-block:: bash
 
-    $ pip install -r requirements/dev.in
+    $ pip install -r requirements/dev.txt
     $ pip install -r requirements/docs.in
 
 Install the package in editable mode
@@ -44,7 +44,7 @@ or
 
     $ sphinx-build -b html docs docs/_build
 
-Run the tests together or individually
+Run the tests together or individually, requires the docker containers to be up and running (see below)
 
 .. code-block:: bash
     

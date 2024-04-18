@@ -1,19 +1,8 @@
-Configuration
-=============
-
-.. include:: config_example.rst
-
-.. include:: config_nonpermanent.rst
-
-.. include:: config_cleanup.rst
-
-.. include:: config_exceptions.rst
-
-.. include:: config_serialization.rst
+Configuration Reference
+=========================
 
 .. include:: config_flask.rst
-
-
+   
 Flask-Session configuration values
 ----------------------------------
 
@@ -29,6 +18,7 @@ These are specific to Flask-Session.
    - **cachelib**: CacheLibSessionInterface
    - **mongodb**: MongoDBSessionInterface
    - **sqlalchemy**: SqlAlchemySessionInterface
+   - **dynamodb**: DynamoDBSessionInterface
 
 .. py:data:: SESSION_PERMANENT
 
@@ -79,8 +69,8 @@ These are specific to Flask-Session.
     ``SESSION_ID_LENGTH``
 
 
-Storage configuration
----------------------
+Storage configuration values
+----------------------------
 
 
 Redis
@@ -225,6 +215,12 @@ Dynamodb
       The name of the table you want to use.
       
       Default: ``'Sessions'``
+
+.. py:data:: SESSION_DYNAMODB_TABLE_EXISTS
+
+      By default it will create a new table with the TTL setting activated unless you set this parameter to ``True``, then it assumes that the table already exists.
+      
+      Default: ``False``
 
 .. deprecated:: 0.7.0
 
