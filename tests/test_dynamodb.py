@@ -64,6 +64,46 @@ class TestDynamoDBSession(ABSTestSession):
                 assert isinstance(flask.session, DynamoDBSession)
                 app_utils.test_session(app)
 
+    def test_dynamodb_with_existing_table(self, app_utils):
+        """
+        Setting the SESSION_DYNAMODB_TABLE_EXISTS to True for an
+        existing table shouldn't change anything.
+        """
+
+        with self.setup_dynamodb():
+            app = app_utils.create_app(
+                {
+                    "SESSION_TYPE": "dynamodb",
+                    "SESSION_DYNAMODB": self.client,
+                    "SESSION_DYNAMODB_TABLE_EXISTS": True,
+                }
+            )
+
+            with app.test_request_context():
+                assert isinstance(flask.session, DynamoDBSession)
+                app_utils.test_session(app)
+
+    def test_dynamodb_with_existing_table_fails_if_table_doesnt_exist(self, app_utils):
+        """Accessing a non-existent table should result in problems."""
+
+        app = app_utils.create_app(
+            {
+                "SESSION_TYPE": "dynamodb",
+                "SESSION_DYNAMODB": boto3.resource(
+                    "dynamodb",
+                    endpoint_url="http://localhost:8000",
+                    region_name="us-west-2",
+                    aws_access_key_id="dummy",
+                    aws_secret_access_key="dummy",
+                ),
+                "SESSION_DYNAMODB_TABLE": "non-existent-123",
+                "SESSION_DYNAMODB_TABLE_EXISTS": True,
+            }
+        )
+        with app.test_request_context(), pytest.raises(AssertionError):
+            assert isinstance(flask.session, DynamoDBSession)
+            app_utils.test_session(app)
+
 
     @session_permanent
     @session_refresh_each_request

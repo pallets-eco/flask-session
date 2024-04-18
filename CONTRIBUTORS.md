@@ -1,5 +1,7 @@
 ## Contributors
 
+-   [MauriceBrg](https://github.com/MauriceBrg)
+-   [giuppep](https://github.com/giuppep)
 -   [eiriklid](https://github.com/eiriklid)
 -   [necat1](https://github.com/necat1)
 -   [nebolax](https://github.com/nebolax)
