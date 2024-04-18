@@ -106,6 +106,9 @@ class Session:
         SESSION_DYNAMODB_TABLE = config.get(
             "SESSION_DYNAMODB_TABLE", Defaults.SESSION_DYNAMODB_TABLE
         )
+        SESSION_DYNAMODB_TABLE_EXISTS = config.get(
+            "SESSION_DYNAMODB_TABLE_EXISTS", Defaults.SESSION_DYNAMODB_TABLE_EXISTS
+        )
 
         # PostgreSQL settings
         SESSION_POSTGRESQL = config.get(
@@ -191,6 +194,7 @@ class Session:
                 **common_params,
                 client=SESSION_DYNAMODB,
                 table_name=SESSION_DYNAMODB_TABLE,
+                table_exists=SESSION_DYNAMODB_TABLE_EXISTS,
             )
 
         elif SESSION_TYPE == "postgresql":

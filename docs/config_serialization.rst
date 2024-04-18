@@ -14,7 +14,7 @@ The msgspec library has speed and memory advantages over other libraries. Howeve
 If you encounter a TypeError such as: "Encoding objects of type <type> is unsupported", you may be attempting to serialize an unsupported type. In this case, you can either convert the object to a supported type or use a different serializer.
 
 Casting to a supported type:
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: python
 
