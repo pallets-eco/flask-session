@@ -144,7 +144,10 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (document) from the database
         document = self.store.get_item(Key={"id": store_id}).get("Item")
-        if document:
+        session_is_not_expired = Decimal(datetime.utcnow().timestamp()) <= document.get(
+            "expiration"
+        )
+        if document and session_is_not_expired:
             serialized_session_data = want_bytes(document.get("val").value)
             return self.serializer.loads(serialized_session_data)
         return None
