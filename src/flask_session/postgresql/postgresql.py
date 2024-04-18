@@ -117,7 +117,7 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
 
         if session_data is not None:
             serialized_session_data = want_bytes(session_data[0])
-            return self.serializer.decode(serialized_session_data)
+            return self.serializer.loads(serialized_session_data)
         return None
 
     @retry_query(max_attempts=3)
@@ -125,7 +125,7 @@ class PostgreSqlSessionInterface(ServerSideSessionInterface):
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
 
-        serialized_session_data = self.serializer.encode(session)
+        serialized_session_data = self.serializer.dumps(session)
 
         if session.sid is not None:
             assert session.sid == store_id.removeprefix(self.key_prefix)
