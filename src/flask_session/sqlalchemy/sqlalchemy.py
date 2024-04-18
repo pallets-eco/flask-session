@@ -149,7 +149,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
 
         if record:
             serialized_session_data = want_bytes(record.data)
-            return self.serializer.decode(serialized_session_data)
+            return self.serializer.loads(serialized_session_data)
         return None
 
     @retry_query()
@@ -168,7 +168,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         storage_expiration_datetime = datetime.utcnow() + session_lifetime
 
         # Serialize session data
-        serialized_session_data = self.serializer.encode(session)
+        serialized_session_data = self.serializer.dumps(dict(session))
 
         # Update existing or create new session in the database
         try:

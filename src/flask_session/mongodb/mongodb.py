@@ -77,7 +77,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         document = self.store.find_one({"id": store_id})
         if document:
             serialized_session_data = want_bytes(document["val"])
-            return self.serializer.decode(serialized_session_data)
+            return self.serializer.loads(serialized_session_data)
         return None
 
     def _delete_session(self, store_id: str) -> None:
@@ -92,7 +92,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
         storage_expiration_datetime = datetime.utcnow() + session_lifetime
 
         # Serialize the session data
-        serialized_session_data = self.serializer.encode(session)
+        serialized_session_data = self.serializer.dumps(dict(session))
 
         # Update existing or create new session in the database
         if self.use_deprecated_method:

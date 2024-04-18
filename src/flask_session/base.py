@@ -98,12 +98,12 @@ class Serializer(ABC):
     """Baseclass for session serialization."""
 
     @abstractmethod
-    def decode(self, serialized_data: bytes) -> dict:
+    def dumps(self, serialized_data: bytes) -> dict:
         """Deserialize the session data."""
         raise NotImplementedError()
 
     @abstractmethod
-    def encode(self, session: ServerSideSession) -> bytes:
+    def loads(self, session: ServerSideSession) -> bytes:
         """Serialize the session data."""
         raise NotImplementedError()
 
@@ -126,15 +126,15 @@ class MsgSpecSerializer(Serializer):
         else:
             raise ValueError(f"Unsupported serialization format: {format}")
 
-    def encode(self, session: ServerSideSession) -> bytes:
+    def dumps(self, data: dict) -> bytes:
         """Serialize the session data."""
         try:
-            return self.encoder.encode(dict(session))
+            return self.encoder.encode(data)
         except Exception as e:
             self.app.logger.error(f"Failed to serialize session data: {e}")
             raise
 
-    def decode(self, serialized_data: bytes) -> dict:
+    def loads(self, serialized_data: bytes) -> dict:
         """Deserialize the session data."""
         # TODO: Remove the pickle fallback in 1.0.0
         with suppress(msgspec.DecodeError):
