@@ -64,7 +64,7 @@ class TestSQLAlchemy:
             {
                 "SESSION_TYPE": "sqlalchemy",
                 "SQLALCHEMY_DATABASE_URI": "sqlite:///",
-                "SESSION_SQLALCHEMY_CREATE_TABLE": False,
+                "SESSION_SQLALCHEMY_TABLE_EXISTS": True,
             }
         )
         with app.app_context() and self.setup_sqlalchemy(

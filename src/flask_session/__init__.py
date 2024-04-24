@@ -91,8 +91,8 @@ class Session:
         SESSION_SQLALCHEMY_TABLE = config.get(
             "SESSION_SQLALCHEMY_TABLE", Defaults.SESSION_SQLALCHEMY_TABLE
         )
-        SESSION_SQLALCHEMY_CREATE_TABLE = config.get(
-            "SESSION_SQLALCHEMY_CREATE_TABLE", Defaults.SESSION_SQLALCHEMY_CREATE_TABLE
+        SESSION_SQLALCHEMY_TABLE_EXISTS = config.get(
+            "SESSION_SQLALCHEMY_TABLE_EXISTS", Defaults.SESSION_SQLALCHEMY_TABLE_EXISTS
         )
         SESSION_SQLALCHEMY_SEQUENCE = config.get(
             "SESSION_SQLALCHEMY_SEQUENCE", Defaults.SESSION_SQLALCHEMY_SEQUENCE
@@ -185,7 +185,7 @@ class Session:
                 **common_params,
                 client=SESSION_SQLALCHEMY,
                 table=SESSION_SQLALCHEMY_TABLE,
-                create_table=SESSION_SQLALCHEMY_CREATE_TABLE,
+                table_exists=SESSION_SQLALCHEMY_TABLE_EXISTS,
                 sequence=SESSION_SQLALCHEMY_SEQUENCE,
                 schema=SESSION_SQLALCHEMY_SCHEMA,
                 bind_key=SESSION_SQLALCHEMY_BIND_KEY,
