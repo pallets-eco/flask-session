@@ -58,7 +58,7 @@ class TestFileSystemSession(ABSTestSession):
                 "SESSION_FILE_DIR": self.session_dir,
                 "SESSION_PERMANENT": _session_permanent,
                 "SESSION_REFRESH_EACH_REQUEST": _session_refresh_each_request,
-                "PERMANENT_SESSION_LIFETIME": timedelta(seconds=5),
+                "PERMANENT_SESSION_LIFETIME": timedelta(seconds=4),
             }
         )
 

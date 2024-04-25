@@ -66,7 +66,7 @@ class TestMongoSession(ABSTestSession):
                     "SESSION_MONGODB": self.client,
                     "SESSION_PERMANENT": _session_permanent,
                     "SESSION_REFRESH_EACH_REQUEST": _session_refresh_each_request,
-                    "PERMANENT_SESSION_LIFETIME": timedelta(seconds=5),
+                    "PERMANENT_SESSION_LIFETIME": timedelta(seconds=4),
                 }
             )
 

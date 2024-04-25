@@ -63,7 +63,7 @@ class TestCachelibSession(ABSTestSession):
                 "SESSION_CACHELIB": FileSystemCache(
                     threshold=500, cache_dir=self.session_dir
                 ),
-                "PERMANENT_SESSION_LIFETIME": timedelta(seconds=5),
+                "PERMANENT_SESSION_LIFETIME": timedelta(seconds=4),
             }
         )
 
