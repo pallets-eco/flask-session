@@ -63,7 +63,6 @@ class TestDynamoDBSession(ABSTestSession):
         Setting the SESSION_DYNAMODB_TABLE_EXISTS to True for an
         existing table shouldn't change anything.
         """
-        pytest.skip("This test is not working")
         with self.setup_dynamodb():
             app = app_utils.create_app(
                 {
