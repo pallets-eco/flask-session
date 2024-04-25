@@ -194,10 +194,7 @@ class ServerSideSessionInterface(FlaskSessionInterface, ABC):
 
     def _generate_sid(self, session_id_length: int) -> str:
         """Generate a random session id."""
-        new_sid = secrets.token_urlsafe(session_id_length)
-        if self._retrieve_session_data(new_sid):
-            raise RuntimeError("Session ID already exists in the database.")
-        return new_sid
+        return secrets.token_urlsafe(session_id_length)
 
     # TODO: Remove in 1.0.0
     def _get_signer(self, app: Flask) -> Signer:
@@ -220,6 +217,18 @@ class ServerSideSessionInterface(FlaskSessionInterface, ABC):
 
     def _get_store_id(self, sid: str) -> str:
         return self.key_prefix + sid
+
+    def should_set_storage(self, app: Flask, session: ServerSideSession) -> bool:
+        """Used by session backends to determine if session in storage
+        should be set for this session cookie for this response. If the session
+        has been modified, the session is set to storage. If
+        the ``SESSION_REFRESH_EACH_REQUEST`` config is true, the session is
+        always set to storage. In the second case, this means refreshing the
+        storage expiry even if the session has not been modified.
+        .. versionadded:: 0.7.0
+        """
+
+        return session.modified or app.config["SESSION_REFRESH_EACH_REQUEST"]
 
     # CLEANUP METHODS FOR NON TTL DATABASES
 
@@ -288,11 +297,14 @@ class ServerSideSessionInterface(FlaskSessionInterface, ABC):
                 response.vary.add("Cookie")
             return
 
-        if not self.should_set_cookie(app, session):
+        if not self.should_set_storage(app, session):
             return
 
         # Update existing or create new session in the database
         self._upsert_session(app.permanent_session_lifetime, session, store_id)
+
+        if not self.should_set_cookie(app, session):
+            return
 
         # Get the additional required cookie settings
         value = self._sign(app, session.sid) if self.use_signer else session.sid
