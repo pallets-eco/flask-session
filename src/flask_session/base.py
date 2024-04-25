@@ -225,7 +225,6 @@ class ServerSideSessionInterface(FlaskSessionInterface, ABC):
         the ``SESSION_REFRESH_EACH_REQUEST`` config is true, the session is
         always set to storage. In the second case, this means refreshing the
         storage expiry even if the session has not been modified.
-
         .. versionadded:: 0.7.0
         """
 
