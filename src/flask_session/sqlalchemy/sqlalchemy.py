@@ -1,3 +1,5 @@
+"""Provides a Session Interface to SQLAlchemy"""
+
 import warnings
 from datetime import datetime
 from datetime import timedelta as TimeDelta
@@ -46,6 +48,13 @@ def create_session_model(db, table_name, schema=None, bind_key=None, sequence=No
 class SqlAlchemySessionInterface(ServerSideSessionInterface):
     """Uses the Flask-SQLAlchemy from a flask app as session storage.
 
+    By default (``table_exists=False``) Flask-Session itself will create the table for session storage according to the
+    model defined by the ``create_session_model`` method. If ``table_exists`` is set to True, you're responsible—either
+    manually or via other tooling (e.g., Flask-Migrate)—for creating a table that matches the model, taking into account
+    the values (or defaults) provided via configuration parameters to the SQLAlchemy session interface (specifically
+    ``SESSION_SQLALCHEMY_TABLE``, ``SESSION_SQLALCHEMY_SCHEMA``, ``SESSION_SQLALCHEMY_BIND_KEY``, and
+    ``SESSION_SQLALCHEMY_SEQUENCE``).
+
     :param app: A Flask app instance.
     :param client: A Flask-SQLAlchemy instance.
     :param key_prefix: A prefix that is added to all storage keys.
@@ -54,10 +63,14 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
     :param sid_length: The length of the generated session id in bytes.
     :param serialization_format: The serialization format to use for the session data.
     :param table: The table name you want to use.
+    :param table_exists: Whether the session table is created/managed outside of Flask-Session (default=False).
     :param sequence: The sequence to use for the primary key if needed.
     :param schema: The db schema to use.
     :param bind_key: The db bind key to use.
     :param cleanup_n_requests: Delete expired sessions on average every N requests.
+
+    .. versionadded:: 0.9
+        The `table_exists` parameter was added.
 
     .. versionadded:: 0.7
         db changed to client to be standard on all session interfaces.
@@ -86,6 +99,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         sequence: Optional[str] = Defaults.SESSION_SQLALCHEMY_SEQUENCE,
         schema: Optional[str] = Defaults.SESSION_SQLALCHEMY_SCHEMA,
         bind_key: Optional[str] = Defaults.SESSION_SQLALCHEMY_BIND_KEY,
+        table_exists: bool = Defaults.SESSION_SQLALCHEMY_TABLE_EXISTS,
         cleanup_n_requests: Optional[int] = Defaults.SESSION_CLEANUP_N_REQUESTS,
     ):
         self.app = app
@@ -103,13 +117,15 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         self.sql_session_model = create_session_model(
             client, table, schema, bind_key, sequence
         )
-        # Create the table if it does not exist
-        with app.app_context():
-            if bind_key:
-                engine = self.client.get_engine(app, bind=bind_key)
-            else:
-                engine = self.client.engine
-            self.sql_session_model.__table__.create(bind=engine, checkfirst=True)
+
+        # Optionally create the table if it does not exist
+        if not table_exists:
+            with app.app_context():
+                if bind_key:
+                    engine = self.client.get_engine(app, bind=bind_key)
+                else:
+                    engine = self.client.engine
+                self.sql_session_model.__table__.create(bind=engine, checkfirst=True)
 
         super().__init__(
             app,

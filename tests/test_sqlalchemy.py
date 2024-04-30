@@ -57,3 +57,22 @@ class TestSQLAlchemy:
                 json.loads(byte_string.decode("utf-8")) if byte_string else {}
             )
             assert stored_session.get("value") == "44"
+
+    @pytest.mark.filterwarnings("ignore:No valid SQLAlchemy instance provided")
+    def test_database_not_created_automatically(self, app_utils):
+        app = app_utils.create_app(
+            {
+                "SESSION_TYPE": "sqlalchemy",
+                "SQLALCHEMY_DATABASE_URI": "sqlite:///",
+                "SESSION_SQLALCHEMY_TABLE_EXISTS": True,
+            }
+        )
+        with app.app_context() and self.setup_sqlalchemy(
+            app
+        ) and app.test_request_context():
+            assert isinstance(
+                flask.session,
+                SqlAlchemySession,
+            )
+            with pytest.raises(AssertionError):
+                app_utils.test_session(app)

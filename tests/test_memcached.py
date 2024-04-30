@@ -11,7 +11,7 @@ class TestMemcachedSession:
 
     @contextmanager
     def setup_memcached(self):
-        self.mc = memcache.Client(("127.0.0.1:11211"))
+        self.mc = memcache.Client("127.0.0.1:11211")
         try:
             self.mc.flush_all()
             yield

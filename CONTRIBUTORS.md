@@ -21,6 +21,7 @@
 -   [kim-sondrup](https://github.com/kim-sondrup)
 -   [bnjmn](https://github.com/bnjmn)
 -   [christopherpickering](https://github.com/christopherpickering)
+-   [jlgoolsbee](https://github.com/jlgoolsbee)
 
 ## Original Author
 
