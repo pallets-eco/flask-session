@@ -48,6 +48,13 @@ def create_session_model(db, table_name, schema=None, bind_key=None, sequence=No
 class SqlAlchemySessionInterface(ServerSideSessionInterface):
     """Uses the Flask-SQLAlchemy from a flask app as session storage.
 
+    By default (``table_exists=False``) Flask-Session itself will create the table for session storage according to the
+    model defined by the ``create_session_model`` method. If ``table_exists`` is set to True, you're responsible—either
+    manually or via other tooling (e.g., Flask-Migrate)—for creating a table that matches the model, taking into account
+    the values (or defaults) provided via configuration parameters to the SQLAlchemy session interface (specifically
+    ``SESSION_SQLALCHEMY_TABLE``, ``SESSION_SQLALCHEMY_SCHEMA``, ``SESSION_SQLALCHEMY_BIND_KEY``, and
+    ``SESSION_SQLALCHEMY_SEQUENCE``).
+
     :param app: A Flask app instance.
     :param client: A Flask-SQLAlchemy instance.
     :param key_prefix: A prefix that is added to all storage keys.
