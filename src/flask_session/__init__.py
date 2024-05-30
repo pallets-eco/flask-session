@@ -101,6 +101,11 @@ class Session:
             "SESSION_SQLALCHEMY_BIND_KEY", Defaults.SESSION_SQLALCHEMY_BIND_KEY
         )
 
+        # SQLAlchemy-native settings
+        SESSION_SQLALCHEMY_ENGINE = config.get(
+            "SESSION_SQLALCHEMY_ENGINE", Defaults.SESSION_SQLALCHEMY_ENGINE
+        )
+
         # DynamoDB settings
         SESSION_DYNAMODB = config.get("SESSION_DYNAMODB", Defaults.SESSION_DYNAMODB)
         SESSION_DYNAMODB_TABLE = config.get(
@@ -181,6 +186,18 @@ class Session:
             session_interface = SqlAlchemySessionInterface(
                 **common_params,
                 client=SESSION_SQLALCHEMY,
+                table=SESSION_SQLALCHEMY_TABLE,
+                sequence=SESSION_SQLALCHEMY_SEQUENCE,
+                schema=SESSION_SQLALCHEMY_SCHEMA,
+                bind_key=SESSION_SQLALCHEMY_BIND_KEY,
+                cleanup_n_requests=SESSION_CLEANUP_N_REQUESTS,
+            )
+        elif SESSION_TYPE == "sqlalchemy_native":
+            from .sqlalchemy_native import NativeSqlAlchemySessionInterface
+
+            session_interface = NativeSqlAlchemySessionInterface(
+                **common_params,
+                engine=SESSION_SQLALCHEMY_ENGINE,
                 table=SESSION_SQLALCHEMY_TABLE,
                 sequence=SESSION_SQLALCHEMY_SEQUENCE,
                 schema=SESSION_SQLALCHEMY_SCHEMA,
