@@ -62,7 +62,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
             client = MongoClient()
 
         self.client = client
-        self.store = client[db][collection]
+        self.store = client.get_default_database(default=db)[collection]
         self.use_deprecated_method = int(version.split(".")[0]) < 4
 
         # Create a TTL index on the expiration time, so that mongo can automatically delete expired sessions
