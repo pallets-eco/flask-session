@@ -10,7 +10,7 @@ Install from PyPI using an installer such as pip:
 
 Flask-Session's only required dependency is msgspec for serialization, which has no sub-dependencies.
 
-However, you also need to choose a storage type and install an appropriate client library so the app can communicate with storage. 
+However, you also need to choose a storage type and install an appropriate client library so the app can communicate with storage.
 For example, if you want to use Redis as your storage, you will need to install the redis-py_ library either directly or as an optional dependency like below:
 
 .. code-block:: bash
@@ -51,7 +51,7 @@ Available storage options and their corresponding ``<storage-option>`` values ar
    * - **Memcached**
      - ``memcached``
      - pymemcache_
-     - pylibmc_, python-memcached_, libmc_ 
+     - pylibmc_, python-memcached_, libmc_
    * - **MongoDB**
      - ``mongodb``
      - pymongo_
@@ -68,13 +68,17 @@ Available storage options and their corresponding ``<storage-option>`` values ar
      - ``dynamodb``
      - boto3_
      -
+   * - **Aerospike**
+     - ``aerospike``
+     - aerospike
+     -
 
 Other storage backends might be compatible with Flask-Session as long as they adhere to the command interfaces used by the libraries listed above.
 
 Cachelib
 --------
 
-Flask-Session also indirectly supports storage and client libraries via cachelib_, which is a wrapper around various cache libraries. 
+Flask-Session also indirectly supports storage and client libraries via cachelib_, which is a wrapper around various cache libraries.
 You must also install cachelib_ itselfand the relevant client library to use these.
 
 .. list-table::
@@ -97,6 +101,8 @@ You must also install cachelib_ itselfand the relevant client library to use the
      - pymongo_
    * - DynamoDB
      - boto3_
+   * - Aerospike
+     - aerospike
 
 
 .. warning::

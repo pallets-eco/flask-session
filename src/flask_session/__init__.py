@@ -121,6 +121,15 @@ class Session:
             "SESSION_POSTGRESQL_SCHEMA", Defaults.SESSION_POSTGRESQL_SCHEMA
         )
 
+        # Aerospike settings
+        SESSION_AEROSPIKE = config.get("SESSION_AEROSPIKE", Defaults.SESSION_AEROSPIKE)
+        SESSION_AEROSPIKE_NAMESPACE = config.get(
+            "SESSION_AEROSPIKE_NAMESPACE", Defaults.SESSION_AEROSPIKE_NAMESPACE
+        )
+        SESSION_AEROSPIKE_BIND_KEY = config.get(
+            "SESSION_AEROSPIKE_BIND_KEY", Defaults.SESSION_AEROSPIKE_BIND_KEY
+        )
+
         # Shared settings
         SESSION_CLEANUP_N_REQUESTS = config.get(
             "SESSION_CLEANUP_N_REQUESTS", Defaults.SESSION_CLEANUP_N_REQUESTS
@@ -206,6 +215,16 @@ class Session:
                 table=SESSION_POSTGRESQL_TABLE,
                 schema=SESSION_POSTGRESQL_SCHEMA,
                 cleanup_n_requests=SESSION_CLEANUP_N_REQUESTS,
+            )
+
+        elif SESSION_TYPE == "aerospike":
+            from .aerospike import AerospikeSessionInterface
+
+            session_interface = AerospikeSessionInterface(
+                **common_params,
+                client=SESSION_AEROSPIKE,
+                namespace=SESSION_AEROSPIKE_NAMESPACE,
+                bind_key=SESSION_AEROSPIKE_BIND_KEY,
             )
 
         else:

@@ -49,3 +49,8 @@ class Defaults:
     SESSION_POSTGRESQL = None
     SESSION_POSTGRESQL_TABLE = "flask_sessions"
     SESSION_POSTGRESQL_SCHEMA = "public"
+
+    # Aerospike settings
+    SESSION_AEROSPIKE = None
+    SESSION_AEROSPIKE_NAMESPACE = "flask_sessions"
+    SESSION_AEROSPIKE_BIND_KEY = "public"

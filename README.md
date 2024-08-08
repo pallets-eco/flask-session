@@ -54,6 +54,7 @@ def get():
 -   MongoDB
 -   SQLALchemy
 -   DynamoDB
+-   Aerospike
 
 ## Documentation
 

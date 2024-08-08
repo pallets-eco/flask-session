@@ -22,3 +22,4 @@ Anything documented here is part of the public API that Flask-Session provides, 
 .. autoclass:: flask_session.sqlalchemy.SqlAlchemySessionInterface
 .. autoclass:: flask_session.dynamodb.DynamoDBSessionInterface
 .. autoclass:: flask_session.postgresql.PostgreSqlSessionInterface
+.. autoclass:: flask_session.aerospike.AerospikeSessionInterface
