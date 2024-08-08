@@ -19,6 +19,7 @@ These are specific to Flask-Session.
    - **mongodb**: MongoDBSessionInterface
    - **sqlalchemy**: SqlAlchemySessionInterface
    - **dynamodb**: DynamoDBSessionInterface
+   - **aerospike**: AerospikeSessionInterface
 
 .. py:data:: SESSION_PERMANENT
 
