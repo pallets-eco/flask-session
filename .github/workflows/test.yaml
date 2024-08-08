@@ -30,6 +30,12 @@ jobs:
                     --health-interval 10s
                     --health-timeout 5s
                     --health-retries 5
+            aerospike:
+                image: aerospike:ee-7.1.0.4
+                ports:
+                    - 3000:3000
+                    - 3001:3001
+                    - 3002:3002
         steps:
             - uses: actions/checkout@v4
             - uses: supercharge/redis-github-action@1.5.0
