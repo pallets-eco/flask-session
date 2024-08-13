@@ -193,7 +193,7 @@ class ServerSideSessionInterface(FlaskSessionInterface, ABC):
     # INTERNAL METHODS
 
     def _generate_sid(self, session_id_length: int) -> str:
-        """Generate a random session id.  """
+        """Generate a random session id."""
         new_sid = secrets.token_urlsafe(session_id_length)
         if self._retrieve_session_data(new_sid):
             raise RuntimeError("Session ID already exists in the database.")
