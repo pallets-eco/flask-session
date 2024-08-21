@@ -61,6 +61,9 @@ class Session:
         # Redis settings
         SESSION_REDIS = config.get("SESSION_REDIS", Defaults.SESSION_REDIS)
 
+        SESSION_REDIS_SENTINEL = config.get("SESSION_REDIS_SENTINEL", Defaults.SESSION_REDIS_SENTINEL)
+        SESSION_REDIS_SENTINEL_MASTER_SET = config.get("SESSION_REDIS_SENTINEL_MASTER_SET", Defaults.SESSION_REDIS_SENTINEL_MASTER_SET)
+
         # Memcached settings
         SESSION_MEMCACHED = config.get("SESSION_MEMCACHED", Defaults.SESSION_MEMCACHED)
 
@@ -143,6 +146,14 @@ class Session:
             session_interface = RedisSessionInterface(
                 **common_params,
                 client=SESSION_REDIS,
+            )
+        elif SESSION_TYPE == "redissentinel":
+            from .redis import RedisSentinelSessionInterface
+
+            session_interface = RedisSentinelSessionInterface(
+                **common_params,
+                client=SESSION_REDIS_SENTINEL,
+                master=SESSION_REDIS_SENTINEL_MASTER_SET,
             )
         elif SESSION_TYPE == "memcached":
             from .memcached import MemcachedSessionInterface

@@ -2,8 +2,9 @@ import json
 from contextlib import contextmanager
 
 import flask
+from flask_session.defaults import Defaults
 from flask_session.redis import RedisSession
-from redis import Redis
+from redis import Redis, Sentinel
 
 
 class TestRedisSession:
@@ -40,3 +41,31 @@ class TestRedisSession:
                     json.loads(byte_string.decode("utf-8")) if byte_string else {}
                 )
                 assert stored_session.get("value") == "44"
+
+
+class TestRedisSentinelSession:
+    """This requires package: redis"""
+
+    @contextmanager
+    def setup_sentinel(self):
+        self.sentinel = Sentinel(
+            [("127.0.0.1", 36379), ("127.0.0.1", 36380), ("127.0.0.1", 36381)],
+            # sentinel_kwargs={"password": "redispassword"},
+            # socket_timeout=1
+        )
+        host, port = self.sentinel.discover_master("mymaster")
+        self.master: Redis = self.sentinel.master_for(
+            Defaults.SESSION_REDIS_SENTINEL_MASTER_SET
+            
+        )
+        self.master.flushall()
+        yield
+        self.master.flushall()
+
+    def test_redis_default(self, app_utils):
+        with self.setup_sentinel():
+            app = app_utils.create_app(
+                {"SESSION_TYPE": "redissentinel", "SESSION_REDIS_SENTINEL": self.sentinel}
+            )
+
+            with app.test_request_context():
