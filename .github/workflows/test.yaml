@@ -31,6 +31,9 @@ jobs:
                     --health-timeout 5s
                     --health-retries 5
         steps:
+            - uses: hoverkraft-tech/compose-action@v0.0.0
+              with:
+                compose-file: ./docker-compose
             - uses: actions/checkout@v4
             - uses: supercharge/redis-github-action@1.5.0
             - uses: niden/actions-memcached@v7

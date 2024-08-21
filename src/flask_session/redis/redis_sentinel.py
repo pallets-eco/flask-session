@@ -42,11 +42,16 @@ class RedisSentinelSessionInterface(RedisSessionInterface):
             raise TypeError("No valid Sentinel instance provided.")
         self.sentinel = client
         self.master = master
-        self.client = client
         super().__init__(
-            app, key_prefix, use_signer, permanent, sid_length, serialization_format
+            app, self.client, key_prefix, use_signer, permanent, sid_length, serialization_format
         )
+        self._client = None
 
     @property
     def client(self):
         return self.sentinel.master_for(self.master)
+    
+    @client.setter
+    def client(self, value):
+        # the _client is only needed and the setter only needed for the inheritance to work
+        self._client = value
