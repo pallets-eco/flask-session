@@ -15,6 +15,7 @@ Anything documented here is part of the public API that Flask-Session provides, 
    :members: regenerate
 
 .. autoclass:: flask_session.redis.RedisSessionInterface
+.. autoclass:: flask_session.redis.RedisSentinelSessionInterface
 .. autoclass:: flask_session.memcached.MemcachedSessionInterface
 .. autoclass:: flask_session.filesystem.FileSystemSessionInterface
 .. autoclass:: flask_session.cachelib.CacheLibSessionInterface
