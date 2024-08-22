@@ -48,7 +48,7 @@ def get():
 
 ## Supported Storage Types
 
--   Redis
+-   Redis (standalone and Sentinel)
 -   Memcached
 -   FileSystem
 -   MongoDB
