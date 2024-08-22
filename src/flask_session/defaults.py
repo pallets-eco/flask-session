@@ -16,6 +16,10 @@ class Defaults:
     # Redis settings
     SESSION_REDIS = None
 
+    # Redis Sentinal settings
+    SESSION_REDIS_SENTINEL = None
+    SESSION_REDIS_SENTINEL_MASTER_SET = "mymaster"
+
     # Memcached settings
     SESSION_MEMCACHED = None
 

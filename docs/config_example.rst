@@ -17,6 +17,21 @@ If you do not set ``SESSION_REDIS``, Flask-Session will assume you are developin
 :meth:`redis.Redis` instance for you. It is expected you supply an instance of
 :meth:`redis.Redis` in production.
 
+Similarly, if you use a high-availability setup for Redis using Sentinel you can use the following setup
+
+.. code-block:: python
+
+    from redis import Sentinel
+    app.config['SESSION_TYPE'] = 'redissentinel'
+    app.config['SESSION_REDIS_SENTINEL'] = Sentinel(
+            [("127.0.0.1", 26379), ("127.0.0.1", 26380), ("127.0.0.1", 26381)],
+        )
+
+It is expected that you set ``SESSION_REDIS_SENTINEL`` to your own :meth:`redis.Sentinel` instance.
+The name of the master set is obtained via the config ``SESSION_REDIS_SENTINEL_MASTER_SET`` which defaults to ``mymaster``.
+
+
+
 .. note::
 
     By default, sessions in Flask-Session are permanent with an expiration of 31 days.

@@ -6,34 +6,9 @@ jobs:
         strategy:
             matrix:
                 python-version: [3.8, 3.9, 3.10, 3.11, 3.12]
-        services:
-            mongodb:
-                image: mongo
-                ports:
-                    - 27017:27017
-            dynamodb:
-                image: amazon/dynamodb-local
-                ports:
-                    - 8000:8000
-
-            postgresql:
-                image: postgres:latest
-                ports:
-                    - 5433:5432
-                env:
-                    POSTGRES_PASSWORD: pwd
-                    POSTGRES_USER: root
-                    POSTGRES_DB: dummy
-                # Set health checks to wait until postgres has started
-                options: >-
-                    --health-cmd pg_isready
-                    --health-interval 10s
-                    --health-timeout 5s
-                    --health-retries 5
         steps:
             - uses: actions/checkout@v4
-            - uses: supercharge/redis-github-action@1.5.0
-            - uses: niden/actions-memcached@v7
+            - uses: hoverkraft-tech/compose-action@v2.0.1
             - name: Install testing requirements
               run: pip3 install -r requirements/dev.txt
             - name: Run tests
