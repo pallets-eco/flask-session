@@ -53,7 +53,6 @@ class TestRedisSentinelSession:
             # sentinel_kwargs={"password": "redispassword"},
             # socket_timeout=1
         )
-        host, port = self.sentinel.discover_master("mymaster")
         self.master: Redis = self.sentinel.master_for(
             Defaults.SESSION_REDIS_SENTINEL_MASTER_SET
         )
