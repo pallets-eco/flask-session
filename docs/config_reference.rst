@@ -13,6 +13,7 @@ These are specific to Flask-Session.
    Specifies which type of session interface to use. Built-in session types:
 
    - **redis**: RedisSessionInterface
+   - **redissentinel**: RedisSentinelSessionInterface
    - **memcached**: MemcachedSessionInterface
    - **filesystem**: FileSystemSessionInterface (Deprecated in 0.7.0, will be removed in 1.0.0 in favor of CacheLibSessionInterface)
    - **cachelib**: CacheLibSessionInterface
