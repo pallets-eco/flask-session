@@ -3,7 +3,7 @@ from datetime import timedelta as TimeDelta
 from typing import Optional
 
 from flask import Flask
-from redis import Redis
+from redis import Redis, RedisCluster
 
 from .._utils import total_seconds
 from ..base import ServerSideSession, ServerSideSessionInterface
@@ -40,14 +40,14 @@ class RedisSessionInterface(ServerSideSessionInterface):
     def __init__(
         self,
         app: Flask,
-        client: Optional[Redis] = Defaults.SESSION_REDIS,
+        client: Optional[Redis | RedisCluster] = Defaults.SESSION_REDIS,
         key_prefix: str = Defaults.SESSION_KEY_PREFIX,
         use_signer: bool = Defaults.SESSION_USE_SIGNER,
         permanent: bool = Defaults.SESSION_PERMANENT,
         sid_length: int = Defaults.SESSION_ID_LENGTH,
         serialization_format: str = Defaults.SESSION_SERIALIZATION_FORMAT,
     ):
-        if client is None or not isinstance(client, Redis):
+        if client is None or not (isinstance(client, Redis) or isinstance(client, RedisCluster)):
             warnings.warn(
                 "No valid Redis instance provided, attempting to create a new instance on localhost with default settings.",
                 RuntimeWarning,
