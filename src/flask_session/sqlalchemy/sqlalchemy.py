@@ -138,7 +138,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         record = self.sql_session_model.query.filter_by(session_id=store_id).first()
 
         # "Delete the session record if it is expired as SQL has no TTL ability
-        if record and (record.expiry is None or record.expiry <= datetime.now(timezone.utc)):
+        if record and (record.expiry is None or record.expiry <= datetime.now(timezone.utc)).replace(tzinfo=None):
             try:
                 self.client.session.delete(record)
                 self.client.session.commit()
