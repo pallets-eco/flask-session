@@ -1,5 +1,5 @@
 import warnings
-from datetime import datetime
+from datetime import datetime, timezone
 from datetime import timedelta as TimeDelta
 from typing import Optional
 
@@ -89,7 +89,7 @@ class MongoDBSessionInterface(ServerSideSessionInterface):
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
-        storage_expiration_datetime = datetime.utcnow() + session_lifetime
+        storage_expiration_datetime = datetime.now(timezone.utc) + session_lifetime
 
         # Serialize the session data
         serialized_session_data = self.serializer.dumps(dict(session))

@@ -1,7 +1,7 @@
 """Provides a Session Interface to DynamoDB"""
 
 import warnings
-from datetime import datetime
+from datetime import datetime, timezone
 from datetime import timedelta as TimeDelta
 from decimal import Decimal
 from typing import Optional
@@ -144,7 +144,7 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
     def _retrieve_session_data(self, store_id: str) -> Optional[dict]:
         # Get the saved session (document) from the database
         document = self.store.get_item(Key={"id": store_id}).get("Item")
-        session_is_not_expired = Decimal(datetime.utcnow().timestamp()) <= document.get(
+        session_is_not_expired = Decimal(datetime.now(timezone.utc).timestamp()) <= document.get(
             "expiration"
         )
         if document and session_is_not_expired:
@@ -158,7 +158,7 @@ class DynamoDBSessionInterface(ServerSideSessionInterface):
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
-        storage_expiration_datetime = datetime.utcnow() + session_lifetime
+        storage_expiration_datetime = datetime.now(timezone.utc) + session_lifetime
         # Serialize the session data
         serialized_session_data = self.serializer.dumps(dict(session))
 

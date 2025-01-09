@@ -1,5 +1,5 @@
 import warnings
-from datetime import datetime
+from datetime import datetime, timezone
 from datetime import timedelta as TimeDelta
 from typing import Any, Optional
 
@@ -125,7 +125,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
     def _delete_expired_sessions(self) -> None:
         try:
             self.client.session.query(self.sql_session_model).filter(
-                self.sql_session_model.expiry <= datetime.utcnow()
+                self.sql_session_model.expiry.replace(tzinfo=timezone.utc) <= datetime.now(timezone.utc)
             ).delete(synchronize_session=False)
             self.client.session.commit()
         except Exception:
@@ -138,7 +138,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
         record = self.sql_session_model.query.filter_by(session_id=store_id).first()
 
         # "Delete the session record if it is expired as SQL has no TTL ability
-        if record and (record.expiry is None or record.expiry <= datetime.utcnow()):
+        if record and (record.expiry is None or record.expiry.replace(tzinfo=timezone.utc) <= datetime.now(timezone.utc)):
             try:
                 self.client.session.delete(record)
                 self.client.session.commit()
@@ -165,7 +165,7 @@ class SqlAlchemySessionInterface(ServerSideSessionInterface):
     def _upsert_session(
         self, session_lifetime: TimeDelta, session: ServerSideSession, store_id: str
     ) -> None:
-        storage_expiration_datetime = datetime.utcnow() + session_lifetime
+        storage_expiration_datetime = datetime.now(timezone.utc) + session_lifetime
 
         # Serialize session data
         serialized_session_data = self.serializer.dumps(dict(session))
