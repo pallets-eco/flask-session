@@ -331,7 +331,7 @@ class ServerSideSessionInterface(FlaskSessionInterface, ABC):
 
     def open_session(self, app: Flask, request: Request) -> ServerSideSession:
         # Get the session ID from the cookie
-        sid = request.cookies.get(app.config["SESSION_COOKIE_NAME"])
+        sid = request.cookies.get(self.get_cookie_name(app))
 
         # If there's no session ID, generate a new one
         if not sid:
