@@ -79,6 +79,7 @@ dev-dependencies = [
     "redis>=5.0.3",
     "python-memcached>=1.62",
     "flask-sqlalchemy>=3.0.5",
+    "flask-sqlalchemy-lite>=0.1.0",
     "pymongo>=4.6.2",
     "cachelib>=0.10.2",
     "msgspec>=0.18.6",
