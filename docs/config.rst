@@ -220,7 +220,7 @@ Dynamodb
       
       Default: Instance connected to ``'localhost:8000'``
 
-.. py:data:: SESSION_DYNAMODB_TABLE_NAME
+.. py:data:: SESSION_DYNAMODB_TABLE
 
       The name of the table you want to use.
       
