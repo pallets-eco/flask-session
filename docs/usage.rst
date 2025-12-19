@@ -70,7 +70,7 @@ Using CacheLib as a session backend
 
 .. note::
 
-    FileSystemSession was recently deprecated in favor of CacheLib, which is what is was using under the hood.
+    FileSystemSession was recently deprecated in favor of CacheLib, which is what it was using under the hood.
 
 The following example demonstrates how to use CacheLib as a session backend with the file system cache. This might be useful for rapid development or testing.
 
