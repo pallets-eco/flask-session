@@ -2,8 +2,10 @@ import json
 from contextlib import contextmanager
 
 import flask
-from flask_session.redis import RedisSession
 from redis import Redis
+
+from flask_session._utils import get_flask_session_version, get_redis_py_version
+from flask_session.redis import RedisSession
 
 
 class TestRedisSession:
@@ -40,3 +42,38 @@ class TestRedisSession:
                     json.loads(byte_string.decode("utf-8")) if byte_string else {}
                 )
                 assert stored_session.get("value") == "44"
+
+    def test_redis_adds_version_info(self, app_utils):
+        """Test that RedisSessionInterface adds Flask-Session version info when creating default client."""
+        with self.setup_redis():
+            # Don't provide a Redis client, let it create one with version info
+            app = app_utils.create_app({"SESSION_TYPE": "redis"})
+
+            with app.test_request_context():
+                # Access the session interface to trigger client creation
+                session_interface = app.session_interface
+
+                # Check that lib_name and lib_version were set in connection pool
+                conn_kwargs = session_interface.client.connection_pool.connection_kwargs
+                flask_session_ver = get_flask_session_version()
+                expected_lib_name = f"redis-py(flask-session_v{flask_session_ver})"
+                assert conn_kwargs.get("lib_name") == expected_lib_name
+                assert conn_kwargs.get("lib_version") == get_redis_py_version()
+
+    def test_redis_respects_custom_version_info(self, app_utils):
+        """Test that custom lib_name and lib_version are not overridden."""
+        with self.setup_redis():
+            # Create a Redis client with custom version info
+            custom_client = Redis(lib_name="MyCustomApp", lib_version="1.2.3")
+
+            app = app_utils.create_app(
+                {"SESSION_TYPE": "redis", "SESSION_REDIS": custom_client}
+            )
+
+            with app.test_request_context():
+                session_interface = app.session_interface
+
+                # Check that custom values were preserved
+                conn_kwargs = session_interface.client.connection_pool.connection_kwargs
+                assert conn_kwargs.get("lib_name") == "MyCustomApp"
+                assert conn_kwargs.get("lib_version") == "1.2.3"
