@@ -169,11 +169,22 @@ SqlAlchemy
    
    Must be set in flask_sqlalchemy version 3.0 or higher.
 
+   A ``flask_sqlalchemy_lite.SQLAlchemy`` instance whose database connection URI is configured using the ``SQLALCHEMY_ENGINES`` parameter.
+
+   Must be set in flask_sqlalchemy_lite version 0.2.1 or higher.
+
+
 .. py:data:: SESSION_SQLALCHEMY_TABLE
     
    The name of the SQL table you want to use.
    
    Default: ``'sessions'``
+
+.. py:data:: SESSION_SQLALCHEMY_BASE_MODEL
+
+   The declarative base model you want to use in flask_sqlalchemy_lite.
+
+   Default: ``'DeclarativeBase'`` from ``flask_sqlalchemy_lite``
 
 .. py:data:: SESSION_SQLALCHEMY_SEQUENCE
     
