@@ -36,6 +36,8 @@ flask==3.0.2
     # via flask-sqlalchemy
 flask-sqlalchemy==3.1.1
     # via -r requirements/docs.in
+flask-sqlalchemy-lite==0.2.1
+    # via -r requirements/docs.in
 furo==2024.1.29
     # via -r requirements/docs.in
 greenlet==3.0.3
@@ -108,7 +110,7 @@ sphinxcontrib-qthelp==1.0.3
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
-sqlalchemy==2.0.27
+sqlalchemy==2.0.31
     # via flask-sqlalchemy
 typing-extensions==4.10.0
     # via

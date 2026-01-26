@@ -91,6 +91,9 @@ class Session:
         SESSION_SQLALCHEMY_TABLE = config.get(
             "SESSION_SQLALCHEMY_TABLE", Defaults.SESSION_SQLALCHEMY_TABLE
         )
+        SESSION_SQLALCHEMY_BASE_MODEL = config.get(
+            "SESSION_SQLALCHEMY_BASE_MODEL", Defaults.SESSION_SQLALCHEMY_BASE_MODEL
+        )
         SESSION_SQLALCHEMY_SEQUENCE = config.get(
             "SESSION_SQLALCHEMY_SEQUENCE", Defaults.SESSION_SQLALCHEMY_SEQUENCE
         )
@@ -182,6 +185,19 @@ class Session:
                 **common_params,
                 client=SESSION_SQLALCHEMY,
                 table=SESSION_SQLALCHEMY_TABLE,
+                sequence=SESSION_SQLALCHEMY_SEQUENCE,
+                schema=SESSION_SQLALCHEMY_SCHEMA,
+                bind_key=SESSION_SQLALCHEMY_BIND_KEY,
+                cleanup_n_requests=SESSION_CLEANUP_N_REQUESTS,
+            )
+        elif SESSION_TYPE == "sqlalchemy_lite":
+            from .sqlalchemy_lite import SqlAlchemyLiteSessionInterface
+
+            session_interface = SqlAlchemyLiteSessionInterface(
+                **common_params,
+                client=SESSION_SQLALCHEMY,
+                table=SESSION_SQLALCHEMY_TABLE,
+                base_model=SESSION_SQLALCHEMY_BASE_MODEL,
                 sequence=SESSION_SQLALCHEMY_SEQUENCE,
                 schema=SESSION_SQLALCHEMY_SCHEMA,
                 bind_key=SESSION_SQLALCHEMY_BIND_KEY,

@@ -64,6 +64,10 @@ Available storage options and their corresponding ``<storage-option>`` values ar
      - ``sqlalchemy``
      - flask-sqlalchemy_
      -
+   * -
+     - ``sqlalchemy_lite``
+     - flask-sqlalchemy-lite_
+     -
    * - **DynamoDB**
      - ``dynamodb``
      - boto3_
@@ -110,6 +114,7 @@ You must also install cachelib_ itselfand the relevant client library to use the
 .. _pymemcache: https://github.com/pinterest/pymemcache
 .. _pymongo: https://pymongo.readthedocs.io/en/stable
 .. _flask-sqlalchemy: https://github.com/pallets-eco/flask-sqlalchemy
+.. _flask-sqlalchemy-lite: https://flask-sqlalchemy-lite.readthedocs.io
 .. _cachelib: https://cachelib.readthedocs.io/en/stable/
 .. _google.appengine.api.memcached: https://cloud.google.com/appengine/docs/legacy/standard/python/memcache
 .. _boto3: https://boto3.amazonaws.com/v1/documentation/api/latest/index.html
