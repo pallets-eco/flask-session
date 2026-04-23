@@ -10,7 +10,7 @@ Install from PyPI using an installer such as pip:
 
 Flask-Session's only required dependency is msgspec for serialization, which has no sub-dependencies.
 
-However, you also need to choose a storage type and install an appropriate client library so the app can communicate with storage. 
+However, you also need to choose a storage type and install an appropriate client library so the app can communicate with storage.
 For example, if you want to use Redis as your storage, you will need to install the redis-py_ library either directly or as an optional dependency like below:
 
 .. code-block:: bash
@@ -48,10 +48,14 @@ Available storage options and their corresponding ``<storage-option>`` values ar
      - ``redis``
      - redis-py_
      -
+   * - **Valkey**
+     - ``valkey``
+     - valkey-py_
+     -
    * - **Memcached**
      - ``memcached``
      - pymemcache_
-     - pylibmc_, python-memcached_, libmc_ 
+     - pylibmc_, python-memcached_, libmc_
    * - **MongoDB**
      - ``mongodb``
      - pymongo_
@@ -74,7 +78,7 @@ Other storage backends might be compatible with Flask-Session as long as they ad
 Cachelib
 --------
 
-Flask-Session also indirectly supports storage and client libraries via cachelib_, which is a wrapper around various cache libraries. 
+Flask-Session also indirectly supports storage and client libraries via cachelib_, which is a wrapper around various cache libraries.
 You must also install cachelib_ itselfand the relevant client library to use these.
 
 .. list-table::
@@ -91,6 +95,8 @@ You must also install cachelib_ itselfand the relevant client library to use the
      - uwsgi_
    * - Redis
      - redis-py_
+   * - Valkey
+     - valkey-py_
    * - Memcached
      - pylibmc_, python-memcached_, libmc_ or `google.appengine.api.memcached`_
    * - MongoDB
@@ -105,6 +111,7 @@ You must also install cachelib_ itselfand the relevant client library to use the
 
 
 .. _redis-py: https://github.com/redis/redis-py
+.. _valkey-py: https://github.com/valkey-io/valkey-py
 .. _pylibmc: http://sendapatch.se/projects/pylibmc/
 .. _python-memcached: https://github.com/linsomniac/python-memcached
 .. _pymemcache: https://github.com/pinterest/pymemcache

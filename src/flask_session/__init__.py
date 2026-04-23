@@ -1,6 +1,6 @@
 from .defaults import Defaults
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 
 
 class Session:
@@ -60,6 +60,9 @@ class Session:
 
         # Redis settings
         SESSION_REDIS = config.get("SESSION_REDIS", Defaults.SESSION_REDIS)
+
+        # Valkey settings
+        SESSION_VALKEY = config.get("SESSION_VALKEY", Defaults.SESSION_VALKEY)
 
         # Memcached settings
         SESSION_MEMCACHED = config.get("SESSION_MEMCACHED", Defaults.SESSION_MEMCACHED)
@@ -143,6 +146,13 @@ class Session:
             session_interface = RedisSessionInterface(
                 **common_params,
                 client=SESSION_REDIS,
+            )
+        elif SESSION_TYPE == "valkey":
+            from .valkey import ValkeySessionInterface
+
+            session_interface = ValkeySessionInterface(
+                **common_params,
+                client=SESSION_VALKEY,
             )
         elif SESSION_TYPE == "memcached":
             from .memcached import MemcachedSessionInterface

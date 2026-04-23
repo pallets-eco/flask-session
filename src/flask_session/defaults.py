@@ -16,6 +16,9 @@ class Defaults:
     # Redis settings
     SESSION_REDIS = None
 
+    # Valkey settings
+    SESSION_VALKEY = None
+
     # Memcached settings
     SESSION_MEMCACHED = None
 
