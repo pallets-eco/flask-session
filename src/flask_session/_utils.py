@@ -67,28 +67,6 @@ def retry_query(
     return decorator
 
 
-def get_flask_session_version() -> str:
-    """Get the flask-session version string.
-
-    Returns:
-        flask-session version in the format 'major.minor.patch'
-        or 'unknown' if not available.
-    """
-    try:
-        from importlib.metadata import version
-
-        return version("flask-session")
-    except Exception:
-        # importlib.metadata not available or package metadata not found
-        # Fallback to __version__ from __init__.py
-        try:
-            from flask_session import __version__
-
-            return __version__
-        except (ImportError, AttributeError):
-            return "unknown"
-
-
 def add_redis_version_info(kwargs):
     """Add version identification for redis-py client.
 
@@ -114,5 +92,6 @@ def add_redis_version_info(kwargs):
         'redis-py(flask-session_v0.8.0)'
     """
     if "lib_name" not in kwargs:
-        flask_session_ver = get_flask_session_version()
-        kwargs["lib_name"] = f"redis-py(flask-session_v{flask_session_ver})"
+        from flask_session import __version__
+
+        kwargs["lib_name"] = f"redis-py(flask-session_v{__version__})"

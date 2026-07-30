@@ -4,7 +4,7 @@ from contextlib import contextmanager
 import flask
 from redis import Redis
 
-from flask_session._utils import get_flask_session_version
+from flask_session import __version__
 from flask_session.redis import RedisSession
 
 
@@ -56,8 +56,7 @@ class TestRedisSession:
                 # Check that lib_name was set in connection pool;
                 # lib_version is left to redis-py's own default
                 conn_kwargs = session_interface.client.connection_pool.connection_kwargs
-                flask_session_ver = get_flask_session_version()
-                expected_lib_name = f"redis-py(flask-session_v{flask_session_ver})"
+                expected_lib_name = f"redis-py(flask-session_v{__version__})"
                 assert conn_kwargs.get("lib_name") == expected_lib_name
 
     def test_redis_respects_custom_version_info(self, app_utils):
