@@ -65,33 +65,3 @@ def retry_query(
         return wrapper
 
     return decorator
-
-
-def add_redis_version_info(kwargs):
-    """Add version identification for redis-py client.
-
-    This function adds library identification to Redis connection kwargs,
-    allowing Redis operators to see which library is using the connection.
-
-    Follows the format: lib_name='redis-py(flask-session_v0.8.0)'.
-    lib_version is not set here; redis-py defaults it to its own
-    installed version.
-
-    Only sets lib_name if not already provided by user, ensuring
-    user-provided values are never overridden.
-
-    Args:
-        kwargs: Dictionary of keyword arguments to pass to Redis client.
-                Will be modified in-place to add 'lib_name' if it is
-                not already present.
-
-    Example:
-        >>> kwargs = {}
-        >>> add_redis_version_info(kwargs)
-        >>> kwargs['lib_name']
-        'redis-py(flask-session_v0.8.0)'
-    """
-    if "lib_name" not in kwargs:
-        from flask_session import __version__
-
-        kwargs["lib_name"] = f"redis-py(flask-session_v{__version__})"

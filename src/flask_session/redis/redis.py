@@ -5,7 +5,8 @@ from typing import Optional
 from flask import Flask
 from redis import Redis
 
-from .._utils import add_redis_version_info, total_seconds
+from .. import __version__
+from .._utils import total_seconds
 from ..base import ServerSideSession, ServerSideSessionInterface
 from ..defaults import Defaults
 
@@ -53,10 +54,7 @@ class RedisSessionInterface(ServerSideSessionInterface):
                 RuntimeWarning,
                 stacklevel=1,
             )
-            # Add version identification for redis-py client
-            kwargs = {}
-            add_redis_version_info(kwargs)
-            client = Redis(**kwargs)
+            client = Redis(lib_name=f"redis-py(flask-session_v{__version__})")
         self.client = client
         super().__init__(
             app, key_prefix, use_signer, permanent, sid_length, serialization_format
