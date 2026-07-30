@@ -10,6 +10,11 @@ from .._utils import total_seconds
 from ..base import ServerSideSession, ServerSideSessionInterface
 from ..defaults import Defaults
 
+try:
+    from redis.driver_info import DriverInfo
+except ImportError:  # redis-py < 7.1: lib_name is the only identification API
+    DriverInfo = None
+
 
 class RedisSession(ServerSideSession):
     pass
@@ -54,7 +59,14 @@ class RedisSessionInterface(ServerSideSessionInterface):
                 RuntimeWarning,
                 stacklevel=1,
             )
-            client = Redis(lib_name=f"redis-py(flask-session_v{__version__})")
+            if DriverInfo is not None:
+                client = Redis(
+                    driver_info=DriverInfo().add_upstream_driver(
+                        "flask-session", __version__
+                    )
+                )
+            else:
+                client = Redis(lib_name=f"redis-py(flask-session_v{__version__})")
         self.client = client
         super().__init__(
             app, key_prefix, use_signer, permanent, sid_length, serialization_format

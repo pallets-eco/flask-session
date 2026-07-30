@@ -8,6 +8,15 @@ from flask_session import __version__
 from flask_session.redis import RedisSession
 
 
+def get_lib_info(client):
+    """Return (lib_name, lib_version) of a client across redis-py versions."""
+    conn_kwargs = client.connection_pool.connection_kwargs
+    driver_info = conn_kwargs.get("driver_info")
+    if driver_info is not None:  # redis-py >= 7.1
+        return driver_info.formatted_name, driver_info.lib_version
+    return conn_kwargs.get("lib_name"), conn_kwargs.get("lib_version")
+
+
 class TestRedisSession:
     """This requires package: redis"""
 
@@ -53,11 +62,9 @@ class TestRedisSession:
                 # Access the session interface to trigger client creation
                 session_interface = app.session_interface
 
-                # Check that lib_name was set in connection pool;
                 # lib_version is left to redis-py's own default
-                conn_kwargs = session_interface.client.connection_pool.connection_kwargs
-                expected_lib_name = f"redis-py(flask-session_v{__version__})"
-                assert conn_kwargs.get("lib_name") == expected_lib_name
+                lib_name, _ = get_lib_info(session_interface.client)
+                assert lib_name == f"redis-py(flask-session_v{__version__})"
 
     def test_redis_respects_custom_version_info(self, app_utils):
         """Test that custom lib_name and lib_version are not overridden."""
@@ -73,6 +80,6 @@ class TestRedisSession:
                 session_interface = app.session_interface
 
                 # Check that custom values were preserved
-                conn_kwargs = session_interface.client.connection_pool.connection_kwargs
-                assert conn_kwargs.get("lib_name") == "MyCustomApp"
-                assert conn_kwargs.get("lib_version") == "1.2.3"
+                lib_name, lib_version = get_lib_info(session_interface.client)
+                assert lib_name == "MyCustomApp"
+                assert lib_version == "1.2.3"
