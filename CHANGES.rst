@@ -3,7 +3,7 @@ Unreleased
 
 Added
 ~~~~~~~
--   Redis backend now identifies itself to Redis servers using the ``lib_name`` and ``lib_version`` parameters. The format follows redis-py conventions: ``lib_name`` is set to ``redis-py(flask-session_v<version>)`` and ``lib_version`` is set to the redis-py version.
+-   Redis backend now identifies itself to Redis servers using the ``lib_name`` parameter, set to ``redis-py(flask-session_v<version>)`` following redis-py conventions. ``lib_version`` is left to redis-py's own default (its installed version).
 
 
 0.8.0 - 2024-03-26

@@ -4,7 +4,7 @@ from contextlib import contextmanager
 import flask
 from redis import Redis
 
-from flask_session._utils import get_flask_session_version, get_redis_py_version
+from flask_session._utils import get_flask_session_version
 from flask_session.redis import RedisSession
 
 
@@ -53,12 +53,12 @@ class TestRedisSession:
                 # Access the session interface to trigger client creation
                 session_interface = app.session_interface
 
-                # Check that lib_name and lib_version were set in connection pool
+                # Check that lib_name was set in connection pool;
+                # lib_version is left to redis-py's own default
                 conn_kwargs = session_interface.client.connection_pool.connection_kwargs
                 flask_session_ver = get_flask_session_version()
                 expected_lib_name = f"redis-py(flask-session_v{flask_session_ver})"
                 assert conn_kwargs.get("lib_name") == expected_lib_name
-                assert conn_kwargs.get("lib_version") == get_redis_py_version()
 
     def test_redis_respects_custom_version_info(self, app_utils):
         """Test that custom lib_name and lib_version are not overridden."""
